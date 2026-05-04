@@ -136,7 +136,7 @@ export default function CartDrawer() {
                 <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
                 <p className="text-gray-500 mb-2">Your cart is empty</p>
                 <Link
-                  href="/collections/all"
+                  href="/#products"
                   onClick={closeCart}
                   className="text-black font-medium underline underline-offset-2"
                 >
@@ -325,7 +325,7 @@ export default function CartDrawer() {
                 )}
               </button>
               <Link
-                href="/collections/all"
+                href="/#products"
                 onClick={closeCart}
                 className="block w-full text-center py-3 text-sm font-medium text-gray-700 hover:text-black underline underline-offset-2 transition-colors"
               >
