@@ -3,9 +3,9 @@ import HeroSection from '@/components/sections/HeroSection'
 import FeaturedProductsSection from '@/components/sections/FeaturedProductsSection'
 
 import type { Metadata } from 'next'
-import ReelsSection from '@/components/sections/ReelsSection'
 
 // Below-fold sections — dynamically imported to reduce initial JS bundle
+const ReelsSection = dynamic(() => import('@/components/sections/ReelsSection'))
 const PressMarqueeSection = dynamic(() => import('@/components/sections/PressMarqueeSection'))
 const MeditationImageSection = dynamic(() => import('@/components/sections/MeditationImageSection'))
 const VideoSection = dynamic(() => import('@/components/sections/VideoSection'))

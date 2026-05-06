@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import ReelCard from './reels/ReelCard'
 
 // Use the 8 new reels from the /reels folder
@@ -16,6 +16,35 @@ export default function ReelsSection() {
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null)
   const [isGlobalMuted, setIsGlobalMuted] = useState(true)
   const [isPaused, setIsPaused] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Auto-play the first reel and unmute it when the section comes into view
+          setActiveVideoId(`${duplicatedReels[0].id}-0`)
+          setIsGlobalMuted(false)
+        } else {
+          // Stop playback when the section goes out of view
+          setActiveVideoId(null)
+          setIsGlobalMuted(true) // Reset mute state
+        }
+      },
+      {
+        threshold: 0.3, // Trigger when 30% of the section is visible
+      }
+    )
+
+    observer.observe(section)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
 
   // Pause/resume animation on hover
   const handleMouseEnter = () => setIsPaused(true)
@@ -35,7 +64,7 @@ export default function ReelsSection() {
   }
 
   return (
-    <section className="pt-12 md:pt-16 lg:pt-20 pb-0 bg-fyber-ivory-dream overflow-hidden">
+    <section ref={sectionRef} className="pt-12 md:pt-16 lg:pt-20 pb-0 bg-fyber-ivory-dream overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-12">
@@ -44,15 +73,14 @@ export default function ReelsSection() {
           </h2>
         </div>
 
-        {/* Infinite Marquee Container */}
+        {/* Marquee / Scrollable Container */}
         <div
-          className="relative overflow-hidden"
+          className="relative overflow-x-auto hide-scrollbar md:overflow-hidden snap-x snap-mandatory flex scroll-smooth"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {/* CSS-based infinite scrolling marquee */}
           <div
-            className="flex gap-4 md:gap-6 animate-marquee"
+            className="flex gap-4 md:gap-6 md:animate-marquee"
             style={{
               animationPlayState: isPaused ? 'paused' : 'running',
               width: 'max-content',
@@ -62,7 +90,8 @@ export default function ReelsSection() {
               const uniqueKey = `${reel.id}-${index}`
               
               return (
-                <ReelCard
+                <div key={uniqueKey} className="snap-center shrink-0">
+                  <ReelCard
                   key={uniqueKey}
                   reel={reel}
                   isActive={activeVideoId === uniqueKey}
@@ -79,6 +108,7 @@ export default function ReelsSection() {
                     // Do nothing on hover end to keep playing, or we could pause
                   }}
                 />
+                </div>
               )
             })}
           </div>
