@@ -16,7 +16,13 @@ export default function ReelsSection() {
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null)
   const [isGlobalMuted, setIsGlobalMuted] = useState(true)
   const [isPaused, setIsPaused] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
+
+  // Mark as mounted after hydration to avoid SSR/client mismatch
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   useEffect(() => {
     const section = sectionRef.current
@@ -63,6 +69,15 @@ export default function ReelsSection() {
     }
   }
 
+  // Use consistent SSR-safe classes. On mount, upgrade to marquee mode.
+  const containerClassName = isMounted
+    ? 'relative overflow-hidden'
+    : 'relative overflow-hidden'
+
+  const innerClassName = isMounted
+    ? 'flex gap-4 md:gap-6 animate-marquee'
+    : 'flex gap-4 md:gap-6'
+
   return (
     <section ref={sectionRef} className="pt-12 md:pt-16 lg:pt-20 pb-0 bg-fyber-ivory-dream overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,12 +90,12 @@ export default function ReelsSection() {
 
         {/* Marquee / Scrollable Container */}
         <div
-          className="relative overflow-x-auto hide-scrollbar md:overflow-hidden snap-x snap-mandatory flex scroll-smooth"
+          className={containerClassName}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
           <div
-            className="flex gap-4 md:gap-6 md:animate-marquee"
+            className={innerClassName}
             style={{
               animationPlayState: isPaused ? 'paused' : 'running',
               width: 'max-content',
@@ -90,8 +105,7 @@ export default function ReelsSection() {
               const uniqueKey = `${reel.id}-${index}`
               
               return (
-                <div key={uniqueKey} className="snap-center shrink-0">
-                  <ReelCard
+                <ReelCard
                   key={uniqueKey}
                   reel={reel}
                   isActive={activeVideoId === uniqueKey}
@@ -108,7 +122,6 @@ export default function ReelsSection() {
                     // Do nothing on hover end to keep playing, or we could pause
                   }}
                 />
-                </div>
               )
             })}
           </div>

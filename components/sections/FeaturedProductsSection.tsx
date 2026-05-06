@@ -45,7 +45,31 @@ interface CardConfig {
 function getCardConfig(title: string, price: number): CardConfig {
   const t = title.toLowerCase()
 
-  if (t.includes('ultimate')) {
+  if (t.includes('test')) {
+    return {
+      hasBadge: false,
+      badgeText: '',
+      badgeBg: '',
+      badgeTextColor: '',
+      isTopBanner: false,
+      title: 'Test Pack',
+      subtitle: 'Try before you commit',
+      bottomTextBig: '',
+      bottomTextMid: '',
+      bottomTextSmall: '3 Sachets',
+      comparePrice: 599,
+      save: 200,
+      perSachet: 133,
+      buttonText: 'Add to cart',
+      buttonClass: 'bg-[#e8ddd0] text-[#3d352b] hover:bg-[#d9cfc2]',
+      rating: '4.7',
+      ratingScore: 4.7,
+      reviews: 'from 150 reviews',
+      wrapperClass: 'border border-[#e2dcd5] bg-[#faf8f5]',
+      isPopular: false,
+      priceColorClass: 'text-gray-900 font-normal',
+    }
+  } else if (t.includes('ultimate')) {
     return {
       hasBadge: false,
       badgeText: '',
@@ -168,11 +192,12 @@ export default function FeaturedProductsSection() {
   const orderedProducts = [...products]
     .filter((p) => {
       const t = p.title.toLowerCase()
-      return t.includes('starter pack') || t.includes('transformation pack') || t.includes('ultimate pack')
+      return t.includes('starter pack') || t.includes('transformation pack') || t.includes('ultimate pack') || t.includes('test pack')
     })
     .sort((a, b) => {
       const rank = (title: string) => {
         const t = title.toLowerCase()
+        if (t.includes('test pack')) return 0
         if (t.includes('transformation pack')) return 1
         if (t.includes('starter pack')) return 2
         if (t.includes('ultimate pack')) return 3
@@ -208,11 +233,13 @@ export default function FeaturedProductsSection() {
               const isAvailable = product.available
 
               const titleLower = product.title.toLowerCase()
-              let orderClass = 'order-3 md:order-3'
-              if (titleLower.includes('starter pack')) {
-                orderClass = 'order-1 md:order-2'
+              let orderClass = 'order-4 md:order-4'
+              if (titleLower.includes('test pack')) {
+                orderClass = 'order-1 md:order-1'
+              } else if (titleLower.includes('starter pack')) {
+                orderClass = 'order-2 md:order-3'
               } else if (titleLower.includes('transformation pack')) {
-                orderClass = 'order-2 md:order-1'
+                orderClass = 'order-3 md:order-2'
               }
 
               return (
