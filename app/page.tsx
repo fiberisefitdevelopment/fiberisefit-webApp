@@ -3,6 +3,7 @@ import HeroSection from '@/components/sections/HeroSection'
 import FeaturedProductsSection from '@/components/sections/FeaturedProductsSection'
 
 import type { Metadata } from 'next'
+import ReelsSection from '@/components/sections/ReelsSection'
 
 // Below-fold sections — dynamically imported to reduce initial JS bundle
 const PressMarqueeSection = dynamic(() => import('@/components/sections/PressMarqueeSection'))
@@ -35,10 +36,10 @@ export default function Home() {
       <FeaturedProductsSection />
       {/* Below-the-fold — dynamically imported, zero initial JS cost */}
       <PressMarqueeSection />
+      <ReelsSection />
       <MeditationImageSection />
       <VideoSection />
       {/* <ProductShowcaseSection /> */}
-      {/* <ReelsSection /> */}
       <ImageTextSection />
       <JourneySection />
       <RitualSection />
