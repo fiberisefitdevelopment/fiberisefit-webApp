@@ -2,14 +2,14 @@
 
 import { useEffect, useRef } from 'react'
 
-const GTM_ID = 'GTM-W8MBF3JG'
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '1494405295572983'
 
 /**
- * Injects ALL third-party analytics scripts (GTM, Google Ads, Meta Pixel)
+ * Injects third-party analytics scripts (Google Ads, Meta Pixel)
  * only after the user's first interaction (scroll, click, touch).
  *
- * This removes ~1.8s of main-thread blocking from the initial page load.
+ * GTM is loaded synchronously in layout.tsx <head> for accurate tracking.
+ * This removes main-thread blocking from the remaining scripts.
  */
 export default function ThirdPartyScripts() {
   const loaded = useRef(false)
@@ -19,21 +19,13 @@ export default function ThirdPartyScripts() {
       if (loaded.current) return
       loaded.current = true
 
-      // 1. Google Tag Manager
-      const w = window as any
-      w.dataLayer = w.dataLayer || []
-      w.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
-      const gtmScript = document.createElement('script')
-      gtmScript.async = true
-      gtmScript.src = `https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`
-      document.head.appendChild(gtmScript)
-
-      // 2. Google Ads (gtag.js)
+      // 1. Google Ads (gtag.js)
       const gtagScript = document.createElement('script')
       gtagScript.async = true
       gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-17953867063'
       document.head.appendChild(gtagScript)
       gtagScript.onload = () => {
+        const w = window as any
         w.dataLayer = w.dataLayer || []
         function gtag(...args: any[]) { w.dataLayer.push(args) }
         gtag('js', new Date())
