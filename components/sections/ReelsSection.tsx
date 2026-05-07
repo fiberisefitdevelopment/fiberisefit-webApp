@@ -16,6 +16,7 @@ export default function ReelsSection() {
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null)
   const [isGlobalMuted, setIsGlobalMuted] = useState(true)
   const [isPaused, setIsPaused] = useState(false)
+  const [hasUserInteracted, setHasUserInteracted] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
 
@@ -31,13 +32,15 @@ export default function ReelsSection() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Auto-play the first reel and unmute it when the section comes into view
+          // Auto-play the first reel when section comes into view
+          // Try unmuted first — ReelCard will fall back to muted if browser blocks it
           setActiveVideoId(`${duplicatedReels[0].id}-0`)
           setIsGlobalMuted(false)
         } else {
           // Stop playback when the section goes out of view
           setActiveVideoId(null)
-          setIsGlobalMuted(true) // Reset mute state
+          setIsGlobalMuted(true)
+          setHasUserInteracted(false)
         }
       },
       {
@@ -61,11 +64,14 @@ export default function ReelsSection() {
   }
 
   const handleActivateReel = (uniqueKey: string) => {
+    setHasUserInteracted(true)
     if (activeVideoId === uniqueKey) {
       // Pause if clicking the same active video
       setActiveVideoId(null)
     } else {
       setActiveVideoId(uniqueKey)
+      // Unmute on user click (this counts as a user gesture)
+      setIsGlobalMuted(false)
     }
   }
 
@@ -79,7 +85,7 @@ export default function ReelsSection() {
     : 'flex gap-4 md:gap-6'
 
   return (
-    <section ref={sectionRef} className="pt-12 md:pt-16 lg:pt-20 pb-0 bg-fyber-ivory-dream overflow-hidden">
+    <section ref={sectionRef} className="pt-12 md:pt-16 lg:pt-20 pb-12 md:pb-16 lg:pb-20 bg-fyber-ivory-dream overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-12">
@@ -113,13 +119,15 @@ export default function ReelsSection() {
                   onActivate={() => handleActivateReel(uniqueKey)}
                   onToggleMute={handleToggleMute}
                   onHoverStart={() => {
-                    // Start playing on hover if not already playing
+                    setHasUserInteracted(true)
+                    // Switch to this reel and unmute on hover (user gesture)
                     if (activeVideoId !== uniqueKey) {
                       setActiveVideoId(uniqueKey)
                     }
+                    setIsGlobalMuted(false)
                   }}
                   onHoverEnd={() => {
-                    // Do nothing on hover end to keep playing, or we could pause
+                    // Keep playing on hover end
                   }}
                 />
               )
@@ -128,22 +136,7 @@ export default function ReelsSection() {
         </div>
       </div>
 
-      {/* Happy Customers Marquee - Stuck to bottom */}
-      <div className="mt-8 md:mt-12 overflow-hidden bg-fyber-ivory-dream">
-        <div className="py-4 md:py-5">
-          <div className="animate-marquee-text whitespace-nowrap flex">
-            {/* Repeat text multiple times for seamless loop */}
-            {[...Array(20)].map((_, i) => (
-              <span
-                key={i}
-                className="text-sm md:text-base font-medium tracking-widest text-gray-800 uppercase mx-6 md:mx-10 flex-shrink-0"
-              >
-                +10000 HAPPY CUSTOMERS
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+
     </section>
   )
 }

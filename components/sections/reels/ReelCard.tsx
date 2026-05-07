@@ -56,26 +56,60 @@ export default function ReelCard({
     }
   }, [])
 
+  // Attempt to play the video, handling browser autoplay restrictions
+  const attemptPlay = useCallback(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    // Always set muted BEFORE play() to respect browser autoplay policy
+    video.muted = isMuted
+
+    const playPromise = video.play()
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        // If autoplay is blocked because it's not muted, retry muted
+        if (error.name === 'NotAllowedError' && !video.muted) {
+          console.log('Unmuted autoplay blocked, retrying muted...')
+          video.muted = true
+          video.play().catch(() => {
+            // Silently fail if even muted play is blocked
+          })
+        }
+      })
+    }
+  }, [isMuted])
+
   // Handle play/pause based on active state and intersection
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
-    // IMPORTANT: Set muted state BEFORE calling play() to avoid browser blocking
-    video.muted = isMuted
-
     if (isActive && isIntersecting) {
-      // Small timeout to prevent play() promise interruption errors
-      const playPromise = video.play()
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.log('Video play interrupted or failed:', error)
-        })
+      // If the video is ready to play, play it now
+      if (video.readyState >= 2) {
+        attemptPlay()
+      } else {
+        // Video not loaded yet — wait for canplay event then play
+        const onCanPlay = () => {
+          attemptPlay()
+          video.removeEventListener('canplay', onCanPlay)
+        }
+        video.addEventListener('canplay', onCanPlay)
+        return () => {
+          video.removeEventListener('canplay', onCanPlay)
+        }
       }
     } else {
       video.pause()
     }
-  }, [isActive, isIntersecting, isMuted])
+  }, [isActive, isIntersecting, attemptPlay])
+
+  // Update muted state on the fly without re-triggering play
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    video.muted = isMuted
+  }, [isMuted])
 
   // Handle video source loading
   useEffect(() => {
