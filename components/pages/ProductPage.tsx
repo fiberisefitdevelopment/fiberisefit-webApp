@@ -305,7 +305,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
       {/* Hero Section - White Background */}
       <div ref={heroRef} className="bg-white">
         {/* Breadcrumb Navigation */}
-        <div className="pt-24 pb-4">
+        <div className="pt-28 pb-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="text-sm text-gray-600">
               <Link href="/" className="hover:underline text-gray-700">Home</Link>
@@ -431,14 +431,17 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
           <div className="flex flex-col lg:flex-row gap-0 lg:items-start">
             {/* Left Section - Product Images (50%) */}
             <div className="w-full lg:w-1/2 flex gap-4 lg:pr-6">
-              {/* Thumbnail Column (Vertical) */}
+              {/* Thumbnail Column (Vertical) - shows 5 at a time with scroll */}
               {displayImages.length > 1 && (
-                <div className="hidden lg:flex flex-col gap-4 flex-shrink-0">
+                <div
+                  className="hidden lg:flex flex-col gap-3 flex-shrink-0 overflow-y-auto pr-1"
+                  style={{ maxHeight: 'calc(5 * 80px + 4 * 12px)' }}
+                >
                   {displayImages.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index
+                      className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index
                         ? 'border-black scale-105'
                         : 'border-transparent hover:border-gray-400'
                         }`}
