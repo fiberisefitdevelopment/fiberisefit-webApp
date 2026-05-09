@@ -64,7 +64,7 @@ const getStaticCardData = (product: Product) => {
   } else {
     // Starter Pack
     return {
-      badgeText: 'TRY FYBER',
+      badgeText: 'STARTER PACK',
       badgeBg: 'bg-[#676767] text-white',
       title: 'Starter Pack',
       subtitle: 'Best for first-time users',
@@ -74,7 +74,7 @@ const getStaticCardData = (product: Product) => {
       shippingStrikethrough: 99,
       save: 601,
       perSachet: 86,
-      buttonText: 'Try FYBER',
+      buttonText: 'Add to Cart',
       buttonClass: 'bg-[#e9ded0] text-[#3d372f] font-medium hover:bg-[#d5cbb8]',
       rating: '4.6',
       reviews: '378 reviews',

@@ -646,7 +646,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                   {!isAvailable
                     ? 'OUT OF STOCK'
                     : product.title.toLowerCase().includes('starter')
-                      ? `TRY FYBER`
+                      ? `ADD TO CART`
                       : `ADD TO CART`
                   }
                 </button>
@@ -1146,7 +1146,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
               {!isAvailable
                 ? 'OUT OF STOCK'
                 : product?.title.toLowerCase().includes('starter')
-                  ? `TRY FYBER`
+                  ? `ADD TO CART`
                   : `ADD TO CART`
               }
             </button>

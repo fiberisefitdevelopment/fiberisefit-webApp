@@ -17,13 +17,7 @@ export default function ReelsSection() {
   const [isGlobalMuted, setIsGlobalMuted] = useState(true)
   const [isPaused, setIsPaused] = useState(false)
   const [hasUserInteracted, setHasUserInteracted] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
-
-  // Mark as mounted after hydration to avoid SSR/client mismatch
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
 
   useEffect(() => {
     const section = sectionRef.current
@@ -75,15 +69,6 @@ export default function ReelsSection() {
     }
   }
 
-  // Use consistent SSR-safe classes. On mount, upgrade to marquee mode.
-  const containerClassName = isMounted
-    ? 'relative overflow-hidden'
-    : 'relative overflow-hidden'
-
-  const innerClassName = isMounted
-    ? 'flex gap-4 md:gap-6 animate-marquee'
-    : 'flex gap-4 md:gap-6'
-
   return (
     <section ref={sectionRef} className="pt-12 md:pt-16 lg:pt-20 pb-12 md:pb-16 lg:pb-20 bg-fyber-ivory-dream overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -96,12 +81,12 @@ export default function ReelsSection() {
 
         {/* Marquee / Scrollable Container */}
         <div
-          className={containerClassName}
+          className="relative overflow-hidden"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
           <div
-            className={innerClassName}
+            className="flex gap-4 md:gap-6 animate-marquee"
             style={{
               animationPlayState: isPaused ? 'paused' : 'running',
               width: 'max-content',

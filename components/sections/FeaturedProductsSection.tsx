@@ -133,7 +133,7 @@ function getCardConfig(title: string, price: number): CardConfig {
       comparePrice: 1200,
       save: 601,
       perSachet: 86,
-      buttonText: 'Try FYBER',
+      buttonText: 'Add to Cart',
       buttonClass: 'bg-gradient-to-r from-[#f0cf82] to-[#d9a84e] text-[#3b2a0e] hover:brightness-95',
       rating: '4.6',
       ratingScore: 4.6,
