@@ -7,7 +7,7 @@ export default function NewsletterForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault()
     if (!email.trim() || status === 'loading') return
     setStatus('loading')
@@ -48,6 +48,7 @@ export default function NewsletterForm() {
         />
         <button
           type="submit"
+          onClick={handleSubmit}
           disabled={status === 'loading'}
           className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
         >

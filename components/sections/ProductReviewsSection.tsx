@@ -112,28 +112,15 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
       const res = await fetch(`/api/products/${encodeURIComponent(productSlug)}/reviews`, { cache: 'no-store' })
       const data = await res.json()
 
-      // Always include seeded testimonials so every product page shows a rich set of reviews
-      const seededReviews: ProductReview[] = SEEDED_TESTIMONIALS.map((t, idx) => ({
-        id: `seed-${idx}`,
-        productSlug,
-        rating: t.rating,
-        comment: t.comment,
-        authorName: t.authorName,
-        authorId: null,
-        createdAt: '',
-      }))
-
       const realReviews: ProductReview[] =
         Array.isArray(data.reviews) && data.reviews.length > 0 ? data.reviews : []
 
-      const combinedReviews = [...realReviews, ...seededReviews]
+      setReviews(realReviews)
 
-      setReviews(combinedReviews)
-
-      const sum = combinedReviews.reduce((acc, r) => acc + r.rating, 0)
-      const avg = combinedReviews.length > 0 ? Math.round((sum / combinedReviews.length) * 10) / 10 : 0
+      const sum = realReviews.reduce((acc, r) => acc + r.rating, 0)
+      const avg = realReviews.length > 0 ? Math.round((sum / realReviews.length) * 10) / 10 : 0
       setAverageRating(avg)
-      setTotalCount(combinedReviews.length)
+      setTotalCount(realReviews.length)
     } catch {
       setReviews([])
     } finally {

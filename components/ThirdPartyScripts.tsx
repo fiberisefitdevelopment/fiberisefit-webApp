@@ -19,18 +19,7 @@ export default function ThirdPartyScripts() {
       if (loaded.current) return
       loaded.current = true
 
-      // 1. Google Ads (gtag.js)
-      const gtagScript = document.createElement('script')
-      gtagScript.async = true
-      gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-17953867063'
-      document.head.appendChild(gtagScript)
-      gtagScript.onload = () => {
-        const w = window as any
-        w.dataLayer = w.dataLayer || []
-        function gtag(...args: any[]) { w.dataLayer.push(args) }
-        gtag('js', new Date())
-        gtag('config', 'AW-17953867063')
-      }
+      // 1. Google Ads (gtag.js) moved to layout.tsx for immediate loading
 
       // 3. Meta Pixel
       const f = window as any

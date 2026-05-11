@@ -533,13 +533,17 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                   </h1>
 
                   {/* Rating immediately below Title */}
-                  <div className="flex items-center gap-1.5">
+                  <button 
+                    onClick={() => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="flex items-center gap-1.5 hover:opacity-80 transition-opacity focus:outline-none"
+                    aria-label="Scroll to reviews"
+                  >
                     <Star className="w-4 h-4 fill-amber-400 text-amber-400" aria-hidden />
-                    <span className="text-sm font-semibold text-black">{displayRating.toFixed(1)}</span>
+                    <span className="text-sm font-semibold text-black underline decoration-gray-300 underline-offset-2">{displayRating.toFixed(1)}</span>
                     {displayReviewCount > 0 && (
-                      <span className="text-sm font-semibold text-black">({displayReviewCount})</span>
+                      <span className="text-sm font-semibold text-black underline decoration-gray-300 underline-offset-2">({displayReviewCount})</span>
                     )}
-                  </div>
+                  </button>
                 </div>
 
                 {/* Variant Selection (Box style) */}

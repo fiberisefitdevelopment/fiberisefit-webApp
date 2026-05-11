@@ -59,7 +59,7 @@ export default function Footer() {
                 </svg>
               </a>
             </div>
-            <div className="mt-8 hidden md:block md:w-[150%] max-w-none">
+            <div className="mt-8 hidden md:block md:w-[150%] max-w-none relative z-10">
               <h4 className="text-xs font-semibold uppercase tracking-wider mb-3">
                 Newsletter
               </h4>

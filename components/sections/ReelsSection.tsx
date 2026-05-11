@@ -94,7 +94,7 @@ export default function ReelsSection() {
           >
             {duplicatedReels.map((reel, index) => {
               const uniqueKey = `${reel.id}-${index}`
-              
+
               return (
                 <ReelCard
                   key={uniqueKey}
