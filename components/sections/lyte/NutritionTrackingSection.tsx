@@ -68,7 +68,7 @@ export default function NutritionTrackingSection() {
           >
             <Image
               src="/lyte_images/5fbc73b5-697b-4f21-8d48-da8a747a1a97.png"
-              alt="Nutrition tracking"
+              alt="Fiberise Fit - Nutrition Tracking"
               fill
               className="object-cover"
             />

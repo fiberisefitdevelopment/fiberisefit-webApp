@@ -55,7 +55,7 @@ export default function JourneySection() {
                 <div className="relative w-full h-[240px] md:h-[300px] lg:h-[360px]">
                   <Image
                     src="/ritual/Soft%20Tones%20Visual%20Minimalist%20Dessert%20Inspiration.jpg"
-                    alt="Product dropper"
+                    alt="Controls Cravings"
                     fill
                     className="object-cover object-center rounded-lg"
                     sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 24vw"
@@ -73,7 +73,7 @@ export default function JourneySection() {
               <div className="relative flex-1 h-[240px] md:h-[300px] lg:h-[360px] rounded-2xl overflow-hidden">
                 <Image
                   src="/ritual/Modern%20Aesthetic%20AI%20Stock%20Photos%20for%20Your%20Brand.jpg"
-                  alt="Wellness fitness"
+                  alt="Wellness fitness - BYE BLOATING"
                   fill
                   className="object-contain object-center"
                   sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 24vw"
@@ -136,7 +136,7 @@ export default function JourneySection() {
                   <div className="relative w-full h-[240px] md:h-[300px] lg:h-[360px]">
                     <Image
                       src="/ritual/Make_this_image_2k_202601091748.jpeg"
-                      alt="Product dropper"
+                      alt="WEIGHT RELEASES in 30 Days"
                       fill
                       className="object-cover object-center rounded-lg"
                       sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 24vw"
@@ -154,7 +154,7 @@ export default function JourneySection() {
               <div className="relative flex-[3] h-[240px] md:h-[300px] lg:h-[360px] rounded-2xl overflow-hidden">
                 <Image
                   src="/ritual/Make_the_man_2k_202601120957.jpeg"
-                  alt="Wellness fitness"
+                  alt="BODY , REIMAGINED in 90 Days"
                   fill
                   className="object-cover object-center"
                   sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 24vw"

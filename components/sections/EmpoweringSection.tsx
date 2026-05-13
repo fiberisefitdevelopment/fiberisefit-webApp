@@ -151,7 +151,7 @@ export default function EmpoweringSection() {
               <div className="absolute inset-0 flex items-center justify-center overflow-visible">
                 <Image
                   src="/team-photos/lime and lemon mockup front.png"
-                  alt="Lime and lemon supplement product"
+                  alt="Fyber - Lime and lemon supplement product"
                   width={600}
                   height={900}
                   className="w-96 md:w-[28rem] lg:w-[36rem] h-auto drop-shadow-2xl -rotate-12"
@@ -182,7 +182,7 @@ export default function EmpoweringSection() {
             <div className="absolute inset-0 flex items-center justify-center overflow-visible">
               <Image
                 src="/team-photos/unflavoured mockup front.png"
-                alt="Unflavoured supplement product"
+                alt="Fyber - Unflavoured supplement product"
                 width={600}
                 height={900}
                 className="w-96 md:w-[28rem] lg:w-[36rem] h-auto drop-shadow-2xl rotate-6"

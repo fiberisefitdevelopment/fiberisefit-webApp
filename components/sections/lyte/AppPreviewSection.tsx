@@ -6,15 +6,15 @@ import Image from 'next/image'
 const appImages = [
   {
     src: '/lyte_images/sleep 3.png',
-    alt: 'Sleep',
+    alt: 'Your analytics INSIGHTS - Sleep',
   },
   {
     src: '/lyte_images/dashboard 3.png',
-    alt: 'Dashboard',
+    alt: 'Your analytics INSIGHTS - Calories',
   },
   {
     src: '/lyte_images/Nutrition 2.png',
-    alt: 'Steps',
+    alt: 'Your analytics INSIGHTS - Weekly Average',
   },
 ]
 

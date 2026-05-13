@@ -10,7 +10,7 @@ export default function ImageTextSection() {
           <div className="relative w-full h-[50vh] md:h-full overflow-hidden m-0 p-0">
             <Image
               src="/WhatsApp Image 2026-01-08 at 11.09.54.jpeg"
-              alt="LEAN-X Ingredient"
+              alt="LEAN-X - Patent Pending Formula"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"

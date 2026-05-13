@@ -233,7 +233,7 @@ export default function Footer() {
         <div className="relative w-full max-w-6xl h-32 md:h-44 lg:h-56 opacity-1000">
           <Image
             src="/fiberise fit light logo.png"
-            alt="Fiberise"
+            alt="Fiberise Fit Footer Logo"
             fill
             className="object-contain"
           />

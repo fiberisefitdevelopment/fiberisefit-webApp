@@ -446,13 +446,13 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                         : 'border-transparent hover:border-gray-400'
                         }`}
                     >
-                      <Image
-                        src={image}
-                        alt={`${product.title} - Image ${index + 1}`}
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                      />
+                        <Image
+                          src={image}
+                          alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') ? 'FYBER' : 'Fyber'} ${product.title} - Image ${index + 1}`}
+                          fill
+                          sizes="80px"
+                          className="object-cover"
+                        />
                     </button>
                   ))}
                 </div>
@@ -463,7 +463,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                 <div className="relative w-full aspect-square">
                   <Image
                     src={displayImages[selectedImageIndex] || product.image || '/placeholder-product.png'}
-                    alt={product.title}
+                    alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') ? 'FYBER' : 'Fyber'} ${product.title}`}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-contain sm:p-8"
@@ -505,7 +505,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                       >
                         <Image
                           src={image}
-                          alt={`${product.title} - Image ${index + 1}`}
+                          alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') ? 'FYBER' : 'Fyber'} ${product.title} - Image ${index + 1}`}
                           fill
                           sizes="64px"
                           className="object-cover"
@@ -662,7 +662,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                     <div className="hidden md:flex flex-col gap-4">
                       <Image
                         src="/MONEYBACK DESKTOP.png"
-                        alt="100% Money-Back Guarantee"
+                        alt="Fyber - 100% Money-Back Guarantee"
                         width={800}
                         height={200}
                         className="w-full h-auto object-contain"
@@ -670,7 +670,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                       />
                       <Image
                         src="/timeline-desktoppng.png"
-                        alt="Product Timeline"
+                        alt="Product Timeline - Measurable Results"
                         width={800}
                         height={200}
                         className="w-full h-auto object-contain"
@@ -681,7 +681,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                     <div className="w-full flex flex-col md:hidden">
                       <Image
                         src="/MONEYBACK MOBILE 2.png"
-                        alt="100% Money-Back Guarantee"
+                        alt="Fyber - 100% Money-Back Guarantee"
                         width={800}
                         height={400}
                         className="w-full h-auto object-contain block"
@@ -728,7 +728,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                   <div className="mt-4 flex flex-col">
                     <Image
                       src="/timeline-desktoppng.png"
-                      alt="Product Timeline"
+                      alt="Product Timeline - Measurable Results"
                       width={800}
                       height={200}
                       className="w-full h-auto object-contain"

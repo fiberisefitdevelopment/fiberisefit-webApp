@@ -50,7 +50,7 @@ const CravingsSection = () => {
         <div className="relative w-full h-[500px] lg:h-full rounded-3xl lg:rounded-l-3xl lg:rounded-r-none overflow-hidden">
           <Image
             src="/cravings-image.png"
-            alt="Cravings Control"
+            alt="Control Cravings Naturally"
             fill
             className="object-cover"
             priority
