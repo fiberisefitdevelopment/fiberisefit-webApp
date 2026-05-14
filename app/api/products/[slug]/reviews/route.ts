@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, isAdminInitialized, getInitError, adminAuth } from '@/lib/firebase/admin'
 import { normalizePhone } from '@/lib/user-identifier'
 import type { DocumentSnapshot } from 'firebase-admin/firestore'
+import globalReviews from '@/data/globalReviews.json'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +14,7 @@ export interface ProductReview {
   authorName: string
   authorId?: string | null
   createdAt: string
+  translation?: string
 }
 
 function toISOString(value: unknown): string {
@@ -68,15 +70,19 @@ export async function GET(
       .limit(100)
       .get()
 
-    const reviews = snapshot.docs
+    const firebaseReviews = snapshot.docs
       .map(serializeReview)
+
+    // Merge with global reviews
+    const allReviews = [...firebaseReviews, ...(globalReviews as ProductReview[])]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    const totalCount = reviews.length
-    const sum = reviews.reduce((acc, r) => acc + r.rating, 0)
+
+    const totalCount = allReviews.length
+    const sum = allReviews.reduce((acc, r) => acc + r.rating, 0)
     const averageRating = totalCount > 0 ? Math.round((sum / totalCount) * 10) / 10 : 0
 
     return NextResponse.json({
-      reviews,
+      reviews: allReviews,
       averageRating,
       totalCount,
     })

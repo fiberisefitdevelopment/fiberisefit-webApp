@@ -9,6 +9,7 @@ import VideoSection from '@/components/sections/VideoSection'
 import MetabolismSection from '@/components/sections/science/MetabolismSection'
 import BenefitsGrid from '@/components/sections/science/BenefitsGrid'
 import ProductReviewsSection from '@/components/sections/ProductReviewsSection'
+import ReelsSection from '@/components/sections/ReelsSection'
 import PaymentIcons from '@/components/PaymentIcons'
 import { getProductRatingBySlug } from '@/lib/product-ratings'
 
@@ -841,6 +842,9 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
         </div>
       </div>
 
+      {/* Real Stories / Reels Section */}
+      <ReelsSection />
+
       {/* Science / feature video + metabolic explanation + benefits grid directly below hero */}
       <VideoSection />
       <MetabolismSection />
@@ -931,43 +935,9 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
             <span className="inline-block px-8">
               BECAUSE WEIGHT MANAGEMENT AND WELL-BEING SHOULD FEEL INTELLIGENT, CALM AND EFFORTLESS.
             </span>
-            <span className="inline-block px-8">
-              BECAUSE WEIGHT MANAGEMENT AND WELL-BEING SHOULD FEEL INTELLIGENT, CALM AND EFFORTLESS.
-            </span>
           </div>
         </div>
       </div> */}
-
-      {/* Reels Section */}
-      {/* <section className="w-full bg-[#F5F3EF] py-12 md:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 md:mb-10">
-            <p className="text-sm md:text-base text-gray-600 font-medium mb-1">
-              Your Health in Trusted Hands!
-            </p>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black uppercase tracking-wide">
-              Real Stories, Real Results
-            </h2>
-          </div>
-          <div className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-2 -mx-2 px-2 justify-center md:justify-start">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-[200px] sm:w-[220px] md:w-[240px] aspect-[9/16] rounded-2xl overflow-hidden bg-black/5 shadow-sm"
-              >
-                <video
-                  src={`/videos/${i}.webm`}
-                  className="w-full h-full object-cover"
-                  playsInline
-                  muted
-                  loop
-                  autoPlay
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section> */}
 
       {/* FAQ Section */}
       <section className="w-full bg-white py-12 md:py-16" style={{ fontFamily: 'Montserrat, sans-serif' }}>

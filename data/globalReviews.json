@@ -1,0 +1,222 @@
+[
+  {
+    "id": "global-1",
+    "authorName": "Priya",
+    "rating": 4,
+    "comment": "The Fyber starter pack helped me snack less during office hours. Love it.",
+    "createdAt": "2024-05-10T10:00:00Z"
+  },
+  {
+    "id": "global-2",
+    "authorName": "Rahul Khanna",
+    "rating": 5,
+    "comment": "Weight loss really happened. I wasn’t hoping for a lot but very effective.",
+    "createdAt": "2024-05-09T14:20:00Z"
+  },
+  {
+    "id": "global-3",
+    "authorName": "Nidhi Patel",
+    "rating": 4,
+    "comment": "I am 25, weight management was a big issue with office, this is simple and easy fix. 10/10 recommend.",
+    "createdAt": "2024-05-08T11:45:00Z"
+  },
+  {
+    "id": "global-4",
+    "authorName": "Sakshi Arora",
+    "rating": 4,
+    "comment": "Just took Fyber, no gym, no exercise, no strict diet, lost 4 kgs in a month.",
+    "createdAt": "2024-05-07T16:30:00Z"
+  },
+  {
+    "id": "global-5",
+    "authorName": "Aditya Menon",
+    "rating": 5,
+    "comment": "Fyber helped in weight loss without exercise. My personal favourite is lime flavour.",
+    "createdAt": "2024-05-06T09:15:00Z"
+  },
+  {
+    "id": "global-6",
+    "authorName": "Kritika Sharma",
+    "rating": 4,
+    "comment": "I thought its a scam, but it works plus its safe and natural. Lost 2 kgs in a month.",
+    "createdAt": "2024-05-05T13:10:00Z"
+  },
+  {
+    "id": "global-7",
+    "authorName": "Rhea",
+    "rating": 4,
+    "comment": "Weight loss without exercise is possible with Fyber. Crazy.",
+    "createdAt": "2024-05-04T17:50:00Z"
+  },
+  {
+    "id": "global-8",
+    "authorName": "Manav Choudhary",
+    "rating": 5,
+    "comment": "My wife introduced me to Fyber and now I drink it everyday. Weight loss visible.",
+    "createdAt": "2024-05-03T08:25:00Z"
+  },
+  {
+    "id": "global-9",
+    "authorName": "Tanvi",
+    "rating": 4,
+    "comment": "Lost weight before sister’s wedding, in 2 months -6 kgs. Love it.",
+    "createdAt": "2024-05-02T12:40:00Z"
+  },
+  {
+    "id": "global-10",
+    "authorName": "Ayesha Sheikh",
+    "rating": 5,
+    "comment": "Bought Fyber starter pack, i really liked it, buying the 90 days one now.",
+    "createdAt": "2024-05-01T15:55:00Z"
+  },
+  {
+    "id": "global-11",
+    "authorName": "Megha Sethi",
+    "rating": 4,
+    "comment": "I’ve wasted money on teas, ACV shots, and random powders before, but Fyber Fit is the first thing I’ve actually managed to stick with consistently. Lost 3 kgs already in 1 month.",
+    "createdAt": "2024-04-30T10:20:00Z"
+  },
+  {
+    "id": "global-12",
+    "authorName": "Harshit",
+    "rating": 4,
+    "comment": "I thought weight loss without exercise was total nonsense, but Fyber genuinely helped me stop overeating during long office days. Perfect for me.",
+    "createdAt": "2024-04-29T14:45:00Z"
+  },
+  {
+    "id": "global-13",
+    "authorName": "Shreya",
+    "rating": 5,
+    "comment": "As a 28 year old working woman, Fyber for weight loss honestly saved me from stress eating and random midnight snacking almost every night. Lost 1 kg in 10 days.",
+    "createdAt": "2024-04-28T11:15:00Z"
+  },
+  {
+    "id": "global-14",
+    "authorName": "Divya Nair",
+    "rating": 5,
+    "comment": "The fat burning process feels way smoother. I crave less, feel light, love the formula. Plus its clean and natural 10/10.",
+    "createdAt": "2024-04-27T16:50:00Z"
+  },
+  {
+    "id": "global-15",
+    "authorName": "Arjun",
+    "rating": 4,
+    "comment": "Compared to other supplements I’ve tried, the Fyber starter pack tasted lighter, felt cleaner, and didn’t upset my stomach at all.",
+    "createdAt": "2024-04-26T09:30:00Z"
+  },
+  {
+    "id": "global-16",
+    "authorName": "Simran Kaur",
+    "rating": 5,
+    "comment": "I started the Fyber weight loss pack before wedding shopping, and for the first time in months, I actually felt confident trying outfits.",
+    "createdAt": "2024-04-25T13:15:00Z"
+  },
+  {
+    "id": "global-17",
+    "authorName": "Pallavi",
+    "rating": 5,
+    "comment": "Weight loss without dieting sounded fake to me initially, but Fyber naturally made me eat smaller portions without forcing anything.",
+    "createdAt": "2024-04-24T17:40:00Z"
+  },
+  {
+    "id": "global-18",
+    "authorName": "Yash Gupta",
+    "rating": 5,
+    "comment": "I literally searched how can I lose weight fast naturally at 2am, found fyber randomly, and decided to just give it one shot.",
+    "createdAt": "2024-04-23T08:55:00Z"
+  },
+  {
+    "id": "global-19",
+    "authorName": "Komal Jain",
+    "rating": 4,
+    "comment": "Fyber Fit starter pack didn’t magically change everything overnight, but I definitely feel less bloated, less heavy, and way more comfortable after meals.",
+    "createdAt": "2024-04-22T12:20:00Z"
+  },
+  {
+    "id": "global-20",
+    "authorName": "Nitin",
+    "rating": 5,
+    "comment": "Started using 1 month ago, buying a new pack now. I travel constantly for work, so Fyber felt practical for my routine.",
+    "createdAt": "2024-04-21T15:45:00Z"
+  },
+  {
+    "id": "global-hindi-1",
+    "authorName": "Aarti Mishra",
+    "rating": 4,
+    "comment": "ऑफिस के बाद इतना थक जाती थी कि व्यायाम करने का मन ही नहीं करता था, फिर fyber Fit शुरू किया तो थोड़ा हल्का महसूस होने लगा। अब एक महीने से इस्तेमाल करने पर मेरा 3 किलो वजन कम हो चुका है।",
+    "translation": "I used to get so tired after office that I never felt like exercising, then I started fyber Fit and slowly started feeling lighter. After using it for one month, I’ve already lost 3 kg.",
+    "createdAt": "2024-04-20T10:10:00Z"
+  },
+  {
+    "id": "global-hindi-2",
+    "authorName": "Rakesh Yadav",
+    "rating": 4,
+    "comment": "सच कहूं तो मुझे लगा ये बिना व्यायाम के वजन कम करना वाला तरीका कुछ फालतू होगा, लेकिन मेरे दोस्त ने इसे इस्तेमाल किया और उसका रिजल्ट देखा। अब मैं इसे एक महीने से ले रहा हूं, ये 100% काम करता है।",
+    "translation": "Honestly, I thought this weight loss without exercise thing was nonsense, but then I saw my friend’s results after using it. I’ve been taking it for one month now, and it works 100%.",
+    "createdAt": "2024-04-19T14:35:00Z"
+  },
+  {
+    "id": "global-guj-1",
+    "authorName": "Hetal Shah",
+    "rating": 4,
+    "comment": "પહેલા મને લાગતું હતું કે કસરત વગર વજન ઘટાડવું શક્ય નથી, પણ ફાઈબર ફિટ શરૂ કર્યા પછી ધીમે ધીમે શરીર હળવું લાગવા લાગ્યું અને કપડાં પણ ઢીલા થવા લાગ્યા.",
+    "translation": "Earlier I thought losing weight without exercise was not possible, but after starting Fyber Fit my body slowly started feeling lighter and my clothes began to feel loose.",
+    "createdAt": "2024-04-18T11:05:00Z"
+  },
+  {
+    "id": "global-guj-2",
+    "authorName": "Jignesh Patel",
+    "rating": 4,
+    "comment": "મેં ફાઈબર સ્ટાર્ટર પેક ટ્રાય માટે લીધું હતું, પણ એક મહિના પછી વધુ ખાવાની આદત ઘટી ગઈ અને કુલ વજન પણ ધીમે ધીમે ઓછું થતું લાગે છે.",
+    "translation": "I took the Fyber starter pack just for trial, but after one month my overeating reduced and overall weight also seems to be slowly decreasing.",
+    "createdAt": "2024-04-17T16:55:00Z"
+  },
+  {
+    "id": "global-tamil-1",
+    "authorName": "Keerthana Ravi",
+    "rating": 5,
+    "comment": "பைபர் ஃபிட் பயன்படுத்த ஆரம்பித்த பிறகு மாலை நேர சிற்றுண்டி அதிகமாக சாப்பிடுவது குறைந்து விட்டது, உடல் லேசாக உணரப்படுகிறது.",
+    "translation": "After starting Fyber Fit, I’ve reduced evening snacking and my body feels lighter.",
+    "createdAt": "2024-04-16T09:25:00Z"
+  },
+  {
+    "id": "global-tamil-2",
+    "authorName": "Pradeep Kumar",
+    "rating": 4,
+    "comment": "எப்படி இயற்கையாக விரைவாக உடல் எடை குறைப்பது என்று தேடிக்கொண்டிருந்த போது தான் பைபர் கிடைத்தது, மூன்று வாரத்தில் பசி கட்டுப்பாடு ஏற்பட்டது போல உணர்கிறேன்.",
+    "translation": "I found Fyber while searching how to lose weight fast naturally, and within 3 weeks I feel appetite control.",
+    "createdAt": "2024-04-15T13:45:00Z"
+  },
+  {
+    "id": "global-beng-1",
+    "authorName": "Moumita Sen",
+    "rating": 5,
+    "comment": "ফাইবার ফিট ব্যবহার করার আগে মনে হতো ডায়েট ছাড়া ওজন কমানো সম্ভব নয়, কিন্তু এখন খাওয়ার পরিমাণ নিজে থেকেই কমে গেছে。",
+    "translation": "Before using Fyber Fit, I thought weight loss without dieting wasn’t possible, but now my food intake has automatically reduced.",
+    "createdAt": "2024-04-14T17:15:00Z"
+  },
+  {
+    "id": "global-beng-2",
+    "authorName": "Subhajit Roy",
+    "rating": 4,
+    "comment": "আমি প্রথমে বিশ্বাস করিনি, কিন্তু ফাইবার স্টার্টার প্যাক ব্যবহার করার পরে অতিরিক্ত খাওয়া অনেকটা কমে গেছে এবং শরীর হালকা লাগছে।",
+    "translation": "I didn’t believe it at first, but after using the Fyber starter pack my overeating reduced a lot and my body feels lighter.",
+    "createdAt": "2024-04-13T08:35:00Z"
+  },
+  {
+    "id": "global-mal-1",
+    "authorName": "Anjana Pillai",
+    "rating": 5,
+    "comment": "ഫൈബർ ഫിറ്റ് തുടങ്ങിയത് മുതൽ കുറച്ച് ആഴ്ചകൾക്കുള്ളിൽ തന്നെ അധികം ഭക്ഷണം കഴിക്കുന്ന ശീലം കുറയുകയും ശരീരം കുറച്ച് ലഘുവായി തോന്നുകയും ചെയ്തു.",
+    "translation": "Within a few weeks of starting Fyber Fit, my overeating reduced and my body started feeling lighter.",
+    "createdAt": "2024-04-12T12:55:00Z"
+  },
+  {
+    "id": "global-mal-2",
+    "authorName": "Akhil Menon",
+    "rating": 4,
+    "comment": "വ്യായാമമില്ലാതെ ശരീരഭാരം കുറയുക സാധ്യമല്ലെന്ന് ഞാൻ കരുതിയിരുന്നു, പക്ഷേ ഫൈബർ ഉപയോഗിച്ചതിന് ശേഷം ദിനചര്യ കൂടുതൽ നിയന്ത്രിതമായി.",
+    "translation": "I used to think weight loss without exercise was impossible, but after using Fyber my routine became more controlled.",
+    "createdAt": "2024-04-11T15:25:00Z"
+  }
+]

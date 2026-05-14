@@ -12,6 +12,7 @@ export interface ProductReview {
   authorName: string
   authorId?: string | null
   createdAt: string
+  translation?: string
 }
 
 interface ReviewsResponse {
@@ -102,6 +103,7 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
   const [hoverRating, setHoverRating] = useState(0)
   const [comment, setComment] = useState('')
   const [authorName, setAuthorName] = useState('')
+  const [translatedReviewIds, setTranslatedReviewIds] = useState<Set<string>>(new Set())
 
   const { isAuthenticated, user, getIdToken } = useAuth()
 
@@ -204,6 +206,15 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
     } finally {
       setSubmitLoading(false)
     }
+  }
+
+  const toggleTranslation = (id: string) => {
+    setTranslatedReviewIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   const displayRating = hoverRating || rating
@@ -353,28 +364,82 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
             ) : (
               <div className="max-h-[26rem] overflow-y-auto pr-1 scrollbar-hide">
                 <ul className="space-y-6">
-                  {reviews.map((r) => (
-                    <li
-                      key={r.id}
-                      className="border-b border-gray-100 pb-6 last:border-0 last:pb-0"
-                    >
-                      <div className="flex gap-2 mb-2">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i <= r.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-gray-900 leading-relaxed mb-2">{r.comment}</p>
-                      <p className="text-sm text-gray-500">
-                        — {displayAuthorName(r.authorName)}
-                        {formatDate(r.createdAt) ? ` · ${formatDate(r.createdAt)}` : ''}
-                      </p>
-                    </li>
-                  ))}
+                  {reviews.map((r) => {
+                    const isTranslated = translatedReviewIds.has(r.id)
+                    return (
+                      <li
+                        key={r.id}
+                        className="group bg-white border border-gray-100 rounded-2xl p-5 md:p-6 transition-all hover:shadow-md hover:border-gray-200"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i <= r.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            {formatDate(r.createdAt)}
+                          </p>
+                        </div>
+                        
+                        <div className="relative">
+                          {/* Original Comment */}
+                          {!isTranslated && (
+                            <p className="text-gray-900 leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-300">
+                              {r.comment}
+                            </p>
+                          )}
+                          
+                          {/* Translation */}
+                          {isTranslated && r.translation && (
+                            <div className="bg-blue-50/40 rounded-xl p-4 border border-blue-100/50 animate-in fade-in zoom-in-95 duration-300">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">English Translation</span>
+                              </div>
+                              <p className="text-gray-800 leading-relaxed italic">
+                                “{r.translation}”
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* See Translation Button - Right Aligned Below Text */}
+                          {r.translation && (
+                            <div className="flex justify-end mt-3">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  toggleTranslation(r.id)
+                                }}
+                                className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all flex items-center gap-2 border shadow-sm ${
+                                  isTranslated 
+                                    ? 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' 
+                                    : 'bg-black text-white border-black hover:bg-gray-800'
+                                }`}
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                                </svg>
+                                {isTranslated ? 'Show Original' : 'See Translation'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50/50">
+                          <p className="text-sm font-semibold text-gray-800">
+                            — {displayAuthorName(r.authorName)}
+                          </p>
+                        </div>
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             )}

@@ -91,7 +91,7 @@ export default function Header() {
             >
               <Image
                 src="/fiberisefit dark logo.png"
-                alt="Fiberise Fit Logo"
+                alt="Fiberise Logo"
                 width={96}
                 height={24}
                 className="object-contain object-center w-24 h-6"
@@ -106,7 +106,7 @@ export default function Header() {
             >
               <Image
                 src="/fiberisefit dark logo.png"
-                alt="Fiberise Fit Logo"
+                alt="Fiberise Logo"
                 fill
                 className="object-contain object-left"
                 priority
