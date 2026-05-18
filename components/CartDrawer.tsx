@@ -32,12 +32,6 @@ export default function CartDrawer() {
   }
 
   const handleCheckout = async () => {
-    if (!isAuthenticated) {
-      closeCart()
-      router.push('/account/login')
-      return
-    }
-
     if (items.length === 0) {
       return
     }
@@ -45,9 +39,9 @@ export default function CartDrawer() {
     setIsProcessingCheckout(true)
 
     try {
-      const token = await getIdToken()
-      if (!token) {
-        throw new Error('Failed to get authentication token')
+      let token: string | null = null
+      if (isAuthenticated) {
+        token = await getIdToken()
       }
 
       // Prepare cart items for checkout
@@ -56,12 +50,16 @@ export default function CartDrawer() {
         quantity: item.quantity,
       }))
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch('/api/checkout/create', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           items: cartItems,
           discountCode: promoCode.trim() || undefined,

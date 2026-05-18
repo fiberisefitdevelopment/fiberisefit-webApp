@@ -26,42 +26,34 @@ export async function POST(request: NextRequest) {
   try {
     // Get Authorization header
     const authHeader = request.headers.get('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized: No token provided' },
-        { status: 401 }
-      )
-    }
+    let phone: string | undefined
 
-    const idToken = authHeader.split('Bearer ')[1]
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const idToken = authHeader.split('Bearer ')[1]
 
-    // Verify Firebase token
-    let decodedToken
-    try {
-      decodedToken = await adminAuth.verifyIdToken(idToken)
-    } catch (error: any) {
-      console.error('Token verification error:', error)
-      return NextResponse.json(
-        { error: 'Unauthorized: Invalid token' },
-        { status: 401 }
-      )
-    }
+      // Verify Firebase token
+      let decodedToken
+      try {
+        decodedToken = await adminAuth.verifyIdToken(idToken)
+      } catch (error: any) {
+        console.error('Token verification error:', error)
+        return NextResponse.json(
+          { error: 'Unauthorized: Invalid token' },
+          { status: 401 }
+        )
+      }
 
-    const phone = decodedToken.phone_number as string | undefined
-    if (!phone) {
-      return NextResponse.json(
-        { error: 'Phone number required. Please sign in with phone.' },
-        { status: 400 }
-      )
-    }
-
-    const userDocId = phone
-    const userDoc = await adminDb.collection('users').doc(userDocId).get()
-    if (!userDoc.exists) {
-      return NextResponse.json(
-        { error: 'User not found. Please login again.' },
-        { status: 404 }
-      )
+      phone = decodedToken.phone_number as string | undefined
+      if (phone) {
+        const userDocId = phone
+        const userDoc = await adminDb.collection('users').doc(userDocId).get()
+        if (!userDoc.exists) {
+          return NextResponse.json(
+            { error: 'User not found. Please login again.' },
+            { status: 404 }
+          )
+        }
+      }
     }
 
     // Get cart items and optional discount code from request body
@@ -102,14 +94,17 @@ export async function POST(request: NextRequest) {
     })
 
     // Create cart with items
-    const cartInput = {
+    const cartInput: any = {
       lines: cartLines,
-      attributes: [
+    }
+
+    if (phone) {
+      cartInput.attributes = [
         {
           key: 'user_phone',
           value: phone,
         },
-      ],
+      ]
     }
 
     console.log('Creating Shopify cart with items:', JSON.stringify(cartLines, null, 2))
@@ -153,30 +148,32 @@ export async function POST(request: NextRequest) {
     let checkoutUrl = cartResult.cartCreate.cart.checkoutUrl
 
     // Update cart attributes to ensure user_phone is set
-    try {
-      await shopifyFetch<{
-        cartAttributesUpdate: {
-          cart: {
-            id: string
-            checkoutUrl: string
+    if (phone) {
+      try {
+        await shopifyFetch<{
+          cartAttributesUpdate: {
+            cart: {
+              id: string
+              checkoutUrl: string
+            }
+            userErrors: Array<{ field: string[]; message: string }>
           }
-          userErrors: Array<{ field: string[]; message: string }>
-        }
-      }>({
-        query: CART_UPDATE_MUTATION,
-        variables: {
-          cartId,
-          attributes: [
-            {
-              key: 'user_phone',
-              value: phone,
-            },
-          ],
-        },
-      })
-    } catch (error) {
-      console.error('Error updating cart attributes:', error)
-      // Continue even if attribute update fails
+        }>({
+          query: CART_UPDATE_MUTATION,
+          variables: {
+            cartId,
+            attributes: [
+              {
+                key: 'user_phone',
+                value: phone,
+              },
+            ],
+          },
+        })
+      } catch (error) {
+        console.error('Error updating cart attributes:', error)
+        // Continue even if attribute update fails
+      }
     }
 
     // Set buyer identity (phone) so checkout Contact field is prefilled automatically
