@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 
 interface Product {
@@ -102,21 +101,6 @@ export default function HeroSection() {
     return () => clearInterval(timer)
   }, [])
 
-  const nextSlide = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % SLIDES.length)
-  }
-
-  const prevSlide = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + SLIDES.length) % SLIDES.length)
-  }
 
   const handleOrderNow = async (productSearch: string) => {
     try {
@@ -198,21 +182,6 @@ export default function HeroSection() {
           )
         })}
 
-        {/* Navigation Arrows */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2 md:p-3 rounded-full bg-white/40 hover:bg-white text-black backdrop-blur-md shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 active:scale-95"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-2 md:p-3 rounded-full bg-white/40 hover:bg-white text-black backdrop-blur-md shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100 active:scale-95"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-        </button>
 
         {/* Indicator Dots container */}
         <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2.5 px-3 py-1.5 rounded-full bg-black/15 backdrop-blur-sm">
