@@ -283,3 +283,15 @@ a {
   animation: spin-slow 8s linear infinite;
 }
 
+/* Hero Carousel Wrapper Aspect Ratio (padding-bottom hack) */
+.hero-carousel-wrapper {
+  height: 0 !important;
+  padding-bottom: 125% !important; /* 4:5 mobile aspect ratio */
+}
+
+@media (min-width: 768px) {
+  .hero-carousel-wrapper {
+    padding-bottom: 55.825% !important; /* 4000:2233 desktop aspect ratio */
+  }
+}
+

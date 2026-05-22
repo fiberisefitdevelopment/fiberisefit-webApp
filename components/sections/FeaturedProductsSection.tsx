@@ -281,14 +281,14 @@ export default function FeaturedProductsSection() {
                   </div>
 
                   {/* Image */}
-                  <Link href={`/products/${product.slug}`} className="block mt-5 mb-1">
-                    <div className="relative w-full aspect-[4/3] group">
+                  <Link href={`/products/${product.slug}`} className="block px-6 mt-5 mb-1">
+                    <div className="relative w-full aspect-square rounded-2xl overflow-hidden group">
                       <Image
                         src={product.image || '/placeholder-product.png'}
                         alt={product.title}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="object-contain group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
                   </Link>
