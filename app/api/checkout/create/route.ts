@@ -210,10 +210,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Apply promotion/discount code if provided, default to PREPAID5 for automatic prepaid discount
-    const finalDiscountCode = discountCode?.trim() || 'PREPAID5'
-    const discountCodesToApply = [finalDiscountCode]
-    if (discountCodesToApply.length > 0) {
+    // Apply promotion/discount code if provided
+    const finalDiscountCode = discountCode?.trim()
+    if (finalDiscountCode) {
+      const discountCodesToApply = [finalDiscountCode]
       try {
         const discountResult = await shopifyFetch<{
           cartDiscountCodesUpdate: {

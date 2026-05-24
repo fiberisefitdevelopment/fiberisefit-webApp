@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Plus, Minus, ShoppingBag, Tag, Loader2, Check, Copy, Gift, AlertCircle } from 'lucide-react'
+import { X, Plus, Minus, ShoppingBag, Tag, Loader2, Check, AlertCircle } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
@@ -18,20 +18,6 @@ export default function CartDrawer() {
   const [promoApplied, setPromoApplied] = useState(false)
   const [promoError, setPromoError] = useState<string | null>(null)
   const [pendingCheckoutUrl, setPendingCheckoutUrl] = useState<string | null>(null)
-  const [isCopied, setIsCopied] = useState(false)
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText('PREPAID5')
-    setIsCopied(true)
-    setTimeout(() => setIsCopied(false), 2000)
-  }
-
-  const handleApplyPrepaidDiscount = () => {
-    setPromoCode('PREPAID5')
-    setPromoError(null)
-    setPromoApplied(true)
-    setPendingCheckoutUrl(null)
-  }
 
   const handleApplyPromo = () => {
     const code = promoCode.trim()
@@ -226,70 +212,7 @@ export default function CartDrawer() {
                 </article>
               ))}
 
-              {/* Card 2: Prepaid Promo Banner */}
-              <div className="p-4 bg-[#F2FAF2] border border-[#E0EEE0] rounded-xl flex items-start gap-4 shadow-sm">
-                {/* Angled green tag SVG */}
-                <div className="shrink-0 mt-0.5">
-                  <svg className="w-12 h-12 text-[#2E7D32]" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 22L22 4H44V26L26 44H4L4 22Z" fill="currentColor" />
-                    {/* Circle punch hole */}
-                    <circle cx="36" cy="12" r="3" fill="#F2FAF2" />
-                    {/* Percent sign */}
-                    <path d="M19 23C20.1046 23 21 22.1046 21 21C21 19.8954 20.1046 19 19 19C17.8954 19 17 19.8954 17 21C17 22.1046 17.8954 23 19 23Z" fill="white" />
-                    <path d="M29 31C30.1046 31 31 30.1046 31 29C31 27.8954 30.1046 27 29 27C27.8954 27 27 27.8954 27 29C27 30.1046 27.8954 31 29 31Z" fill="white" />
-                    <line x1="28" y1="19" x2="20" y2="31" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                </div>
-
-                <div className="space-y-3.5 flex-1">
-                  <h4 className="text-sm font-black text-[#114B1F] tracking-wide uppercase leading-tight">
-                    SAVE EXTRA 5% ON PREPAID ORDERS!
-                  </h4>
-                  
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-gray-700 font-semibold">Use code:</span>
-                    <div className="px-4 py-1.5 border border-dashed border-[#2E7D32] rounded bg-white text-[#2E7D32] font-bold text-xs tracking-wider min-w-[100px] text-center">
-                      PREPAID5
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleCopyCode}
-                      className="px-3.5 py-1.5 bg-[#0E441E] hover:bg-[#082E13] text-white text-xs font-bold rounded flex items-center gap-1.5 transition-colors shadow-sm"
-                    >
-                      {isCopied ? (
-                        <>
-                          <span className="inline-flex items-center justify-center w-3 h-3 bg-white text-[#0E441E] rounded-full text-[8px] font-bold">✓</span>
-                          <span>Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 2h8a1 1 0 011 1v1h1a1 1 0 011 1v8a1 1 0 01-1 1H6a1 1 0 01-1-1v-1H4a1 1 0 01-1-1V3a1 1 0 011-1zm2 10h7V5H6v7zm-2-2h1V4h6V3H4v7z" />
-                          </svg>
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  
-                  <ul className="space-y-1.5 text-xs text-gray-700 font-medium">
-                    <li className="flex items-center gap-2 text-[#114B1F]">
-                      <span className="inline-flex items-center justify-center w-4 h-4 bg-[#2E7D32] rounded-full text-white text-[8px] font-bold">
-                        ✓
-                      </span>
-                      Valid on UPI, Cards & Online Payments
-                    </li>
-                    <li className="flex items-center gap-2 text-[#961A22]">
-                      <span className="inline-flex items-center justify-center w-4 h-4 bg-[#D32F2F] rounded-full text-white text-[8px] font-bold">
-                        ✕
-                      </span>
-                      Cash on Delivery not available with this offer
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Card 3: Promo, Subtotal & Checkout Controls */}
+              {/* Promo, Subtotal & Checkout Controls */}
               <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 space-y-4 shadow-sm">
                 {/* Promotion Input */}
                 <div className="space-y-2">
@@ -337,38 +260,13 @@ export default function CartDrawer() {
                   <div className="flex justify-between items-baseline text-black">
                     <span className="text-sm sm:text-base font-extrabold">Subtotal</span>
                     <span className="text-base sm:text-lg font-black">
-                      ₹{promoCode.trim() === 'PREPAID5' && promoApplied 
-                        ? (getTotal() * 0.95).toFixed(2) 
-                        : getTotal().toFixed(2)
-                      }
+                      ₹{getTotal().toFixed(2)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 font-semibold pt-1">
                     Shipping and discounts applied at checkout.
                   </p>
                 </div>
-
-                {/* Quick-Apply Promo Box */}
-                <button
-                  type="button"
-                  onClick={handleApplyPrepaidDiscount}
-                  className={`w-full p-3 rounded-lg text-left text-xs transition-all flex items-center gap-2.5 border ${
-                    promoCode.trim() === 'PREPAID5' && promoApplied
-                      ? 'bg-[#F2FAF2] border-[#D0E7D0] text-[#114B1F]'
-                      : 'bg-[#F9FAF9] hover:bg-[#F0F5F0] border-[#E2E8E2] text-gray-700'
-                  }`}
-                >
-                  <Gift className={`w-4 h-4 shrink-0 ${
-                    promoCode.trim() === 'PREPAID5' && promoApplied ? 'text-[#2E7D32]' : 'text-gray-500'
-                  }`} />
-                  <div className="flex-1 font-semibold text-[11px] sm:text-xs">
-                    {promoCode.trim() === 'PREPAID5' && promoApplied ? (
-                      <span>Discount <strong>PREPAID5</strong> applied! You get 5% OFF and pay online.</span>
-                    ) : (
-                      <span>Apply <strong className="text-[#2E7D32]">PREPAID5</strong> to get 5% OFF and pay online.</span>
-                    )}
-                  </div>
-                </button>
 
                 {/* Checkout Button */}
                 <button
