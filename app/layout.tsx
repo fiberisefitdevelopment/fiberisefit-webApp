@@ -28,13 +28,27 @@ const ORGANIZATION_SCHEMA = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Fiberise Fit',
-  alternateName: 'fiberisefit',
   url: 'https://fiberisefit.com/',
   logo: 'https://fiberisefit.com/_next/image?url=%2Ffiberisefit%20dark%20logo.png&w=1920&q=75',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+91-7070705026',
+    contactType: 'customer service',
+    areaServed: 'IN',
+    availableLanguage: 'English'
+  },
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '731/508 S/F, PLOT NO.7 BLOCK 56 DB GUPTA ROAD Karol Bagh Central Delhi, New Delhi, Delhi, India 110005 Sat Nagar SO DELHI 110005',
+    addressLocality: 'Karol Bagh',
+    addressRegion: 'New Delhi',
+    postalCode: '110005',
+    addressCountry: 'IN'
+  },
   sameAs: [
     'https://www.instagram.com/fiberisefit',
-    'https://www.linkedin.com/company/fiberise-fit/',
-  ],
+    'https://www.linkedin.com/company/fiberise-fit'
+  ]
 }
 
 export const metadata: Metadata = {
@@ -77,6 +91,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${montserrat.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
+        <link rel="alternate" hrefLang="en-in" href="https://fiberisefit.com" />
         {/* Google Tag Manager — loads immediately for accurate tracking */}
         <Script id="gtm-head" strategy="beforeInteractive">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':

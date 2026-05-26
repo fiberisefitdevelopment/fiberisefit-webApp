@@ -155,10 +155,10 @@ function StarRow({ score }: { score: number }) {
           <Star
             key={i}
             className={`w-3.5 h-3.5 ${filled
-                ? 'fill-amber-400 text-amber-400'
-                : half
-                  ? 'fill-amber-400/50 text-amber-400'
-                  : 'text-gray-300'
+              ? 'fill-amber-400 text-amber-400'
+              : half
+                ? 'fill-amber-400/50 text-amber-400'
+                : 'text-gray-300'
               }`}
             aria-hidden
           />
@@ -211,6 +211,9 @@ export default function FeaturedProductsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-10 md:mb-14">
+          <h1 className="text-xs md:text-sm font-bold tracking-[0.25em] uppercase text-[#a67517] mb-3">
+            Science-Backed Natural Weight Management Supplement
+          </h1>
           <p className="text-2xl md:text-3xl text-gray-900 font-normal leading-snug mb-2">
             Control Appetite. Refine Weight
           </p>
@@ -344,8 +347,8 @@ export default function FeaturedProductsSection() {
                         }
                         disabled={!isAvailable}
                         className={`w-full py-3.5 rounded-lg text-base font-semibold transition-all ${isAvailable
-                            ? cfg.buttonClass
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          ? cfg.buttonClass
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           }`}
                       >
                         {isAvailable ? cfg.buttonText : 'OUT OF STOCK'}

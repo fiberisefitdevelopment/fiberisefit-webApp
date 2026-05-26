@@ -152,10 +152,44 @@ async function getProductData(slug: string) {
   }
 }
 
+function getBreadcrumbSchema(slug: string) {
+  const nameMap: Record<string, string> = {
+    'starter-pack': 'Starter Pack',
+    'transformation-pack': 'Transformation Pack',
+    'ultimate-pack': 'Ultimate Pack',
+  }
+  const name = nameMap[slug] || slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': 'https://fiberisefit.com'
+      },
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': 'Products',
+        'item': 'https://fiberisefit.com/products'
+      },
+      {
+        '@type': 'ListItem',
+        'position': 3,
+        'name': name,
+        'item': `https://fiberisefit.com/products/${slug}`
+      }
+    ]
+  }
+}
+
 export default async function Product({ params }: ProductProps) {
   const { slug } = await params
   const initialProduct = await getProductData(slug)
   const productSchema = PRODUCT_SCHEMA_BY_SLUG[slug]
+  const breadcrumbSchema = getBreadcrumbSchema(slug)
 
   return (
     <>
@@ -165,6 +199,10 @@ export default async function Product({ params }: ProductProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <ProductPage slug={slug} initialProduct={initialProduct} />
     </>
   )

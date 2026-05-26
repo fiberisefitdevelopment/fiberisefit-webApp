@@ -130,7 +130,7 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="relative w-full overflow-hidden bg-white pt-24 md:pt-0 group">
+    <section className="relative w-full overflow-hidden bg-white pt-20 md:pt-20 group">
       {/* Carousel Wrapper */}
       <div className="relative w-full h-0 hero-carousel-wrapper">
         {SLIDES.map((slide, index) => {
@@ -138,9 +138,8 @@ export default function HeroSection() {
           return (
             <div
               key={slide.key}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-              }`}
+              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                }`}
             >
               {/* Slide Link */}
               <Link
@@ -171,9 +170,8 @@ export default function HeroSection() {
                     handleOrderNow(slide.productSearch)
                   }}
                   disabled={isAdding !== null}
-                  className={`absolute bottom-[10%] md:bottom-[15%] left-1/2 md:left-[16%] -translate-x-1/2 md:translate-x-0 z-20 px-8 py-3.5 md:px-12 md:py-4 rounded-full text-xs md:text-sm font-bold uppercase tracking-[0.2em] transition-all duration-300 shadow-[0_4px_25px_rgba(0,0,0,0.2)] active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                    slide.btnClass
-                  }`}
+                  className={`absolute bottom-[10%] md:bottom-[15%] left-1/2 md:left-[16%] -translate-x-1/2 md:translate-x-0 z-20 px-8 py-3.5 md:px-12 md:py-4 rounded-full text-xs md:text-sm font-bold uppercase tracking-[0.2em] transition-all duration-300 shadow-[0_4px_25px_rgba(0,0,0,0.2)] active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 ${slide.btnClass
+                    }`}
                 >
                   {isAdding === slide.productSearch ? 'Adding...' : slide.btnText}
                 </button>
@@ -192,9 +190,8 @@ export default function HeroSection() {
                 e.preventDefault()
                 setCurrentIndex(index)
               }}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'
-              }`}
+              className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}

@@ -19,6 +19,25 @@ function ErrorFallback({ error }: { error: Error }) {
 }
 
 export default function LytePage() {
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://fiberisefit.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Lyte",
+        "item": "https://fiberisefit.com/lyte"
+      }
+    ]
+  }
+
   useEffect(() => {
     console.log('LYTE Page: All components should render')
 
@@ -45,6 +64,10 @@ export default function LytePage() {
 
   return (
     <div className="bg-black text-white min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <HeroSection />
       <ProductShowcase />
       <FeatureSection />

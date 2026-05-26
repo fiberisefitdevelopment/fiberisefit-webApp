@@ -3,6 +3,25 @@
 import { useState } from 'react'
 
 export default function ContactPage() {
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://fiberisefit.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Contact",
+        "item": "https://fiberisefit.com/contact"
+      }
+    ]
+  }
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -47,6 +66,10 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-[#F5F3EF] pt-32 pb-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">

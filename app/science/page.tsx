@@ -19,8 +19,31 @@ export const metadata: Metadata = {
 }
 
 export default function SciencePage() {
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://fiberisefit.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Science",
+        "item": "https://fiberisefit.com/science"
+      }
+    ]
+  }
+
   return (
     <div className="bg-white min-h-screen overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <ScienceHero />
       <CravingsSection />
       <GlucoseSection />
