@@ -40,9 +40,10 @@ interface Product {
 interface ProductPageProps {
   slug: string
   initialProduct?: Product | null
+  isJuneTransformPage?: boolean
 }
 
-export default function ProductPage({ slug, initialProduct }: ProductPageProps) {
+export default function ProductPage({ slug, initialProduct, isJuneTransformPage = false }: ProductPageProps) {
   const [product, setProduct] = useState<Product | null>(() => {
     let p = initialProduct || null
     if (p && slug === 'bogo') {
@@ -76,7 +77,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
   }, [])
 
   useEffect(() => {
-    if (slug !== 'transformation-pack') return
+    if (slug !== 'transformation-pack' || isJuneTransformPage) return
 
     const storageKey = 'transformation_pack_opened_at'
     const fortyEightHours = 1 * 60 * 1000 // 1 minute in milliseconds (temporary for testing, originally 48 hours)
@@ -142,7 +143,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
   }, [slug])
 
   useEffect(() => {
-    if (slug !== 'transformation-pack' || !firstOpenedTime) return
+    if (slug !== 'transformation-pack' || isJuneTransformPage || !firstOpenedTime) return
 
     const fortyEightHours = 1 * 60 * 1000 // 1 minute for testing (originally 48 * 60 * 60 * 1000)
 
@@ -200,10 +201,25 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
   }, [setPaymentMethod])
 
   const { activeCampaign, clearCampaign } = useCampaignStore()
+  const activateCampaign = useCampaignStore((state) => state.activateCampaign)
+
+  useEffect(() => {
+    if (isJuneTransformPage) {
+      activateCampaign({
+        slug: 'june-transform',
+        discountType: 'fixed',
+        discountValue: 250,
+        expiresAt: '2026-12-31T23:59:59Z',
+        applicableProducts: ['transformation-pack'],
+      })
+    }
+  }, [isJuneTransformPage, activateCampaign])
+
   const isCampaignActive = activeCampaign &&
     activeCampaign.applicableProducts.includes(slug) &&
     (new Date().getTime() < new Date(activeCampaign.expiresAt).getTime()) &&
-    !(slug === 'transformation-pack' && isLinkExpired)
+    !(slug === 'transformation-pack' && isLinkExpired) &&
+    activeCampaign.slug !== 'june-transform'
 
   const DEFAULT_RATING = getProductRatingBySlug(slug)
   const displayRating = reviewRating && reviewRating.totalCount > 0
@@ -442,8 +458,11 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
   }
 
   const displayPrice = selectedVariant?.price ?? product.price
-  const isPrepaid = mounted && paymentMethod === 'prepaid' && slug === 'bogo'
-  const currentPrice = isPrepaid ? displayPrice - 200 : displayPrice
+  const isBogoPrepaid = mounted && paymentMethod === 'prepaid' && slug === 'bogo'
+  const isJuneTransformPrepaid = mounted && paymentMethod === 'prepaid' && isJuneTransformPage
+  const currentPrice = isJuneTransformPrepaid 
+    ? displayPrice - 250 
+    : (isBogoPrepaid ? displayPrice - 200 : displayPrice)
   const displayCompareAt = selectedVariant?.compareAtPrice ?? product.comparePrice ?? null
   const discountPercent = displayCompareAt != null && displayCompareAt > currentPrice && currentPrice > 0
     ? Math.round((1 - currentPrice / displayCompareAt) * 100)
@@ -546,8 +565,11 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                         <p className="text-base text-gray-500 mt-0.5">Servings : {getServings(variant.name)}</p>
                         <div className="mt-1">
                           {(() => {
-                            const isPrepaid = mounted && paymentMethod === 'prepaid' && slug === 'bogo'
-                            const displayVariantPrice = isPrepaid ? variant.price - 200 : variant.price
+                            const isBogoPrepaid = mounted && paymentMethod === 'prepaid' && slug === 'bogo'
+                            const isJuneTransformPrepaid = mounted && paymentMethod === 'prepaid' && isJuneTransformPage
+                            const displayVariantPrice = isJuneTransformPrepaid 
+                              ? variant.price - 250 
+                              : (isBogoPrepaid ? variant.price - 200 : variant.price)
                             const discountPct = variant.compareAtPrice != null && variant.compareAtPrice > displayVariantPrice
                               ? Math.round((1 - displayVariantPrice / variant.compareAtPrice) * 100)
                               : 0
@@ -822,10 +844,16 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                           )}
                         </div>
                         <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">INCL. OF ALL TAXES</p>
-                        {isPrepaid && (
+                        {isBogoPrepaid && (
                           <div className="text-[11px] text-[#187254] font-bold mt-1.5 flex items-center gap-1.5 animate-fade-in">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#187254] animate-pulse" />
                             Prepaid ₹200 discount applied
+                          </div>
+                        )}
+                        {isJuneTransformPrepaid && (
+                          <div className="text-[11px] text-[#187254] font-bold mt-1.5 flex items-center gap-1.5 animate-fade-in">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#187254] animate-pulse" />
+                            Prepaid ₹250 discount applied
                           </div>
                         )}
                       </div>
@@ -834,7 +862,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                 </div>
 
                 {/* Payment Method Selector */}
-                {slug === 'bogo' && (
+                {(slug === 'bogo' || isJuneTransformPage) && (
                   <div className="space-y-2 pt-3 pb-1 border-t border-gray-100">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700">
@@ -842,7 +870,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                       </span>
                       {(!mounted || paymentMethod === 'prepaid') && (
                         <span className="text-[10px] bg-[#E8F5E9] text-[#187254] font-bold px-2.5 py-0.5 rounded-full border border-[#A5D6A7]/30 animate-pulse">
-                          Extra ₹200 OFF
+                          Extra {isJuneTransformPage ? '₹250' : '₹200'} OFF
                         </span>
                       )}
                     </div>
@@ -859,7 +887,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-gray-900">Prepaid</span>
                           <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1.5 py-0.5 rounded">
-                            -₹200
+                            -{isJuneTransformPage ? '₹250' : '₹200'}
                           </span>
                         </div>
                         <p className="text-[9px] text-gray-500 mt-1 leading-tight">

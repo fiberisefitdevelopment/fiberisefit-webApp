@@ -18,6 +18,9 @@ export default function CartDrawer() {
   const { activeCampaign } = useCampaignStore()
   const isCampaignValid = activeCampaign && new Date().getTime() < new Date(activeCampaign.expiresAt).getTime()
   const hasBogo = items.some((item) => item.handle === 'bogo')
+  console.log('🛒 Cart Items in Drawer:', items.map(i => ({ id: i.id, title: i.title, handle: i.handle, price: i.price })))
+  console.log('🛒 hasBogo:', hasBogo)
+  const hasJuneTransform = items.some((item) => item.handle === 'transformation-pack') && isCampaignValid && activeCampaign.slug === 'june-transform'
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false)
   const [promoCode, setPromoCode] = useState('')
   const [promoApplied, setPromoApplied] = useState(false)
@@ -68,7 +71,7 @@ export default function CartDrawer() {
         body: JSON.stringify({
           items: cartItems,
           discountCode: promoCode.trim() || (paymentMethod === 'prepaid' && hasBogo ? 'PREPAID200' : undefined),
-          campaignSlug: isCampaignValid ? activeCampaign.slug : undefined,
+          campaignSlug: (isCampaignValid && (activeCampaign.slug !== 'june-transform' || paymentMethod === 'prepaid')) ? activeCampaign.slug : undefined,
         }),
       })
 
@@ -177,7 +180,7 @@ export default function CartDrawer() {
                       Free shipping • Easy returns
                     </p>
                     <div className="text-sm sm:text-base font-extrabold text-black pt-1">
-                      {isCampaignValid && item.handle && activeCampaign.applicableProducts.includes(item.handle) ? (
+                      {isCampaignValid && item.handle && activeCampaign.applicableProducts.includes(item.handle) && (activeCampaign.slug !== 'june-transform' || paymentMethod === 'prepaid') ? (
                         (() => {
                           const discountedPrice = item.price - activeCampaign.discountValue
                           return (
@@ -238,7 +241,7 @@ export default function CartDrawer() {
               {/* Promo, Subtotal & Checkout Controls */}
               <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 space-y-4 shadow-sm">
                 {/* Payment Method Selector */}
-                {hasBogo && (
+                {(hasBogo || hasJuneTransform) && (
                   <div className="space-y-2 pb-2">
                     <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700">
                       Payment Method
@@ -256,11 +259,11 @@ export default function CartDrawer() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-gray-900">Prepaid</span>
                           <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1 py-0.5 rounded">
-                            -₹200
+                            -{hasJuneTransform ? '₹250' : '₹200'}
                           </span>
                         </div>
                         <p className="text-[9px] text-gray-500 mt-1 leading-tight">
-                          UPI, Card (Extra ₹200 OFF)
+                          UPI, Card (Extra {hasJuneTransform ? '₹250' : '₹200'} OFF)
                         </p>
                       </button>
                       <button

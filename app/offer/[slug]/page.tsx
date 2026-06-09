@@ -2,6 +2,7 @@ import { getCampaignBySlug, logCampaignEvent } from '@/lib/campaigns'
 import CampaignActivator from '../../../components/CampaignActivator'
 import Link from 'next/link'
 import { AlertCircle, ShoppingBag } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,10 @@ interface OfferPageProps {
 
 export default async function OfferPage({ params }: OfferPageProps) {
   const { slug } = await params
+
+  if (slug?.trim().toLowerCase() === 'june-transform') {
+    redirect('/offers/june-transform')
+  }
 
   // 1. Fetch campaign details
   const campaign = await getCampaignBySlug(slug)
