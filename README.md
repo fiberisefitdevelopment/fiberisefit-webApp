@@ -1,4 +1,4 @@
-# FIberiseFit Wonder Theme - Next.js Clone
+
 
 A Next.js recreation of the Shopify Wonder theme (Root preset) for the FIberiseFit industry.
 
