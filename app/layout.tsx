@@ -5,6 +5,7 @@ import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import CartDrawer from '@/components/CartDrawer'
+import GlobalOfferBanner from '@/components/GlobalOfferBanner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import ThirdPartyScripts from '../components/ThirdPartyScripts'
 
@@ -130,6 +131,7 @@ export default function RootLayout({
           />
         </noscript>
         <AuthProvider>
+          <GlobalOfferBanner />
           <Header />
           <main className="min-h-screen">{children}</main>
           <Footer />

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb, isAdminInitialized, getInitError } from '@/lib/firebase/admin'
 import { shopifyFetch } from '@/lib/shopify/client'
 import { CART_CREATE_MUTATION, CART_UPDATE_MUTATION, CART_BUYER_IDENTITY_UPDATE_MUTATION, CART_DISCOUNT_CODES_UPDATE_MUTATION } from '@/lib/shopify/queries'
+import { getCampaignBySlug, logCampaignEvent } from '@/lib/campaigns'
 export const dynamic = 'force-dynamic'
 
 interface CartItem {
@@ -58,13 +59,40 @@ export async function POST(request: NextRequest) {
 
     // Get cart items and optional discount code from request body
     const body = await request.json()
-    const { items, discountCode }: { items: CartItem[]; discountCode?: string } = body
+    const { items, discountCode, campaignSlug }: { items: CartItem[]; discountCode?: string; campaignSlug?: string } = body
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { error: 'Cart is empty' },
         { status: 400 }
       )
+    }
+
+    let finalDiscountCode = discountCode?.trim()
+
+    // 10. Checkout Validation: Before order placement: revalidate campaign expiry, ensure discount still active
+    if (campaignSlug) {
+      const campaign = await getCampaignBySlug(campaignSlug)
+      const now = new Date().getTime()
+      
+      if (campaign && campaign.isActive && now < new Date(campaign.expiresAt).getTime()) {
+        console.log(`✅ [Checkout API] Validated active campaign: ${campaignSlug}`)
+        // Set final discount code to the campaign's mapped Shopify discount code
+        finalDiscountCode = campaign.shopifyDiscountCode || campaign.slug
+        
+        // Log checkout initiated event
+        try {
+          await logCampaignEvent(campaign.slug, 'checkout')
+        } catch (err) {
+          console.error('Error logging checkout campaign event:', err)
+        }
+      } else {
+        console.warn(`❌ [Checkout API] Campaign is expired or inactive: ${campaignSlug}`)
+        return NextResponse.json(
+          { error: 'This campaign offer has expired. Please clear your cart and proceed without the discount.' },
+          { status: 400 }
+        )
+      }
     }
 
     // Helper function to convert ID to Shopify GID format
@@ -98,13 +126,16 @@ export async function POST(request: NextRequest) {
       lines: cartLines,
     }
 
+    const attributes: Array<{ key: string; value: string }> = []
     if (phone) {
-      cartInput.attributes = [
-        {
-          key: 'user_phone',
-          value: phone,
-        },
-      ]
+      attributes.push({ key: 'user_phone', value: phone })
+    }
+    if (campaignSlug) {
+      attributes.push({ key: 'campaign_slug', value: campaignSlug })
+    }
+
+    if (attributes.length > 0) {
+      cartInput.attributes = attributes
     }
 
     console.log('Creating Shopify cart with items:', JSON.stringify(cartLines, null, 2))
@@ -147,8 +178,16 @@ export async function POST(request: NextRequest) {
     const cartId = cartResult.cartCreate.cart.id
     let checkoutUrl = cartResult.cartCreate.cart.checkoutUrl
 
-    // Update cart attributes to ensure user_phone is set
+    // Update cart attributes to ensure user_phone and campaign_slug are set
+    const updateAttrs: Array<{ key: string; value: string }> = []
     if (phone) {
+      updateAttrs.push({ key: 'user_phone', value: phone })
+    }
+    if (campaignSlug) {
+      updateAttrs.push({ key: 'campaign_slug', value: campaignSlug })
+    }
+
+    if (updateAttrs.length > 0) {
       try {
         await shopifyFetch<{
           cartAttributesUpdate: {
@@ -162,12 +201,7 @@ export async function POST(request: NextRequest) {
           query: CART_UPDATE_MUTATION,
           variables: {
             cartId,
-            attributes: [
-              {
-                key: 'user_phone',
-                value: phone,
-              },
-            ],
+            attributes: updateAttrs,
           },
         })
       } catch (error) {
@@ -211,7 +245,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Apply promotion/discount code if provided
-    const finalDiscountCode = discountCode?.trim()
     if (finalDiscountCode) {
       const discountCodesToApply = [finalDiscountCode]
       try {

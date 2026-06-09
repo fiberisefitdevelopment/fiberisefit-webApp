@@ -5,14 +5,17 @@ import { useRouter } from 'next/navigation'
 import { X, Plus, Minus, ShoppingBag, Tag, Loader2, Check, AlertCircle } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useAuth } from '@/contexts/AuthContext'
+import { useCampaignStore } from '@/store/campaignStore'
 import Image from 'next/image'
 import Link from 'next/link'
 
 export default function CartDrawer() {
   const router = useRouter()
-  const { isOpen, items, closeCart, updateQuantity, removeItem, getTotal } =
+  const { isOpen, items, closeCart, updateQuantity, removeItem, getTotal, paymentMethod, setPaymentMethod } =
     useCartStore()
   const { isAuthenticated, getIdToken, loading: authLoading } = useAuth()
+  const { activeCampaign } = useCampaignStore()
+  const isCampaignValid = activeCampaign && new Date().getTime() < new Date(activeCampaign.expiresAt).getTime()
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false)
   const [promoCode, setPromoCode] = useState('')
   const [promoApplied, setPromoApplied] = useState(false)
@@ -62,7 +65,8 @@ export default function CartDrawer() {
         headers,
         body: JSON.stringify({
           items: cartItems,
-          discountCode: promoCode.trim() || undefined,
+          discountCode: promoCode.trim() || (paymentMethod === 'prepaid' ? 'PREPAID200' : undefined),
+          campaignSlug: isCampaignValid ? activeCampaign.slug : undefined,
         }),
       })
 
@@ -171,10 +175,27 @@ export default function CartDrawer() {
                       Free shipping • Easy returns
                     </p>
                     <div className="text-sm sm:text-base font-extrabold text-black pt-1">
-                      <span>₹{item.price.toFixed(2)} </span>
-                      <span className="text-xs text-gray-400 font-medium">
-                        (₹{item.price.toFixed(2)} × {item.quantity})
-                      </span>
+                      {isCampaignValid && item.handle && activeCampaign.applicableProducts.includes(item.handle) ? (
+                        (() => {
+                          const discountedPrice = item.price - activeCampaign.discountValue
+                          return (
+                            <>
+                              <span className="text-[#187254]">₹{discountedPrice.toFixed(2)} </span>
+                              <span className="text-xs text-gray-400 line-through mr-1.5">₹{item.price.toFixed(2)}</span>
+                              <span className="text-xs text-gray-400 font-medium font-sans block sm:inline">
+                                (₹{discountedPrice.toFixed(2)} × {item.quantity})
+                              </span>
+                            </>
+                          )
+                        })()
+                      ) : (
+                        <>
+                          <span>₹{item.price.toFixed(2)} </span>
+                          <span className="text-xs text-gray-400 font-medium">
+                            (₹{item.price.toFixed(2)} × {item.quantity})
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -214,6 +235,47 @@ export default function CartDrawer() {
 
               {/* Promo, Subtotal & Checkout Controls */}
               <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 space-y-4 shadow-sm">
+                {/* Payment Method Selector */}
+                <div className="space-y-2 pb-2">
+                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700">
+                    Payment Method
+                  </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('prepaid')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        paymentMethod === 'prepaid'
+                          ? 'border-black bg-white ring-2 ring-black shadow-sm'
+                          : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-900">Prepaid</span>
+                        <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1 py-0.5 rounded">
+                          -₹200
+                        </span>
+                      </div>
+                      <p className="text-[9px] text-gray-500 mt-1 leading-tight">
+                        UPI, Card (Extra ₹200 OFF)
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('cod')}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        paymentMethod === 'cod'
+                          ? 'border-black bg-white ring-2 ring-black shadow-sm'
+                          : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="text-xs font-bold text-gray-900">COD</span>
+                      <p className="text-[9px] text-gray-500 mt-1 leading-tight">
+                        Cash on Delivery
+                      </p>
+                    </button>
+                  </div>
+                </div>
                 {/* Promotion Input */}
                 <div className="space-y-2">
                   <label htmlFor="cart-promo" className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
@@ -256,13 +318,43 @@ export default function CartDrawer() {
                 </div>
 
                 {/* Subtotal Display */}
-                <div className="pt-2 border-t border-gray-100">
-                  <div className="flex justify-between items-baseline text-black">
-                    <span className="text-sm sm:text-base font-extrabold">Subtotal</span>
-                    <span className="text-base sm:text-lg font-black">
-                      ₹{getTotal().toFixed(2)}
-                    </span>
-                  </div>
+                <div className="pt-2 border-t border-gray-100 space-y-1.5">
+                  {(() => {
+                    const regularSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+                    const campaignDiscount = regularSubtotal - getTotal()
+                    
+                    const isPrepaidDiscount = paymentMethod === 'prepaid'
+                    const prepaidDiscountAmount = isPrepaidDiscount ? 200 : 0
+                    
+                    const finalTotal = Math.max(0, getTotal() - prepaidDiscountAmount)
+
+                    return (
+                      <>
+                        <div className="flex justify-between items-baseline text-gray-500 text-xs sm:text-sm font-semibold">
+                          <span>Subtotal (Regular)</span>
+                          <span>₹{regularSubtotal.toFixed(2)}</span>
+                        </div>
+                        {campaignDiscount > 0 && (
+                          <div className="flex justify-between items-baseline text-[#187254] text-xs sm:text-sm font-bold">
+                            <span>Campaign Discount</span>
+                            <span>-₹{campaignDiscount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {isPrepaidDiscount && (
+                          <div className="flex justify-between items-baseline text-[#187254] text-xs sm:text-sm font-bold">
+                            <span>Prepaid Discount</span>
+                            <span>-₹{prepaidDiscountAmount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-baseline text-black border-t border-dashed border-gray-100 pt-1.5">
+                          <span className="text-sm sm:text-base font-extrabold">Final Price</span>
+                          <span className="text-base sm:text-lg font-black text-[#187254]">
+                            ₹{finalTotal.toFixed(2)}
+                          </span>
+                        </div>
+                      </>
+                    )
+                  })()}
                   <p className="text-xs text-gray-400 font-semibold pt-1">
                     Shipping and discounts applied at checkout.
                   </p>

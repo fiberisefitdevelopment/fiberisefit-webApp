@@ -343,6 +343,7 @@ export default function FeaturedProductsSection() {
                             title: product.title,
                             price: product.price,
                             image: product.image,
+                            handle: product.slug,
                           })
                         }
                         disabled={!isAvailable}

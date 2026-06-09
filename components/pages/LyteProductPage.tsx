@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCartStore } from '@/store/cartStore'
+import { useCampaignStore } from '@/store/campaignStore'
 import { Plus, Minus, Star, Zap, Moon, Heart, Activity, Shield, Battery } from 'lucide-react'
 import PaymentIcons from '@/components/PaymentIcons'
 import ProductReviewsSection from '@/components/sections/ProductReviewsSection'
@@ -84,6 +85,10 @@ export default function LyteProductPage({ slug }: LyteProductPageProps) {
   const heroRef = useRef<HTMLDivElement>(null)
   const bannerRefs = useRef<(HTMLDivElement | null)[]>([])
   const addItem = useCartStore((state) => state.addItem)
+  const { activeCampaign } = useCampaignStore()
+  const isCampaignActive = activeCampaign &&
+    activeCampaign.applicableProducts.includes(slug) &&
+    (new Date().getTime() < new Date(activeCampaign.expiresAt).getTime())
 
   // Treat all LYTE band product slugs as sold out (do not allow add to cart)
   const isLyteBandSoldOut = ['lyte'].includes(slug)
@@ -160,7 +165,7 @@ export default function LyteProductPage({ slug }: LyteProductPageProps) {
 
     // Match cart behavior on other product pages: add one item per quantity
     for (let i = 0; i < quantity; i++) {
-      addItem({ id, title: product.title, price, image: product.image })
+      addItem({ id, title: product.title, price, image: product.image, handle: slug })
     }
   }
 
@@ -366,23 +371,55 @@ export default function LyteProductPage({ slug }: LyteProductPageProps) {
 
                 {/* Price */}
                 <div className="space-y-1 mt-6">
-                  <div className="flex flex-wrap items-baseline gap-2">
-                    {displayCompareAt != null && displayCompareAt > displayPrice ? (
-                      <>
-                        <span className="text-xl md:text-2xl text-gray-400 line-through">₹{displayCompareAt.toFixed(2)}</span>
-                        <span className="text-4xl md:text-5xl font-bold text-black">₹{displayPrice.toFixed(2)}</span>
-                        {discountPercent != null && discountPercent > 0 && (
-                          <span className="text-sm font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                            {discountPercent}% OFF
-                          </span>
+                  {isCampaignActive ? (
+                    (() => {
+                      const mrp = displayCompareAt ?? (displayPrice + 750)
+                      const specialOfferPrice = displayPrice - activeCampaign.discountValue
+                      const youSave = mrp - specialOfferPrice
+                      return (
+                        <div className="bg-[#E8F5E9] border border-[#A5D6A7] rounded-2xl p-4 space-y-2 mb-4 animate-fade-in max-w-md">
+                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-black text-[#187254] uppercase tracking-wider mb-1">
+                            <span className="inline-block w-2 h-2 rounded-full bg-[#187254] animate-pulse" />
+                            Special Campaign Offer Applied
+                          </div>
+                          <div className="grid grid-cols-2 gap-y-1.5 text-xs sm:text-sm text-gray-700">
+                            <div>MRP:</div>
+                            <div className="text-right line-through text-gray-400">₹{mrp.toFixed(0)}</div>
+                            
+                            <div>Regular Price:</div>
+                            <div className="text-right text-gray-900 font-semibold">₹{displayPrice.toFixed(0)}</div>
+                            
+                            <div className="text-[#187254] font-bold">Special Offer Price:</div>
+                            <div className="text-right text-xl sm:text-2xl font-black text-[#187254]">₹{specialOfferPrice.toFixed(0)}</div>
+                            
+                            <div className="text-red-600 font-bold">You Save:</div>
+                            <div className="text-right text-red-600 font-bold">₹{youSave.toFixed(0)}</div>
+                          </div>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest pt-1 border-t border-[#A5D6A7]/30">INCL. OF ALL TAXES</p>
+                        </div>
+                      )
+                    })()
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        {displayCompareAt != null && displayCompareAt > displayPrice ? (
+                          <>
+                            <span className="text-xl md:text-2xl text-gray-400 line-through">₹{displayCompareAt.toFixed(2)}</span>
+                            <span className="text-4xl md:text-5xl font-bold text-black">₹{displayPrice.toFixed(2)}</span>
+                            {discountPercent != null && discountPercent > 0 && (
+                              <span className="text-sm font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                                {discountPercent}% OFF
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-4xl md:text-5xl font-bold text-black">₹{displayPrice.toFixed(2)}</span>
                         )}
-                      </>
-                    ) : (
-                      <span className="text-4xl md:text-5xl font-bold text-black">₹{displayPrice.toFixed(2)}</span>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 font-normal">MRP (incl. of all taxes)</p>
-                  <p className="text-sm text-gray-500">Tax included.</p>
+                      </div>
+                      <p className="text-sm text-gray-600 font-normal">MRP (incl. of all taxes)</p>
+                      <p className="text-sm text-gray-500">Tax included.</p>
+                    </>
+                  )}
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((i) => (

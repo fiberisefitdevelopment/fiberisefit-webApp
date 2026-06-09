@@ -25,6 +25,12 @@ const PRODUCT_META_BY_SLUG: Record<
       'Fyber Ultimate Pack with 90 sachets and Lyte Band. The best weight loss tracking to control cravings, boost metabolism & support gut health. Free shipping.',
     keywords: 'fat loss medicine, best weight loss, ozempic medicine',
   },
+  'bogo': {
+    title: 'Fyber BOGO Pack - Buy One Get One Free | Fiberise',
+    description:
+      'Get double the value with our exclusive BOGO pack. Control cravings, manage weight naturally, and support gut health.',
+    keywords: 'bogo offer, weight loss supplement, appetite control',
+  },
 }
 
 const PRODUCT_SCHEMA_BY_SLUG: Record<string, Record<string, unknown>> = {
@@ -100,6 +106,26 @@ const PRODUCT_SCHEMA_BY_SLUG: Record<string, Record<string, unknown>> = {
       bestRating: '5',
       worstRating: '1',
       ratingCount: '7',
+    },
+  },
+  'bogo': {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: 'BOGO Pack',
+    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Starter_Pack_1.png?v=1779360427',
+    description:
+      'Get double the value with our exclusive BOGO pack. Control cravings, manage weight naturally, and support gut health.',
+    brand: {
+      '@type': 'Brand',
+      name: 'Fiberise Fit',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: 'https://fiberisefit.com/products/bogo',
+      priceCurrency: 'INR',
+      price: '1199',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
     },
   },
 }

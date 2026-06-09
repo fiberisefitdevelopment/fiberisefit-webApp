@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCartStore } from '@/store/cartStore'
-import { ChevronRight, ChevronLeft, Plus, Minus, Star } from 'lucide-react'
+import { useCampaignStore } from '@/store/campaignStore'
+import { ChevronRight, ChevronLeft, Plus, Minus, Star, Clock, X } from 'lucide-react'
 import VideoSection from '@/components/sections/VideoSection'
 import MetabolismSection from '@/components/sections/science/MetabolismSection'
 import BenefitsGrid from '@/components/sections/science/BenefitsGrid'
@@ -42,7 +43,17 @@ interface ProductPageProps {
 }
 
 export default function ProductPage({ slug, initialProduct }: ProductPageProps) {
-  const [product, setProduct] = useState<Product | null>(initialProduct || null)
+  const [product, setProduct] = useState<Product | null>(() => {
+    let p = initialProduct || null
+    if (p && slug === 'bogo') {
+      p = {
+        ...p,
+        available: true,
+        variants: p.variants ? p.variants.map((v) => ({ ...v, available: true })) : [],
+      }
+    }
+    return p
+  })
   const [loading, setLoading] = useState(!initialProduct)
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
@@ -54,8 +65,137 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
   const [joinSubmitted, setJoinSubmitted] = useState(false)
   const [showStickyAddToCart, setShowStickyAddToCart] = useState(false)
   const [reviewRating, setReviewRating] = useState<{ averageRating: number; totalCount: number } | null>(null)
+  const [isLinkExpired, setIsLinkExpired] = useState(false)
+  const [firstOpenedTime, setFirstOpenedTime] = useState<number | null>(null)
+  const [timeLeftText, setTimeLeftText] = useState('')
+  const [showRedirectNotification, setShowRedirectNotification] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (slug !== 'transformation-pack') return
+
+    const storageKey = 'transformation_pack_opened_at'
+    const fortyEightHours = 1 * 60 * 1000 // 1 minute in milliseconds (temporary for testing, originally 48 hours)
+
+    // Cookie helper functions
+    const getCookieVal = (name: string): string | null => {
+      if (typeof document === 'undefined') return null
+      const nameEQ = `${name}=`
+      const ca = document.cookie.split(';')
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i]
+        while (c.charAt(0) === ' ') c = c.substring(1)
+        if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length))
+      }
+      return null
+    }
+
+    const setCookieVal = (name: string, value: string, maxAgeSeconds: number) => {
+      if (typeof document === 'undefined') return
+      document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAgeSeconds}; path=/; SameSite=Lax`
+    }
+
+    // Check localStorage and cookies
+    let firstOpenedStr = localStorage.getItem(storageKey)
+    const cookieOpenedStr = getCookieVal(storageKey)
+
+    // Use whichever was set first (lower timestamp) if both exist, to prevent easy bypass
+    let firstOpened: number | null = null
+    if (firstOpenedStr) {
+      const ts = parseInt(firstOpenedStr, 10)
+      if (!isNaN(ts)) firstOpened = ts
+    }
+    if (cookieOpenedStr) {
+      const ts = parseInt(cookieOpenedStr, 10)
+      if (!isNaN(ts)) {
+        if (firstOpened === null || ts < firstOpened) {
+          firstOpened = ts
+        }
+      }
+    }
+
+    if (firstOpened === null) {
+      // First visit: set timestamp in both localStorage and cookie
+      const now = Date.now()
+      const nowStr = now.toString()
+      localStorage.setItem(storageKey, nowStr)
+      setCookieVal(storageKey, nowStr, 365 * 24 * 60 * 60) // 1 year cookie expiry
+      setFirstOpenedTime(now)
+    } else {
+      setFirstOpenedTime(firstOpened)
+      // Subsequent visit: check if expired
+      if (Date.now() - firstOpened > fortyEightHours) {
+        setIsLinkExpired(true)
+        setShowRedirectNotification(true)
+        clearCampaign()
+      } else {
+        // Sync both stores in case one was cleared
+        const tsStr = firstOpened.toString()
+        if (!firstOpenedStr) localStorage.setItem(storageKey, tsStr)
+        if (!cookieOpenedStr) setCookieVal(storageKey, tsStr, 365 * 24 * 60 * 60)
+      }
+    }
+  }, [slug])
+
+  useEffect(() => {
+    if (slug !== 'transformation-pack' || !firstOpenedTime) return
+
+    const fortyEightHours = 1 * 60 * 1000 // 1 minute for testing (originally 48 * 60 * 60 * 1000)
+
+    const updateTimer = () => {
+      const now = Date.now()
+      const diff = firstOpenedTime + fortyEightHours - now
+
+      if (diff <= 0) {
+        setIsLinkExpired((prev) => {
+          if (!prev) {
+            setShowRedirectNotification(true)
+            clearCampaign()
+          }
+          return true
+        })
+        setTimeLeftText('00:00:00')
+        return
+      }
+
+      const totalSeconds = Math.floor(diff / 1000)
+      const hours = Math.floor(totalSeconds / 3600)
+      const minutes = Math.floor((totalSeconds % 3600) / 60)
+      const seconds = totalSeconds % 60
+
+      const formattedHours = hours.toString().padStart(2, '0')
+      const formattedMinutes = minutes.toString().padStart(2, '0')
+      const formattedSeconds = seconds.toString().padStart(2, '0')
+
+      setTimeLeftText(`${formattedHours}:${formattedMinutes}:${formattedSeconds}`)
+    }
+
+    updateTimer()
+    const timer = setInterval(updateTimer, 1000)
+
+    return () => clearInterval(timer)
+  }, [slug, firstOpenedTime])
+
+  useEffect(() => {
+    if (showRedirectNotification) {
+      const timer = setTimeout(() => {
+        setShowRedirectNotification(false)
+      }, 8000)
+      return () => clearTimeout(timer)
+    }
+  }, [showRedirectNotification])
+
   const heroRef = useRef<HTMLDivElement>(null)
-  const addItem = useCartStore((state) => state.addItem)
+  const { addItem, paymentMethod, setPaymentMethod } = useCartStore()
+  const { activeCampaign, clearCampaign } = useCampaignStore()
+  const isCampaignActive = activeCampaign &&
+    activeCampaign.applicableProducts.includes(slug) &&
+    (new Date().getTime() < new Date(activeCampaign.expiresAt).getTime()) &&
+    !(slug === 'transformation-pack' && isLinkExpired)
 
   const DEFAULT_RATING = getProductRatingBySlug(slug)
   const displayRating = reviewRating && reviewRating.totalCount > 0
@@ -126,10 +266,18 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
 
         if (data.product) {
           console.log('Product loaded successfully:', data.product.title)
-          setProduct(data.product)
+          let p = data.product
+          if (slug === 'bogo') {
+            p = {
+              ...p,
+              available: true,
+              variants: p.variants ? p.variants.map((v: any) => ({ ...v, available: true })) : [],
+            }
+          }
+          setProduct(p)
           // Set the first available variant as selected
-          if (data.product.variants && data.product.variants.length > 0) {
-            setSelectedVariant(data.product.variants[0])
+          if (p.variants && p.variants.length > 0) {
+            setSelectedVariant(p.variants[0])
           }
         } else {
           console.error('No product data in response')
@@ -146,8 +294,16 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
     if (slug && !initialProduct) {
       fetchProduct()
     } else if (initialProduct) {
-      if (initialProduct.variants && initialProduct.variants.length > 0) {
-        setSelectedVariant(initialProduct.variants[0])
+      let p = initialProduct
+      if (slug === 'bogo') {
+        p = {
+          ...p,
+          available: true,
+          variants: p.variants ? p.variants.map((v) => ({ ...v, available: true })) : [],
+        }
+      }
+      if (p.variants && p.variants.length > 0) {
+        setSelectedVariant(p.variants[0])
       }
     }
   }, [slug, initialProduct])
@@ -199,6 +355,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
         title: product.title,
         price: selectedVariant.price || product.price,
         image: product.image,
+        handle: slug,
       })
     }
   }
@@ -257,6 +414,8 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
     )
   }
 
+
+
   if (error || !product) {
     return (
       <div className="min-h-screen bg-[#F5F3EF] pt-32 pb-16 flex items-center justify-center">
@@ -275,9 +434,11 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
   }
 
   const displayPrice = selectedVariant?.price ?? product.price
+  const isPrepaid = mounted && paymentMethod === 'prepaid'
+  const currentPrice = isPrepaid ? displayPrice - 200 : displayPrice
   const displayCompareAt = selectedVariant?.compareAtPrice ?? product.comparePrice ?? null
-  const discountPercent = displayCompareAt != null && displayCompareAt > displayPrice && displayPrice > 0
-    ? Math.round((1 - displayPrice / displayCompareAt) * 100)
+  const discountPercent = displayCompareAt != null && displayCompareAt > currentPrice && currentPrice > 0
+    ? Math.round((1 - currentPrice / displayCompareAt) * 100)
     : null
   const isAvailable = selectedVariant?.available ?? product.available
   const displayImages = product.images && product.images.length > 0 ? product.images : [product.image]
@@ -303,6 +464,29 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
 
   return (
     <div className={`min-h-screen ${showStickyAddToCart ? 'pb-20' : ''}`}>
+      {/* Toast Notification */}
+      {showRedirectNotification && (
+        <div className="fixed top-24 right-4 md:right-8 z-50 max-w-sm w-full bg-white rounded-2xl shadow-2xl border border-amber-100 p-4 animate-fade-in transition-all duration-300">
+          <div className="flex gap-3 items-start">
+            <div className="bg-amber-50 p-2 rounded-xl text-amber-600 shrink-0">
+              <Clock className="w-5 h-5 animate-pulse" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-gray-900 leading-tight">Discount Redirected</p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                Your exclusive discount has expired. You have been redirected to the standard price.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowRedirectNotification(false)}
+              className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-50 transition-colors shrink-0"
+              aria-label="Close notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
       {/* Hero Section - White Background */}
       <div ref={heroRef} className="bg-white">
         {/* Breadcrumb Navigation */}
@@ -353,17 +537,25 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                         <p className="text-sm font-semibold text-gray-900">{variant.name}</p>
                         <p className="text-base text-gray-500 mt-0.5">Servings : {getServings(variant.name)}</p>
                         <div className="mt-1">
-                          {variant.compareAtPrice != null && variant.compareAtPrice > variant.price ? (
-                            <>
-                              <span className="text-sm text-gray-400 line-through mr-1">₹{variant.compareAtPrice.toFixed(2)}</span>
-                              <span className="text-lg font-bold text-black">₹{variant.price.toFixed(2)}</span>
-                              <span className="ml-1 text-xs font-semibold text-red-600">
-                                {Math.round((1 - variant.price / variant.compareAtPrice) * 100)}% OFF
-                              </span>
-                            </>
-                          ) : (
-                            <p className="text-lg font-bold text-black">₹{variant.price.toFixed(2)}</p>
-                          )}
+                          {(() => {
+                            const isPrepaid = mounted && paymentMethod === 'prepaid'
+                            const displayVariantPrice = isPrepaid ? variant.price - 200 : variant.price
+                            const discountPct = variant.compareAtPrice != null && variant.compareAtPrice > displayVariantPrice
+                              ? Math.round((1 - displayVariantPrice / variant.compareAtPrice) * 100)
+                              : 0
+
+                            return variant.compareAtPrice != null && variant.compareAtPrice > displayVariantPrice ? (
+                              <>
+                                <span className="text-sm text-gray-400 line-through mr-1">₹{variant.compareAtPrice.toFixed(2)}</span>
+                                <span className="text-lg font-bold text-black">₹{displayVariantPrice.toFixed(2)}</span>
+                                <span className="ml-1 text-xs font-semibold text-red-600">
+                                  {discountPct}% OFF
+                                </span>
+                              </>
+                            ) : (
+                              <p className="text-lg font-bold text-black">₹{displayVariantPrice.toFixed(2)}</p>
+                            )
+                          })()}
                         </div>
                         <p className="text-[10px] text-gray-500 mt-1">MRP (incl. of all taxes)</p>
                         <div className="flex items-center justify-center gap-1 mt-1.5">
@@ -572,27 +764,117 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                   </div>
                 )}
 
-                {/* Price Block AND Quantity Selector Side-by-Side */}
-                <div className="flex justify-between items-end pt-2">
-                  <div className="flex flex-col">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-normal text-black tracking-tight flex items-baseline">
-                        <span className="text-xl mr-0.5">₹</span>
-                        {displayPrice.toFixed(0)}
-                      </span>
-                      {displayCompareAt != null && displayCompareAt > displayPrice && (
-                        <>
-                          <span className="text-base text-gray-400 line-through">₹{displayCompareAt.toFixed(0)}</span>
-                          {discountPercent != null && discountPercent > 0 && (
-                            <span className="text-xs font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
-                              {discountPercent}% OFF
-                            </span>
+                 {/* Price Block AND Quantity Selector Side-by-Side */}
+                <div className="pt-2">
+                  {isCampaignActive ? (
+                    (() => {
+                      const mrp = displayCompareAt ?? (displayPrice + 750)
+                      const specialOfferPrice = displayPrice - activeCampaign.discountValue
+                      const youSave = mrp - specialOfferPrice
+                      return (
+                        <div className="bg-[#E8F5E9] border border-[#A5D6A7] rounded-2xl p-4 space-y-2 mb-4 animate-fade-in max-w-md">
+                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-black text-[#187254] uppercase tracking-wider mb-1">
+                            <span className="inline-block w-2 h-2 rounded-full bg-[#187254] animate-pulse" />
+                            Special Campaign Offer Applied
+                          </div>
+                          <div className="grid grid-cols-2 gap-y-1.5 text-xs sm:text-sm text-gray-700">
+                            <div>MRP:</div>
+                            <div className="text-right line-through text-gray-400">₹{mrp.toFixed(0)}</div>
+                            
+                            <div>Regular Price:</div>
+                            <div className="text-right text-gray-900 font-semibold">₹{displayPrice.toFixed(0)}</div>
+                            
+                            <div className="text-[#187254] font-bold">Special Offer Price:</div>
+                            <div className="text-right text-xl sm:text-2xl font-black text-[#187254]">₹{specialOfferPrice.toFixed(0)}</div>
+                            
+                            <div className="text-red-600 font-bold">You Save:</div>
+                            <div className="text-right text-red-600 font-bold">₹{youSave.toFixed(0)}</div>
+                          </div>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest pt-1 border-t border-[#A5D6A7]/30">INCL. OF ALL TAXES</p>
+                        </div>
+                      )
+                    })()
+                  ) : (
+                    <div className="flex justify-between items-end">
+                      <div className="flex flex-col">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-normal text-black tracking-tight flex items-baseline">
+                            <span className="text-xl mr-0.5">₹</span>
+                            {currentPrice.toFixed(0)}
+                          </span>
+                          {displayCompareAt != null && displayCompareAt > currentPrice && (
+                            <>
+                              <span className="text-base text-gray-400 line-through">₹{displayCompareAt.toFixed(0)}</span>
+                              {discountPercent != null && discountPercent > 0 && (
+                                <span className="text-xs font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+                                  {discountPercent}% OFF
+                                </span>
+                              )}
+                            </>
                           )}
-                        </>
-                      )}
+                        </div>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">INCL. OF ALL TAXES</p>
+                        {isPrepaid && (
+                          <div className="text-[11px] text-[#187254] font-bold mt-1.5 flex items-center gap-1.5 animate-fade-in">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#187254] animate-pulse" />
+                            Prepaid ₹200 discount applied
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">INCL. OF ALL TAXES</p>
+                  )}
+                </div>
+
+                {/* Payment Method Selector */}
+                <div className="space-y-2 pt-3 pb-1 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700">
+                      Payment Method
+                    </span>
+                    {(!mounted || paymentMethod === 'prepaid') && (
+                      <span className="text-[10px] bg-[#E8F5E9] text-[#187254] font-bold px-2.5 py-0.5 rounded-full border border-[#A5D6A7]/30 animate-pulse">
+                        Extra ₹200 OFF
+                      </span>
+                    )}
                   </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('prepaid')}
+                      className={`p-3.5 rounded-xl border text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${
+                        (!mounted || paymentMethod === 'prepaid')
+                          ? 'border-black bg-white ring-2 ring-black shadow-md font-semibold'
+                          : 'border-gray-200 bg-gray-50/40 hover:bg-gray-50 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-gray-900">Prepaid</span>
+                        <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1.5 py-0.5 rounded">
+                          -₹200
+                        </span>
+                      </div>
+                      <p className="text-[9px] text-gray-500 mt-1 leading-tight">
+                        UPI, Cards, Net Banking
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('cod')}
+                      className={`p-3.5 rounded-xl border text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${
+                        (mounted && paymentMethod === 'cod')
+                          ? 'border-black bg-white ring-2 ring-black shadow-md font-semibold'
+                          : 'border-gray-200 bg-gray-50/40 hover:bg-gray-50 hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="text-xs font-bold text-gray-900">COD</span>
+                      <p className="text-[9px] text-gray-500 mt-1 leading-tight">
+                        Cash on Delivery
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
 
                   {/* Quantity Selector */}
                   <div className="flex items-center border border-gray-200 bg-gray-50/50">

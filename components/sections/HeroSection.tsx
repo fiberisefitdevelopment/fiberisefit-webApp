@@ -113,11 +113,19 @@ export default function HeroSection() {
       const productDetails = foundProduct || FALLBACK_PRODUCTS[productSearch]
 
       if (productDetails) {
+        const slugMap: Record<string, string> = {
+          'starter pack': 'starter-pack',
+          'transformation pack': 'transformation-pack',
+          'ultimate pack': 'ultimate-pack',
+        }
+        const handle = (productDetails as any).slug || slugMap[productSearch] || 'starter-pack'
+
         addItem({
           id: productDetails.id,
           title: productDetails.title,
           price: productDetails.price,
           image: productDetails.image,
+          handle,
         })
       } else {
         console.error('Product match failed for: ', productSearch)

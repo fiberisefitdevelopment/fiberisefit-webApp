@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { ShoppingBag, Menu, X, User } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useAuth } from '@/contexts/AuthContext'
+import { useCampaignStore } from '@/store/campaignStore'
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -23,8 +24,13 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { openCart, getItemCount } = useCartStore()
   const { isAuthenticated, loading: authLoading } = useAuth()
+  const { activeCampaign, isHydrated, hydrateCampaign } = useCampaignStore()
   const router = useRouter()
   const itemCount = getItemCount()
+
+  useEffect(() => {
+    hydrateCampaign()
+  }, [hydrateCampaign])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,23 +50,27 @@ export default function Header() {
   return (
     <>
       {/* Announcement Bar - Single Marquee */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-black py-2 overflow-hidden">
-        <div className="flex w-max animate-marquee-text whitespace-nowrap">
-          {[...Array(20)].map((_, i) => (
-            <div key={i} className="flex gap-12 flex-shrink-0 pr-12 items-center">
-              <span className="text-xs md:text-sm text-white tracking-wider">Introductory 50% OFF</span>
-              <span className="text-xs md:text-sm text-white tracking-wider">India’s first Craving Control Supplement</span>
-              <span className="text-xs md:text-sm text-white tracking-wider">Sustainable Weight Management</span>
-              <span className="text-xs md:text-sm text-white tracking-wider">Free Shipping Pan India</span>
-              <span className="text-xs md:text-sm text-white tracking-wider">7 Days No Questions asked money back guarantee</span>
-            </div>
-          ))}
+      {!activeCampaign && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-black py-2 overflow-hidden">
+          <div className="flex w-max animate-marquee-text whitespace-nowrap">
+            {[...Array(20)].map((_, i) => (
+              <div key={i} className="flex gap-12 flex-shrink-0 pr-12 items-center">
+                <span className="text-xs md:text-sm text-white tracking-wider">Introductory 50% OFF</span>
+                <span className="text-xs md:text-sm text-white tracking-wider">India’s first Craving Control Supplement</span>
+                <span className="text-xs md:text-sm text-white tracking-wider">Sustainable Weight Management</span>
+                <span className="text-xs md:text-sm text-white tracking-wider">Free Shipping Pan India</span>
+                <span className="text-xs md:text-sm text-white tracking-wider">7 Days No Questions asked money back guarantee</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Transparent Frosty Navbar */}
       <header
-        className={`fixed top-8 left-0 right-0 z-40 transition-all duration-500 pt-2 ${
+        className={`fixed left-0 right-0 z-40 transition-all duration-500 pt-2 ${
+          activeCampaign ? 'top-9' : 'top-8'
+        } ${
           isScrolled
             ? 'bg-white/60 backdrop-blur-xl border-b border-white/20 shadow-lg'
             : 'bg-white/40 backdrop-blur-lg border-b border-white/10'
