@@ -190,7 +190,15 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
   }, [showRedirectNotification])
 
   const heroRef = useRef<HTMLDivElement>(null)
-  const { addItem, paymentMethod, setPaymentMethod } = useCartStore()
+  const { addItem, paymentMethod } = useCartStore()
+  const setPaymentMethod = useCartStore((state) => state.setPaymentMethod) || useCartStore.getState().setPaymentMethod
+
+  // Diagnostic log to verify store contents at runtime and trigger a rebuild
+  useEffect(() => {
+    console.log('🛒 useCartStore keys on client:', Object.keys(useCartStore.getState()))
+    console.log('🛒 setPaymentMethod function exists:', typeof setPaymentMethod === 'function')
+  }, [setPaymentMethod])
+
   const { activeCampaign, clearCampaign } = useCampaignStore()
   const isCampaignActive = activeCampaign &&
     activeCampaign.applicableProducts.includes(slug) &&
@@ -434,7 +442,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
   }
 
   const displayPrice = selectedVariant?.price ?? product.price
-  const isPrepaid = mounted && paymentMethod === 'prepaid'
+  const isPrepaid = mounted && paymentMethod === 'prepaid' && slug === 'bogo'
   const currentPrice = isPrepaid ? displayPrice - 200 : displayPrice
   const displayCompareAt = selectedVariant?.compareAtPrice ?? product.comparePrice ?? null
   const discountPercent = displayCompareAt != null && displayCompareAt > currentPrice && currentPrice > 0
@@ -538,7 +546,7 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                         <p className="text-base text-gray-500 mt-0.5">Servings : {getServings(variant.name)}</p>
                         <div className="mt-1">
                           {(() => {
-                            const isPrepaid = mounted && paymentMethod === 'prepaid'
+                            const isPrepaid = mounted && paymentMethod === 'prepaid' && slug === 'bogo'
                             const displayVariantPrice = isPrepaid ? variant.price - 200 : variant.price
                             const discountPct = variant.compareAtPrice != null && variant.compareAtPrice > displayVariantPrice
                               ? Math.round((1 - displayVariantPrice / variant.compareAtPrice) * 100)
@@ -826,53 +834,55 @@ export default function ProductPage({ slug, initialProduct }: ProductPageProps) 
                 </div>
 
                 {/* Payment Method Selector */}
-                <div className="space-y-2 pt-3 pb-1 border-t border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700">
-                      Payment Method
-                    </span>
-                    {(!mounted || paymentMethod === 'prepaid') && (
-                      <span className="text-[10px] bg-[#E8F5E9] text-[#187254] font-bold px-2.5 py-0.5 rounded-full border border-[#A5D6A7]/30 animate-pulse">
-                        Extra ₹200 OFF
+                {slug === 'bogo' && (
+                  <div className="space-y-2 pt-3 pb-1 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700">
+                        Payment Method
                       </span>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('prepaid')}
-                      className={`p-3.5 rounded-xl border text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${
-                        (!mounted || paymentMethod === 'prepaid')
-                          ? 'border-black bg-white ring-2 ring-black shadow-md font-semibold'
-                          : 'border-gray-200 bg-gray-50/40 hover:bg-gray-50 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-900">Prepaid</span>
-                        <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1.5 py-0.5 rounded">
-                          -₹200
+                      {(!mounted || paymentMethod === 'prepaid') && (
+                        <span className="text-[10px] bg-[#E8F5E9] text-[#187254] font-bold px-2.5 py-0.5 rounded-full border border-[#A5D6A7]/30 animate-pulse">
+                          Extra ₹200 OFF
                         </span>
-                      </div>
-                      <p className="text-[9px] text-gray-500 mt-1 leading-tight">
-                        UPI, Cards, Net Banking
-                      </p>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('cod')}
-                      className={`p-3.5 rounded-xl border text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${
-                        (mounted && paymentMethod === 'cod')
-                          ? 'border-black bg-white ring-2 ring-black shadow-md font-semibold'
-                          : 'border-gray-200 bg-gray-50/40 hover:bg-gray-50 hover:border-gray-300'
-                      }`}
-                    >
-                      <span className="text-xs font-bold text-gray-900">COD</span>
-                      <p className="text-[9px] text-gray-500 mt-1 leading-tight">
-                        Cash on Delivery
-                      </p>
-                    </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('prepaid')}
+                        className={`p-3.5 rounded-xl border text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${
+                          (!mounted || paymentMethod === 'prepaid')
+                            ? 'border-black bg-white ring-2 ring-black shadow-md font-semibold'
+                            : 'border-gray-200 bg-gray-50/40 hover:bg-gray-50 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-900">Prepaid</span>
+                          <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1.5 py-0.5 rounded">
+                            -₹200
+                          </span>
+                        </div>
+                        <p className="text-[9px] text-gray-500 mt-1 leading-tight">
+                          UPI, Cards, Net Banking
+                        </p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('cod')}
+                        className={`p-3.5 rounded-xl border text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${
+                          (mounted && paymentMethod === 'cod')
+                            ? 'border-black bg-white ring-2 ring-black shadow-md font-semibold'
+                            : 'border-gray-200 bg-gray-50/40 hover:bg-gray-50 hover:border-gray-300'
+                        }`}
+                      >
+                        <span className="text-xs font-bold text-gray-900">COD</span>
+                        <p className="text-[9px] text-gray-500 mt-1 leading-tight">
+                          Cash on Delivery
+                        </p>
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="flex justify-end pt-2">
 

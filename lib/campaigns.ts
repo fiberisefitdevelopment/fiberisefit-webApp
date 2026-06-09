@@ -17,7 +17,7 @@ export const FALLBACK_CAMPAIGNS: Record<string, Campaign> = {
     discountType: 'fixed',
     discountValue: 250,
     applicableProducts: ['transformation-pack'],
-    expiresAt: '2026-06-04T23:59:59Z',
+    expiresAt: '2026-12-31T23:59:59Z',
     isActive: true,
     redirectUrl: '/products/transformation-pack',
     shopifyDiscountCode: 'JUNE-TRANSFORM',

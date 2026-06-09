@@ -11,11 +11,13 @@ import Link from 'next/link'
 
 export default function CartDrawer() {
   const router = useRouter()
-  const { isOpen, items, closeCart, updateQuantity, removeItem, getTotal, paymentMethod, setPaymentMethod } =
+  const { isOpen, items, closeCart, updateQuantity, removeItem, getTotal, paymentMethod } =
     useCartStore()
+  const setPaymentMethod = useCartStore((state) => state.setPaymentMethod) || useCartStore.getState().setPaymentMethod
   const { isAuthenticated, getIdToken, loading: authLoading } = useAuth()
   const { activeCampaign } = useCampaignStore()
   const isCampaignValid = activeCampaign && new Date().getTime() < new Date(activeCampaign.expiresAt).getTime()
+  const hasBogo = items.some((item) => item.handle === 'bogo')
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false)
   const [promoCode, setPromoCode] = useState('')
   const [promoApplied, setPromoApplied] = useState(false)
@@ -65,7 +67,7 @@ export default function CartDrawer() {
         headers,
         body: JSON.stringify({
           items: cartItems,
-          discountCode: promoCode.trim() || (paymentMethod === 'prepaid' ? 'PREPAID200' : undefined),
+          discountCode: promoCode.trim() || (paymentMethod === 'prepaid' && hasBogo ? 'PREPAID200' : undefined),
           campaignSlug: isCampaignValid ? activeCampaign.slug : undefined,
         }),
       })
@@ -236,46 +238,48 @@ export default function CartDrawer() {
               {/* Promo, Subtotal & Checkout Controls */}
               <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 space-y-4 shadow-sm">
                 {/* Payment Method Selector */}
-                <div className="space-y-2 pb-2">
-                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700">
-                    Payment Method
-                  </span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('prepaid')}
-                      className={`p-3 rounded-xl border text-left transition-all ${
-                        paymentMethod === 'prepaid'
-                          ? 'border-black bg-white ring-2 ring-black shadow-sm'
-                          : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-gray-900">Prepaid</span>
-                        <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1 py-0.5 rounded">
-                          -₹200
-                        </span>
-                      </div>
-                      <p className="text-[9px] text-gray-500 mt-1 leading-tight">
-                        UPI, Card (Extra ₹200 OFF)
-                      </p>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('cod')}
-                      className={`p-3 rounded-xl border text-left transition-all ${
-                        paymentMethod === 'cod'
-                          ? 'border-black bg-white ring-2 ring-black shadow-sm'
-                          : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className="text-xs font-bold text-gray-900">COD</span>
-                      <p className="text-[9px] text-gray-500 mt-1 leading-tight">
-                        Cash on Delivery
-                      </p>
-                    </button>
+                {hasBogo && (
+                  <div className="space-y-2 pb-2">
+                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700">
+                      Payment Method
+                    </span>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('prepaid')}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          paymentMethod === 'prepaid'
+                            ? 'border-black bg-white ring-2 ring-black shadow-sm'
+                            : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-900">Prepaid</span>
+                          <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1 py-0.5 rounded">
+                            -₹200
+                          </span>
+                        </div>
+                        <p className="text-[9px] text-gray-500 mt-1 leading-tight">
+                          UPI, Card (Extra ₹200 OFF)
+                        </p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('cod')}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          paymentMethod === 'cod'
+                            ? 'border-black bg-white ring-2 ring-black shadow-sm'
+                            : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="text-xs font-bold text-gray-900">COD</span>
+                        <p className="text-[9px] text-gray-500 mt-1 leading-tight">
+                          Cash on Delivery
+                        </p>
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
                 {/* Promotion Input */}
                 <div className="space-y-2">
                   <label htmlFor="cart-promo" className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
@@ -323,7 +327,7 @@ export default function CartDrawer() {
                     const regularSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
                     const campaignDiscount = regularSubtotal - getTotal()
                     
-                    const isPrepaidDiscount = paymentMethod === 'prepaid'
+                    const isPrepaidDiscount = paymentMethod === 'prepaid' && hasBogo
                     const prepaidDiscountAmount = isPrepaidDiscount ? 200 : 0
                     
                     const finalTotal = Math.max(0, getTotal() - prepaidDiscountAmount)
