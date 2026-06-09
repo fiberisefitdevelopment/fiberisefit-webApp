@@ -392,6 +392,9 @@ export default function CartDrawer() {
               >
                 Continue shopping
               </Link>
+              <div className="text-[10px] text-gray-400 font-mono mt-4 p-2 bg-gray-100 rounded overflow-x-auto">
+                Debug Items: {JSON.stringify(items.map(i => ({ handle: i.handle, title: i.title, qty: i.quantity, price: i.price })))}
+              </div>
             </div>
           )}
         </div>

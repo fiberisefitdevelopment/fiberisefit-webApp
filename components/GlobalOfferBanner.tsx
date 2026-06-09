@@ -99,10 +99,24 @@ export default function GlobalOfferBanner() {
       } else {
         // Standard campaign behavior
         if (!activeCampaign) return
-        const isExpired = checkCampaignExpiry()
-        if (isExpired) return
-        const expiry = new Date(activeCampaign.expiresAt).getTime()
-        diff = expiry - Date.now()
+        
+        if (activeCampaign.slug === 'june-transform') {
+          const jKey = 'june_transform_opened_at'
+          let firstOpenedStr = typeof window !== 'undefined' ? localStorage.getItem(jKey) : null
+          if (!firstOpenedStr && typeof window !== 'undefined') {
+            const nowStr = Date.now().toString()
+            localStorage.setItem(jKey, nowStr)
+            firstOpenedStr = nowStr
+          }
+          const firstOpened = firstOpenedStr ? parseInt(firstOpenedStr, 10) : Date.now()
+          const twentyFourHours = 24 * 60 * 60 * 1000
+          diff = firstOpened + twentyFourHours - Date.now()
+        } else {
+          const isExpired = checkCampaignExpiry()
+          if (isExpired) return
+          const expiry = new Date(activeCampaign.expiresAt).getTime()
+          diff = expiry - Date.now()
+        }
       }
 
       if (diff <= 0) {
