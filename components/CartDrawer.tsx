@@ -250,11 +250,10 @@ export default function CartDrawer() {
                       <button
                         type="button"
                         onClick={() => setPaymentMethod('prepaid')}
-                        className={`p-3 rounded-xl border text-left transition-all ${
-                          paymentMethod === 'prepaid'
+                        className={`p-3 rounded-xl border text-left transition-all ${paymentMethod === 'prepaid'
                             ? 'border-black bg-white ring-2 ring-black shadow-sm'
                             : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-gray-900">Prepaid</span>
@@ -269,11 +268,10 @@ export default function CartDrawer() {
                       <button
                         type="button"
                         onClick={() => setPaymentMethod('cod')}
-                        className={`p-3 rounded-xl border text-left transition-all ${
-                          paymentMethod === 'cod'
+                        className={`p-3 rounded-xl border text-left transition-all ${paymentMethod === 'cod'
                             ? 'border-black bg-white ring-2 ring-black shadow-sm'
                             : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
-                        }`}
+                          }`}
                       >
                         <span className="text-xs font-bold text-gray-900">COD</span>
                         <p className="text-[9px] text-gray-500 mt-1 leading-tight">
@@ -329,10 +327,10 @@ export default function CartDrawer() {
                   {(() => {
                     const regularSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
                     const campaignDiscount = regularSubtotal - getTotal()
-                    
+
                     const isPrepaidDiscount = paymentMethod === 'prepaid' && hasBogo
                     const prepaidDiscountAmount = isPrepaidDiscount ? 200 : 0
-                    
+
                     const finalTotal = Math.max(0, getTotal() - prepaidDiscountAmount)
 
                     return (
@@ -392,9 +390,7 @@ export default function CartDrawer() {
               >
                 Continue shopping
               </Link>
-              <div className="text-[10px] text-gray-400 font-mono mt-4 p-2 bg-gray-100 rounded overflow-x-auto">
-                Debug Items: {JSON.stringify(items.map(i => ({ handle: i.handle, title: i.title, qty: i.quantity, price: i.price })))}
-              </div>
+
             </div>
           )}
         </div>
