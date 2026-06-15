@@ -1,0 +1,14 @@
+User-Agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /login/
+Disallow: /checkout/
+Disallow: /cart/
+Disallow: /account/
+Disallow: /private/
+Disallow: /temp/
+Disallow: /_next/
+
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+
+Sitemap: https://fiberisefit.com/sitemap.xml
