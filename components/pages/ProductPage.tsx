@@ -43,6 +43,22 @@ interface ProductPageProps {
   isJuneTransformPage?: boolean
 }
 
+const BOGO_TIMER_STORAGE_KEY = 'bogo_offer_started_at'
+const BOGO_TIMER_DURATION_MS = 8 * 60 * 60 * 1000
+
+const formatCountdown = (durationMs: number) => {
+  const totalSeconds = Math.max(0, Math.floor(durationMs / 1000))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  return [
+    hours.toString().padStart(2, '0'),
+    minutes.toString().padStart(2, '0'),
+    seconds.toString().padStart(2, '0'),
+  ].join(':')
+}
+
 export default function ProductPage({ slug, initialProduct, isJuneTransformPage = false }: ProductPageProps) {
   const [product, setProduct] = useState<Product | null>(() => {
     let p = initialProduct || null
@@ -69,12 +85,56 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
   const [isLinkExpired, setIsLinkExpired] = useState(false)
   const [firstOpenedTime, setFirstOpenedTime] = useState<number | null>(null)
   const [timeLeftText, setTimeLeftText] = useState('')
+  const [bogoTimeLeftText, setBogoTimeLeftText] = useState('')
   const [showRedirectNotification, setShowRedirectNotification] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (slug !== 'bogo') {
+      setBogoTimeLeftText('')
+      return
+    }
+
+    const readStoredStart = () => {
+      try {
+        const storedStart = window.localStorage.getItem(BOGO_TIMER_STORAGE_KEY)
+        const parsedStart = storedStart ? Number.parseInt(storedStart, 10) : NaN
+        return Number.isFinite(parsedStart) ? parsedStart : null
+      } catch {
+        return null
+      }
+    }
+
+    const writeStoredStart = (startedAt: number) => {
+      try {
+        window.localStorage.setItem(BOGO_TIMER_STORAGE_KEY, startedAt.toString())
+      } catch {
+        // The timer still runs for the current visit if storage is unavailable.
+      }
+    }
+
+    const now = Date.now()
+    let startedAt = readStoredStart()
+
+    if (startedAt === null || startedAt > now) {
+      startedAt = now
+      writeStoredStart(startedAt)
+    }
+
+    const updateBogoTimer = () => {
+      const remainingMs = startedAt + BOGO_TIMER_DURATION_MS - Date.now()
+      setBogoTimeLeftText(formatCountdown(remainingMs))
+    }
+
+    updateBogoTimer()
+    const timer = window.setInterval(updateBogoTimer, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [slug])
 
   useEffect(() => {
     if (slug !== 'transformation-pack' || isJuneTransformPage) return
@@ -514,10 +574,24 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
           </div>
         </div>
       )}
+      {slug === 'bogo' && bogoTimeLeftText && (
+        <div className={`fixed left-0 right-0 z-30 ${activeCampaign ? 'top-[108px]' : 'top-[104px]'} bg-[#187254] text-white shadow-md`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
+            <div className="flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-wider">
+              <Clock className="w-4 h-4 flex-shrink-0" aria-hidden />
+              <span className="hidden sm:inline">BOGO offer window active</span>
+              <span>Offer ends in</span>
+              <span className="font-mono text-amber-200 font-extrabold tracking-widest">
+                {bogoTimeLeftText}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Hero Section - White Background */}
       <div ref={heroRef} className="bg-white">
         {/* Breadcrumb Navigation */}
-        <div className="pt-28 pb-4">
+        <div className={`${slug === 'bogo' ? 'pt-40' : 'pt-28'} pb-4`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="text-sm text-gray-600">
               <Link href="/" className="hover:underline text-gray-700">Home</Link>
