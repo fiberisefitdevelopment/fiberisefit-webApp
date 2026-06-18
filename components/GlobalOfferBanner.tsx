@@ -53,7 +53,7 @@ export default function GlobalOfferBanner() {
   // Countdown timer effect
   useEffect(() => {
     const storageKey = 'transformation_pack_opened_at'
-    const fortyEightHours = 1 * 60 * 1000 // 1 minute for testing (originally 48 * 60 * 60 * 1000)
+    const fortyEightHours = 48 * 60 * 60 * 1000
 
     const getCookieVal = (name: string): string | null => {
       if (typeof document === 'undefined') return null

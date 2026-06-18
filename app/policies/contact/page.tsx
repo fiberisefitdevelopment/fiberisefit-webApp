@@ -51,8 +51,42 @@ export default function ContactPolicyPage() {
           <ul className="list-none space-y-3 text-gray-800">
             <li><strong>Merchant Legal entity name:</strong> FIBERISE FIT PRIVATE LIMITED</li>
             <li><strong>Registered Address:</strong> 731/508 S/F, PLOT NO.7 BLOCK 56 DB GUPTA ROAD Karol Bagh Central Delhi New Delhi Delhi India 110005 Sat Nagar SO DELHI 110005</li>
-            <li><strong>Operational Address:</strong> 731/508 S/F, PLOT NO.7 BLOCK 56 DB GUPTA ROAD Karol Bagh Central Delhi New Delhi Delhi India 110005 Sat Nagar SO DELHI 110005</li>
-            <li><strong>Telephone No:</strong> 7011803119</li>
+            <li><strong>Telephone No:</strong> 7070705026</li>
+            <li>
+              <strong>WhatsApp:</strong>{' '}
+              <a
+                href="https://wa.me/918679036275"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 align-middle text-gray-800 hover:opacity-80 transition-opacity"
+                aria-label="Chat on WhatsApp at 8679036275"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 48 48"
+                  className="w-6 h-6 flex-shrink-0"
+                  aria-hidden
+                >
+                  <path
+                    fill="#25D366"
+                    d="M24 4C12.95 4 4 12.95 4 24c0 4.24 1.1 8.22 3.03 11.67L4 44l8.56-2.94C15.82 42.9 19.79 44 24 44c11.05 0 20-8.95 20-20S35.05 4 24 4z"
+                  />
+                  <path
+                    fill="#fff"
+                    d="M35.47 29.82c-.49-.25-2.89-1.43-3.34-1.59-.45-.16-.78-.25-1.11.25-.33.49-1.28 1.59-1.57 1.92-.29.33-.58.37-1.07.12-.49-.25-2.05-.76-3.9-2.43-1.44-1.28-2.41-2.86-2.69-3.35-.29-.49-.03-.76.21-1 .22-.22.49-.58.74-.87.25-.29.33-.49.49-.82.16-.33.08-.62-.04-.87-.12-.25-1.11-2.67-1.52-3.66-.4-.95-.81-.82-1.11-.84-.29-.01-.62-.01-.95-.01-.33 0-.87.12-1.33.62-.45.49-1.74 1.7-1.74 4.15 0 2.45 1.78 4.82 2.03 5.15.25.33 3.5 5.35 8.48 7.5 1.19.51 2.12.82 2.84 1.05 1.19.38 2.28.33 3.14.2.96-.14 2.89-1.18 3.3-2.32.41-1.14.41-2.12.29-2.32-.12-.2-.45-.33-.94-.58z"
+                  />
+                  <path
+                    fill="#fff"
+                    fillRule="evenodd"
+                    d="M24 8.5c8.56 0 15.5 6.94 15.5 15.5S32.56 39.5 24 39.5c-3.58 0-6.88-1.22-9.5-3.27l-6.94 1.89 1.85-6.76C7.22 30.88 8.5 27.58 8.5 24c0-8.56 6.94-15.5 15.5-15.5zm0 31c3.31 0 6.42-1.03 8.96-2.79l6.54 1.71-1.74-6.37C38.97 30.42 40 27.32 40 24c0-8.82-7.18-16-16-16S8 15.18 8 24s7.18 16 16 16z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-[#128C7E] font-medium underline-offset-2 hover:underline">
+                  8679036275
+                </span>
+              </a>
+            </li>
             <li><strong>E-Mail ID:</strong> support@fiberisefit.com</li>
           </ul>
         </div>

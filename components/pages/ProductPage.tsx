@@ -45,6 +45,8 @@ interface ProductPageProps {
 
 const BOGO_TIMER_STORAGE_KEY = 'bogo_offer_started_at'
 const BOGO_TIMER_DURATION_MS = 8 * 60 * 60 * 1000
+const TRANSFORMATION_PACK_OPENED_KEY = 'transformation_pack_opened_at'
+const TRANSFORMATION_PACK_OFFER_MS = 48 * 60 * 60 * 1000
 
 const formatCountdown = (durationMs: number) => {
   const totalSeconds = Math.max(0, Math.floor(durationMs / 1000))
@@ -88,6 +90,9 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
   const [bogoTimeLeftText, setBogoTimeLeftText] = useState('')
   const [showRedirectNotification, setShowRedirectNotification] = useState(false)
   const [mounted, setMounted] = useState(false)
+
+  const { activeCampaign } = useCampaignStore()
+  const activateCampaign = useCampaignStore((state) => state.activateCampaign)
 
   useEffect(() => {
     setMounted(true)
@@ -139,10 +144,6 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
   useEffect(() => {
     if (slug !== 'transformation-pack' || isJuneTransformPage) return
 
-    const storageKey = 'transformation_pack_opened_at'
-    const fortyEightHours = 1 * 60 * 1000 // 1 minute in milliseconds (temporary for testing, originally 48 hours)
-
-    // Cookie helper functions
     const getCookieVal = (name: string): string | null => {
       if (typeof document === 'undefined') return null
       const nameEQ = `${name}=`
@@ -160,11 +161,9 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
       document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAgeSeconds}; path=/; SameSite=Lax`
     }
 
-    // Check localStorage and cookies
-    let firstOpenedStr = localStorage.getItem(storageKey)
-    const cookieOpenedStr = getCookieVal(storageKey)
+    let firstOpenedStr = localStorage.getItem(TRANSFORMATION_PACK_OPENED_KEY)
+    const cookieOpenedStr = getCookieVal(TRANSFORMATION_PACK_OPENED_KEY)
 
-    // Use whichever was set first (lower timestamp) if both exist, to prevent easy bypass
     let firstOpened: number | null = null
     if (firstOpenedStr) {
       const ts = parseInt(firstOpenedStr, 10)
@@ -180,42 +179,36 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
     }
 
     if (firstOpened === null) {
-      // First visit: set timestamp in both localStorage and cookie
       const now = Date.now()
       const nowStr = now.toString()
-      localStorage.setItem(storageKey, nowStr)
-      setCookieVal(storageKey, nowStr, 365 * 24 * 60 * 60) // 1 year cookie expiry
+      localStorage.setItem(TRANSFORMATION_PACK_OPENED_KEY, nowStr)
+      setCookieVal(TRANSFORMATION_PACK_OPENED_KEY, nowStr, 365 * 24 * 60 * 60)
       setFirstOpenedTime(now)
     } else {
       setFirstOpenedTime(firstOpened)
-      // Subsequent visit: check if expired
-      if (Date.now() - firstOpened > fortyEightHours) {
+      if (Date.now() - firstOpened > TRANSFORMATION_PACK_OFFER_MS) {
         setIsLinkExpired(true)
-        setShowRedirectNotification(true)
-        clearCampaign()
+        useCampaignStore.getState().clearCampaign()
       } else {
-        // Sync both stores in case one was cleared
         const tsStr = firstOpened.toString()
-        if (!firstOpenedStr) localStorage.setItem(storageKey, tsStr)
-        if (!cookieOpenedStr) setCookieVal(storageKey, tsStr, 365 * 24 * 60 * 60)
+        if (!firstOpenedStr) localStorage.setItem(TRANSFORMATION_PACK_OPENED_KEY, tsStr)
+        if (!cookieOpenedStr) setCookieVal(TRANSFORMATION_PACK_OPENED_KEY, tsStr, 365 * 24 * 60 * 60)
       }
     }
-  }, [slug])
+  }, [slug, isJuneTransformPage])
 
   useEffect(() => {
     if (slug !== 'transformation-pack' || isJuneTransformPage || !firstOpenedTime) return
 
-    const fortyEightHours = 1 * 60 * 1000 // 1 minute for testing (originally 48 * 60 * 60 * 1000)
-
     const updateTimer = () => {
       const now = Date.now()
-      const diff = firstOpenedTime + fortyEightHours - now
+      const diff = firstOpenedTime + TRANSFORMATION_PACK_OFFER_MS - now
 
       if (diff <= 0) {
         setIsLinkExpired((prev) => {
           if (!prev) {
+            useCampaignStore.getState().clearCampaign()
             setShowRedirectNotification(true)
-            clearCampaign()
           }
           return true
         })
@@ -239,7 +232,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
     const timer = setInterval(updateTimer, 1000)
 
     return () => clearInterval(timer)
-  }, [slug, firstOpenedTime])
+  }, [slug, isJuneTransformPage, firstOpenedTime])
 
   useEffect(() => {
     if (showRedirectNotification) {
@@ -250,6 +243,10 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
     }
   }, [showRedirectNotification])
 
+  const dismissRedirectNotification = () => {
+    setShowRedirectNotification(false)
+  }
+
   const heroRef = useRef<HTMLDivElement>(null)
   const { addItem, paymentMethod } = useCartStore()
   const setPaymentMethod = useCartStore((state) => state.setPaymentMethod) || useCartStore.getState().setPaymentMethod
@@ -259,9 +256,6 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
     console.log('🛒 useCartStore keys on client:', Object.keys(useCartStore.getState()))
     console.log('🛒 setPaymentMethod function exists:', typeof setPaymentMethod === 'function')
   }, [setPaymentMethod])
-
-  const { activeCampaign, clearCampaign } = useCampaignStore()
-  const activateCampaign = useCampaignStore((state) => state.activateCampaign)
 
   useEffect(() => {
     if (isJuneTransformPage) {
@@ -565,7 +559,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
               </p>
             </div>
             <button
-              onClick={() => setShowRedirectNotification(false)}
+              onClick={dismissRedirectNotification}
               className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-50 transition-colors shrink-0"
               aria-label="Close notification"
             >
@@ -602,27 +596,22 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
         </div>
 
         {/* Variant carousel + ATC (screenshot format) — when multiple variants */}
-        {product.variants && product.variants.length > 1 && (
+        {/* {product.variants && product.variants.length > 1 && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
             <p className="text-center text-base md:text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
               A science-driven approach to feeling full, lighter, and in control.
             </p>
             <div className="relative">
               <div className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4 snap-x snap-mandatory justify-center px-2">
-                {product.variants.map((variant) => {
-                  const isSelected = selectedVariant?.id === variant.id
-                  return (
+                {product.variants.map((variant) => (
                     <button
                       key={variant.id}
                       type="button"
                       onClick={() => variant.available && setSelectedVariant(variant)}
                       disabled={!variant.available}
-                      className={`flex-shrink-0 w-[180px] sm:w-[200px] snap-center rounded-xl border-2 bg-white overflow-hidden transition-all ${isSelected
-                        ? 'border-black shadow-lg ring-2 ring-black ring-offset-2'
-                        : variant.available
-                          ? 'border-gray-200 hover:border-gray-400'
-                          : 'border-gray-200 opacity-60 cursor-not-allowed'
-                        }`}
+                      className={`flex-shrink-0 w-[180px] sm:w-[200px] snap-center rounded-xl border border-gray-200 bg-white overflow-hidden outline-none focus:outline-none focus-visible:outline-none focus:ring-0 ${
+                        variant.available ? 'cursor-pointer' : 'opacity-60 cursor-not-allowed'
+                      }`}
                     >
                       <div className="relative aspect-[3/4] bg-gray-50">
                         <Image
@@ -681,8 +670,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                         </div>
                       </div>
                     </button>
-                  )
-                })}
+                  ))}
               </div>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6">
                 <div className="flex items-center border border-gray-300 rounded-lg">
@@ -715,13 +703,12 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                   {isAvailable ? 'ADD TO CART' : 'OUT OF STOCK'}
                 </button>
               </div>
-              {/* Trust strip below ATC */}
               <p className="text-center text-xs text-gray-500 mt-4">
                 Free delivery · COD available · Easy returns
               </p>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Main Product Content - 50/50 Split */}
         <div className="max-w-[1600px] mx-auto lg:px-8 pb-16">
