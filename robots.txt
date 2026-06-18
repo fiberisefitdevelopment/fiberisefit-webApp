@@ -10,5 +10,3 @@ Disallow: /temp/
 Disallow: /_next/
 
 Content-Signal: ai-train=yes, search=yes, ai-input=yes
-
-Sitemap: https://fiberisefit.com/sitemap.xml

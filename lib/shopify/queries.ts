@@ -75,24 +75,6 @@ export const PRODUCTS_QUERY = `
   }
 `
 
-/** Minimal query for sitemap: only handles and updatedAt */
-export const PRODUCT_HANDLES_QUERY = `
-  query getProductHandles($first: Int!, $after: String) {
-    products(first: $first, after: $after) {
-      edges {
-        node {
-          handle
-          updatedAt
-        }
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-`
-
 export const PRODUCT_BY_HANDLE_QUERY = `
   query getProductByHandle($handle: String!) {
     product(handle: $handle) {

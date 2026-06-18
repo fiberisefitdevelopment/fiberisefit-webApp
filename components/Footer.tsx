@@ -171,14 +171,6 @@ export default function Footer() {
                   Contact Us
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/sitemap.xml"
-                  className="text-sm text-gray-400 hover:text-white transition-colors"
-                >
-                  Sitemap
-                </Link>
-              </li>
             </ul>
             <p className="text-sm text-gray-400 leading-relaxed mb-4">
               We&apos;re here to help and ensure your journey with Fiberise is seamless and enjoyable. Got ideas or questions about sections? Need a tweak to make it just perfect?
