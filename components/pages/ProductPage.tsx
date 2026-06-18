@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCartStore } from '@/store/cartStore'
-import { useCampaignStore } from '@/store/campaignStore'
+import { useCampaignStore, clearActiveCampaign } from '@/store/campaignStore'
 import { ChevronRight, ChevronLeft, Plus, Minus, Star, Clock, X } from 'lucide-react'
 import VideoSection from '@/components/sections/VideoSection'
 import MetabolismSection from '@/components/sections/science/MetabolismSection'
@@ -90,6 +90,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
   const [bogoTimeLeftText, setBogoTimeLeftText] = useState('')
   const [showRedirectNotification, setShowRedirectNotification] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const transformationExpiryHandledRef = useRef(false)
 
   const { activeCampaign } = useCampaignStore()
   const activateCampaign = useCampaignStore((state) => state.activateCampaign)
@@ -188,7 +189,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
       setFirstOpenedTime(firstOpened)
       if (Date.now() - firstOpened > TRANSFORMATION_PACK_OFFER_MS) {
         setIsLinkExpired(true)
-        useCampaignStore.getState().clearCampaign()
+        clearActiveCampaign()
       } else {
         const tsStr = firstOpened.toString()
         if (!firstOpenedStr) localStorage.setItem(TRANSFORMATION_PACK_OPENED_KEY, tsStr)
@@ -205,14 +206,13 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
       const diff = firstOpenedTime + TRANSFORMATION_PACK_OFFER_MS - now
 
       if (diff <= 0) {
-        setIsLinkExpired((prev) => {
-          if (!prev) {
-            useCampaignStore.getState().clearCampaign()
-            setShowRedirectNotification(true)
-          }
-          return true
-        })
         setTimeLeftText('00:00:00')
+        if (!transformationExpiryHandledRef.current) {
+          transformationExpiryHandledRef.current = true
+          setIsLinkExpired(true)
+          clearActiveCampaign()
+          setShowRedirectNotification(true)
+        }
         return
       }
 
@@ -1000,7 +1000,9 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                 {/* Description Area (Short descriptions/Subtitles) */}
                 <div className="space-y-2 pt-2">
                   <h3 className="text-base font-medium text-black tracking-tight">
-                    Pack: {displayServings} Sachets | Assorted Flavours
+                    {slug === 'bogo'
+                      ? '7 Sachets / Assorted Flavors · You get 2 boxes'
+                      : `Pack: ${displayServings} Sachets | Assorted Flavours`}
                   </h3>
 
                   <div className="text-sm text-gray-800">

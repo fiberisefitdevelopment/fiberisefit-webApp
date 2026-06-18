@@ -143,3 +143,7 @@ export const useCampaignStore = create<CampaignStore>((set, get) => ({
     set({ activeCampaign: campaign, isHydrated: true })
   },
 }))
+
+export function clearActiveCampaign() {
+  useCampaignStore.getState().clearCampaign()
+}
