@@ -1001,7 +1001,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                 <div className="space-y-2 pt-2">
                   <h3 className="text-base font-medium text-black tracking-tight">
                     {slug === 'bogo'
-                      ? "Buy 1 Starter Pack (7 Assorted Flavours) & Get 1 FREE – That's 14 Sachets to Enjoy!"
+                      ? "Buy 1 Starter Pack (3 Assorted Flavours) & Get 1 FREE – That's 14 Sachets to Enjoy!"
                       : `Pack: ${displayServings} Sachets | Assorted Flavours`}
                   </h3>
 
