@@ -23,9 +23,9 @@ const LOCAL_BUSINESS_SCHEMA = {
 }
 
 export const metadata: Metadata = {
-  title: 'Contact Us | Fiberise Fit Support & Help',
+  title: 'Get in Touch with Fiberise Fit | Contact & Support',
   description:
-    'Get in touch with Fiberise Fit for support, queries or assistance. Contact our team for quick help with products, orders or services.',
+    "Get in touch with Fiberise Fit for support, product information, shipping queries, and order assistance. We're here to help.",
 }
 
 export default function ContactPolicyPage() {
