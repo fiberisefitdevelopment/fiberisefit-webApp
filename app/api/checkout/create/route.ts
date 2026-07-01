@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic'
 interface CartItem {
   id: string
   quantity: number
+  flavor?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -115,10 +116,20 @@ export async function POST(request: NextRequest) {
     const cartLines = items.map((item) => {
       const merchandiseId = toShopifyGID(item.id)
       console.log(`📦 Cart item ID: ${item.id} -> GID: ${merchandiseId}, Quantity: ${item.quantity}`)
-      return {
+      const line: {
+        merchandiseId: string
+        quantity: number
+        attributes?: Array<{ key: string; value: string }>
+      } = {
         merchandiseId,
         quantity: item.quantity,
       }
+
+      if (item.flavor?.trim()) {
+        line.attributes = [{ key: 'Flavor', value: item.flavor.trim() }]
+      }
+
+      return line
     })
 
     // Create cart with items

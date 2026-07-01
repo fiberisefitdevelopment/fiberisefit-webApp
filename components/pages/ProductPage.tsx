@@ -13,6 +13,10 @@ import ProductReviewsSection from '@/components/sections/ProductReviewsSection'
 import ReelsSection from '@/components/sections/ReelsSection'
 import PaymentIcons from '@/components/PaymentIcons'
 import { getProductRatingBySlug } from '@/lib/product-ratings'
+import {
+  getShopifyVariantId,
+  withTransformationPackAssortedVariant,
+} from '@/lib/transformation-pack-variants'
 
 interface ProductVariant {
   id: string
@@ -61,17 +65,30 @@ const formatCountdown = (durationMs: number) => {
   ].join(':')
 }
 
+const normalizeProductForSlug = (product: Product, productSlug: string): Product => {
+  let normalized = product
+
+  if (productSlug === 'bogo') {
+    normalized = {
+      ...normalized,
+      available: true,
+      variants: normalized.variants
+        ? normalized.variants.map((variant) => ({ ...variant, available: true }))
+        : [],
+    }
+  }
+
+  if (productSlug === 'transformation-pack') {
+    normalized = withTransformationPackAssortedVariant(normalized, productSlug)
+  }
+
+  return normalized
+}
+
 export default function ProductPage({ slug, initialProduct, isJuneTransformPage = false }: ProductPageProps) {
   const [product, setProduct] = useState<Product | null>(() => {
-    let p = initialProduct || null
-    if (p && slug === 'bogo') {
-      p = {
-        ...p,
-        available: true,
-        variants: p.variants ? p.variants.map((v) => ({ ...v, available: true })) : [],
-      }
-    }
-    return p
+    const initial = initialProduct || null
+    return initial ? normalizeProductForSlug(initial, slug) : null
   })
   const [loading, setLoading] = useState(!initialProduct)
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
@@ -344,14 +361,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
 
         if (data.product) {
           console.log('Product loaded successfully:', data.product.title)
-          let p = data.product
-          if (slug === 'bogo') {
-            p = {
-              ...p,
-              available: true,
-              variants: p.variants ? p.variants.map((v: any) => ({ ...v, available: true })) : [],
-            }
-          }
+          const p = normalizeProductForSlug(data.product, slug)
           setProduct(p)
           // Set the first available variant as selected
           if (p.variants && p.variants.length > 0) {
@@ -372,14 +382,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
     if (slug && !initialProduct) {
       fetchProduct()
     } else if (initialProduct) {
-      let p = initialProduct
-      if (slug === 'bogo') {
-        p = {
-          ...p,
-          available: true,
-          variants: p.variants ? p.variants.map((v) => ({ ...v, available: true })) : [],
-        }
-      }
+      const p = normalizeProductForSlug(initialProduct, slug)
       if (p.variants && p.variants.length > 0) {
         setSelectedVariant(p.variants[0])
       }
@@ -430,10 +433,12 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
     for (let i = 0; i < quantity; i++) {
       addItem({
         id: selectedVariant.id || product.id,
+        variantId: getShopifyVariantId(selectedVariant.gid || selectedVariant.id),
         title: product.title,
         price: selectedVariant.price || product.price,
         image: product.image,
         handle: slug,
+        variant: selectedVariant.name,
       })
     }
   }

@@ -54,8 +54,9 @@ export default function CartDrawer() {
 
       // Prepare cart items for checkout
       const cartItems = items.map((item) => ({
-        id: item.id, // This should be the Shopify variant ID (GID format)
+        id: item.variantId || item.id,
         quantity: item.quantity,
+        ...(item.variant ? { flavor: item.variant } : {}),
       }))
 
       const headers: Record<string, string> = {
@@ -176,6 +177,9 @@ export default function CartDrawer() {
                     <h3 className="font-extrabold text-gray-900 text-sm sm:text-base leading-tight">
                       {item.title}
                     </h3>
+                    {item.variant && (
+                      <p className="text-xs text-gray-600 font-medium">{item.variant}</p>
+                    )}
                     <p className="text-xs text-gray-400 font-semibold">
                       Free shipping • Easy returns
                     </p>
