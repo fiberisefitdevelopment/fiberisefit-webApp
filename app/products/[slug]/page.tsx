@@ -1,6 +1,7 @@
 import ProductPage from '@/components/pages/ProductPage'
 import type { Metadata } from 'next'
 import { shopifyFetch, formatProduct } from '@/lib/shopify/client'
+import { isHiddenProductHandle } from '@/lib/hidden-products'
 import { PRODUCT_BY_HANDLE_QUERY } from '@/lib/shopify/queries'
 
 const PRODUCT_META_BY_SLUG: Record<
@@ -138,6 +139,7 @@ export async function generateMetadata({ params }: ProductProps): Promise<Metada
   const { slug } = await params
   const key = (slug || '').toLowerCase()
   const meta = PRODUCT_META_BY_SLUG[key] ?? PRODUCT_META_BY_SLUG[key.replace(/^\//, '')]
+  const isHidden = isHiddenProductHandle(slug)
 
   const title = meta?.title ?? 'Fiberise Fit'
   const description = meta?.description ?? 'Smart health ecosystem powered by AI & innovation.'
@@ -150,6 +152,16 @@ export async function generateMetadata({ params }: ProductProps): Promise<Metada
     alternates: {
       canonical: url,
     },
+    robots: isHidden
+      ? {
+          index: false,
+          follow: false,
+          googleBot: {
+            index: false,
+            follow: false,
+          },
+        }
+      : undefined,
     openGraph: {
       title,
       description,
@@ -214,8 +226,9 @@ function getBreadcrumbSchema(slug: string) {
 export default async function Product({ params }: ProductProps) {
   const { slug } = await params
   const initialProduct = await getProductData(slug)
-  const productSchema = PRODUCT_SCHEMA_BY_SLUG[slug]
-  const breadcrumbSchema = getBreadcrumbSchema(slug)
+  const isHidden = isHiddenProductHandle(slug)
+  const productSchema = isHidden ? null : PRODUCT_SCHEMA_BY_SLUG[slug]
+  const breadcrumbSchema = isHidden ? null : getBreadcrumbSchema(slug)
 
   return (
     <>

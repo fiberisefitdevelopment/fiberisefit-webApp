@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { shopifyFetch, formatProduct } from '@/lib/shopify/client'
+import { filterVisibleProducts } from '@/lib/hidden-products'
 import { PRODUCTS_QUERY } from '@/lib/shopify/queries'
 
 export const dynamic = 'force-dynamic'
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       console.log(`Products API: returned ${allProducts.length} product(s). Handles: ${allProducts.map((p: any) => p?.handle || p?.title).join(', ')}`)
     }
 
-    const products = allProducts.map((node) => formatProduct(node))
+    const products = filterVisibleProducts(allProducts.map((node) => formatProduct(node)))
 
     return NextResponse.json(
       {

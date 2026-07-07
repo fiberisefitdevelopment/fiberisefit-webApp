@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { shopifyFetch, formatProduct } from '@/lib/shopify/client'
+import { filterVisibleProducts } from '@/lib/hidden-products'
 import { COLLECTION_QUERY } from '@/lib/shopify/queries'
 
 export const dynamic = 'force-dynamic'
@@ -51,8 +52,8 @@ export async function GET(
       )
     }
 
-    const products = data.collection.products.edges.map((edge) =>
-      formatProduct(edge.node)
+    const products = filterVisibleProducts(
+      data.collection.products.edges.map((edge) => formatProduct(edge.node))
     )
 
     return NextResponse.json(

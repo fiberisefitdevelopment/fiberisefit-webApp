@@ -17,6 +17,12 @@ import {
   getShopifyVariantId,
   withTransformationPackAssortedVariant,
 } from '@/lib/transformation-pack-variants'
+import {
+  isStarterPackPd,
+  STARTER_PACK_PD_PREPAID_DISCOUNT_PERCENT,
+  STARTER_PACK_PD_PREPAID_PRICE,
+  STARTER_PACK_PD_REGULAR_PRICE,
+} from '@/lib/hidden-products'
 
 interface ProductVariant {
   id: string
@@ -431,11 +437,15 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
 
     // Add multiple items based on quantity
     for (let i = 0; i < quantity; i++) {
+      const itemPrice = isStarterPackPd(slug)
+        ? STARTER_PACK_PD_PREPAID_PRICE
+        : selectedVariant.price || product.price
+
       addItem({
         id: selectedVariant.id || product.id,
         variantId: getShopifyVariantId(selectedVariant.gid || selectedVariant.id),
         title: product.title,
-        price: selectedVariant.price || product.price,
+        price: itemPrice,
         image: product.image,
         handle: slug,
         variant: selectedVariant.name,
@@ -517,15 +527,24 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
   }
 
   const displayPrice = selectedVariant?.price ?? product.price
+  const isStarterPackPdPage = isStarterPackPd(slug)
   const isBogoPrepaid = mounted && paymentMethod === 'prepaid' && slug === 'bogo'
   const isJuneTransformPrepaid = mounted && paymentMethod === 'prepaid' && isJuneTransformPage
-  const currentPrice = isJuneTransformPrepaid 
-    ? displayPrice - 250 
-    : (isBogoPrepaid ? displayPrice - 200 : displayPrice)
-  const displayCompareAt = selectedVariant?.compareAtPrice ?? product.comparePrice ?? null
-  const discountPercent = displayCompareAt != null && displayCompareAt > currentPrice && currentPrice > 0
-    ? Math.round((1 - currentPrice / displayCompareAt) * 100)
-    : null
+  const currentPrice = isStarterPackPdPage
+    ? STARTER_PACK_PD_PREPAID_PRICE
+    : isJuneTransformPrepaid
+      ? displayPrice - 250
+      : isBogoPrepaid
+        ? displayPrice - 200
+        : displayPrice
+  const displayCompareAt = isStarterPackPdPage
+    ? STARTER_PACK_PD_REGULAR_PRICE
+    : selectedVariant?.compareAtPrice ?? product.comparePrice ?? null
+  const discountPercent = isStarterPackPdPage
+    ? STARTER_PACK_PD_PREPAID_DISCOUNT_PERCENT
+    : displayCompareAt != null && displayCompareAt > currentPrice && currentPrice > 0
+      ? Math.round((1 - currentPrice / displayCompareAt) * 100)
+      : null
   const isAvailable = selectedVariant?.available ?? product.available
   const displayImages = product.images && product.images.length > 0 ? product.images : [product.image]
   //const ingredients = ['Unflavoured', 'Watermelon', 'Lemon', 'Assorted']
@@ -910,6 +929,12 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                           )}
                         </div>
                         <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">INCL. OF ALL TAXES</p>
+                        {isStarterPackPdPage && (
+                          <div className="text-[11px] text-[#187254] font-bold mt-1.5 flex items-center gap-1.5 animate-fade-in">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#187254] animate-pulse" />
+                            Prepaid {STARTER_PACK_PD_PREPAID_DISCOUNT_PERCENT}% discount applied — ₹{STARTER_PACK_PD_PREPAID_PRICE}
+                          </div>
+                        )}
                         {isBogoPrepaid && (
                           <div className="text-[11px] text-[#187254] font-bold mt-1.5 flex items-center gap-1.5 animate-fade-in">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#187254] animate-pulse" />
