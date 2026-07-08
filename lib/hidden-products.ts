@@ -1,28 +1,69 @@
-/** Products reachable only via direct link — excluded from listings, search, and sitemap. */
-export const HIDDEN_PRODUCT_HANDLES = ['starter-pack-pd'] as const
+/** Direct-link-only products — excluded from listings, search, and sitemap. */
+export type PdProductConfig = {
+  handle: string
+  regularPrice: number
+  salePrice: number
+  discountCode: string
+  discountPercent: number
+}
+
+export const PD_PRODUCTS: Record<string, PdProductConfig> = {
+  'starter-pack-pd': {
+    handle: 'starter-pack-pd',
+    regularPrice: 1200,
+    salePrice: 599,
+    discountCode: 'STARTERPD50',
+    discountPercent: 50,
+  },
+  'transformation-pack-pd': {
+    handle: 'transformation-pack-pd',
+    regularPrice: 2999,
+    salePrice: 2249,
+    discountCode: 'TRANSFORMPD',
+    discountPercent: 25,
+  },
+  'ultimate-pack-pd': {
+    handle: 'ultimate-pack-pd',
+    regularPrice: 7999,
+    salePrice: 5999,
+    discountCode: 'ULTIMATEPD',
+    discountPercent: 25,
+  },
+}
+
+export const HIDDEN_PRODUCT_HANDLES = Object.keys(PD_PRODUCTS) as Array<keyof typeof PD_PRODUCTS>
 
 export type HiddenProductHandle = (typeof HIDDEN_PRODUCT_HANDLES)[number]
 
-export const STARTER_PACK_PD_HANDLE = 'starter-pack-pd'
-export const STARTER_PACK_PD_REGULAR_PRICE = 1200
-export const STARTER_PACK_PD_PREPAID_PRICE = 599
-export const STARTER_PACK_PD_PREPAID_DISCOUNT_PERCENT = 50
-export const STARTER_PACK_PD_PREPAID_CODE = 'STARTERPD50'
+export function normalizeProductHandle(handle: string | null | undefined): string {
+  return (handle || '').toLowerCase().trim()
+}
+
+export function getPdProductConfig(handle: string | null | undefined): PdProductConfig | null {
+  const normalized = normalizeProductHandle(handle)
+  return PD_PRODUCTS[normalized] ?? null
+}
+
+export function isPdProduct(handle: string | null | undefined): boolean {
+  return getPdProductConfig(handle) !== null
+}
 
 export function isHiddenProductHandle(handle: string | null | undefined): boolean {
-  if (!handle) return false
-  const normalized = handle.toLowerCase().trim()
-  return HIDDEN_PRODUCT_HANDLES.some((hiddenHandle) => hiddenHandle === normalized)
+  return isPdProduct(handle)
 }
 
-export function isStarterPackPd(handle: string | null | undefined): boolean {
-  return (handle || '').toLowerCase().trim() === STARTER_PACK_PD_HANDLE
-}
+export function getPdCheckoutDiscountCode(
+  items: Array<{ handle?: string }>
+): string | undefined {
+  const pdHandles = new Set(
+    items
+      .map((item) => normalizeProductHandle(item.handle))
+      .filter((handle) => isPdProduct(handle))
+  )
 
-export function getStarterPackPdPrice(paymentMethod: 'prepaid' | 'cod'): number {
-  return paymentMethod === 'prepaid'
-    ? STARTER_PACK_PD_PREPAID_PRICE
-    : STARTER_PACK_PD_REGULAR_PRICE
+  if (pdHandles.size !== 1) return undefined
+
+  return getPdProductConfig([...pdHandles][0])?.discountCode
 }
 
 export function filterVisibleProducts<T extends { slug?: string; handle?: string }>(
@@ -32,4 +73,15 @@ export function filterVisibleProducts<T extends { slug?: string; handle?: string
     const handle = product.slug || product.handle || ''
     return !isHiddenProductHandle(handle)
   })
+}
+
+// Backwards-compatible exports
+export const STARTER_PACK_PD_HANDLE = PD_PRODUCTS['starter-pack-pd'].handle
+export const STARTER_PACK_PD_REGULAR_PRICE = PD_PRODUCTS['starter-pack-pd'].regularPrice
+export const STARTER_PACK_PD_PREPAID_PRICE = PD_PRODUCTS['starter-pack-pd'].salePrice
+export const STARTER_PACK_PD_PREPAID_DISCOUNT_PERCENT = PD_PRODUCTS['starter-pack-pd'].discountPercent
+export const STARTER_PACK_PD_PREPAID_CODE = PD_PRODUCTS['starter-pack-pd'].discountCode
+
+export function isStarterPackPd(handle: string | null | undefined): boolean {
+  return normalizeProductHandle(handle) === STARTER_PACK_PD_HANDLE
 }

@@ -6,9 +6,7 @@ import { X, Plus, Minus, ShoppingBag, Tag, Loader2, Check, AlertCircle } from 'l
 import { useCartStore } from '@/store/cartStore'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCampaignStore } from '@/store/campaignStore'
-import {
-  STARTER_PACK_PD_PREPAID_CODE,
-} from '@/lib/hidden-products'
+import { getPdCheckoutDiscountCode } from '@/lib/hidden-products'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -23,7 +21,7 @@ export default function CartDrawer() {
   const hasBogo = items.some((item) => item.handle === 'bogo')
   console.log('🛒 Cart Items in Drawer:', items.map(i => ({ id: i.id, title: i.title, handle: i.handle, price: i.price })))
   console.log('🛒 hasBogo:', hasBogo)
-  const hasStarterPackPd = items.some((item) => item.handle === 'starter-pack-pd')
+  const pdCheckoutDiscountCode = getPdCheckoutDiscountCode(items)
   const hasJuneTransform = items.some((item) => item.handle === 'transformation-pack') && isCampaignValid && activeCampaign.slug === 'june-transform'
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false)
   const [promoCode, setPromoCode] = useState('')
@@ -78,7 +76,7 @@ export default function CartDrawer() {
           discountCode:
             promoCode.trim() ||
             (paymentMethod === 'prepaid' && hasBogo ? 'PREPAID200' : undefined) ||
-            (hasStarterPackPd ? STARTER_PACK_PD_PREPAID_CODE : undefined),
+            pdCheckoutDiscountCode,
           campaignSlug: (isCampaignValid && (activeCampaign.slug !== 'june-transform' || paymentMethod === 'prepaid')) ? activeCampaign.slug : undefined,
         }),
       })
