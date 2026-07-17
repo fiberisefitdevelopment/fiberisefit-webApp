@@ -21,7 +21,9 @@ export function withTransformationPackAssortedVariant<T extends ProductLike>(
 ): T {
   const normalizedSlug = slug.toLowerCase().trim()
   const isTransformationPack =
-    normalizedSlug === 'transformation-pack' || normalizedSlug === 'transformation-pack-pd'
+    normalizedSlug === 'transformation-pack' ||
+    normalizedSlug === 'transformation-pack-pd' ||
+    normalizedSlug === 'transformation-pack-1'
 
   if (!isTransformationPack || !product.variants?.length) {
     return product

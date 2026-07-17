@@ -20,6 +20,12 @@ const PRODUCT_META_BY_SLUG: Record<
       'Control cravings & manage weight naturally with the 30-sachet Transformation Pack. Supports fat burning & gut health - smart alternative for weight loss.',
     keywords: 'ozempic for weight loss, weight management supplements, fat burner for women, best fiber supplement',
   },
+  'transformation-pack-1': {
+    title: 'Fyber Transformation Pack (30 Sachets) - Special Offer | Fiberise',
+    description:
+      'Control cravings & manage weight naturally with the 30-sachet Transformation Pack. Special link-only offer with Assorted Flavours.',
+    keywords: 'transformation pack, weight management, assorted flavours',
+  },
   'ultimate-pack': {
     title: 'Fyber Ultimate Pack (90 Sachets + Lyte Band) - Best Weight Loss Set',
     description:

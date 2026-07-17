@@ -81,7 +81,11 @@ const normalizeProductForSlug = (product: Product, productSlug: string): Product
     }
   }
 
-  if (productSlug === 'transformation-pack' || productSlug === 'transformation-pack-pd') {
+  if (
+    productSlug === 'transformation-pack' ||
+    productSlug === 'transformation-pack-pd' ||
+    productSlug === 'transformation-pack-1'
+  ) {
     normalized = withTransformationPackAssortedVariant(normalized, productSlug)
   }
 
@@ -386,6 +390,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
       fetchProduct()
     } else if (initialProduct) {
       const p = normalizeProductForSlug(initialProduct, slug)
+      setProduct(p)
       if (p.variants && p.variants.length > 0) {
         setSelectedVariant(p.variants[0])
       }
@@ -528,10 +533,10 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
   const pdConfig = getPdProductConfig(slug)
   const isPdProductPage = pdConfig !== null
   const isBogoPrepaid = mounted && paymentMethod === 'prepaid' && slug === 'bogo'
-  const isJuneTransformPrepaid = mounted && paymentMethod === 'prepaid' && isJuneTransformPage
+  const isJuneTransformOffer = isJuneTransformPage
   const currentPrice = isPdProductPage
     ? pdConfig.salePrice
-    : isJuneTransformPrepaid
+    : isJuneTransformOffer
       ? displayPrice - 250
       : isBogoPrepaid
         ? displayPrice - 200
@@ -652,9 +657,8 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                         <div className="mt-1">
                           {(() => {
                             const isBogoPrepaid = mounted && paymentMethod === 'prepaid' && slug === 'bogo'
-                            const isJuneTransformPrepaid = mounted && paymentMethod === 'prepaid' && isJuneTransformPage
-                            const displayVariantPrice = isJuneTransformPrepaid 
-                              ? variant.price - 250 
+                            const displayVariantPrice = isJuneTransformPage
+                              ? variant.price - 250
                               : (isBogoPrepaid ? variant.price - 200 : variant.price)
                             const discountPct = variant.compareAtPrice != null && variant.compareAtPrice > displayVariantPrice
                               ? Math.round((1 - displayVariantPrice / variant.compareAtPrice) * 100)
@@ -940,10 +944,10 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                             Prepaid ₹200 discount applied
                           </div>
                         )}
-                        {isJuneTransformPrepaid && (
+                        {isJuneTransformOffer && (
                           <div className="text-[11px] text-[#187254] font-bold mt-1.5 flex items-center gap-1.5 animate-fade-in">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#187254] animate-pulse" />
-                            Prepaid ₹250 discount applied
+                            ₹250 offer discount applied
                           </div>
                         )}
                       </div>
@@ -958,7 +962,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-gray-700">
                         Payment Method
                       </span>
-                      {(!mounted || paymentMethod === 'prepaid') && (
+                      {(isJuneTransformPage || !mounted || paymentMethod === 'prepaid') && (
                         <span className="text-[10px] bg-[#E8F5E9] text-[#187254] font-bold px-2.5 py-0.5 rounded-full border border-[#A5D6A7]/30 animate-pulse">
                           Extra {isJuneTransformPage ? '₹250' : '₹200'} OFF
                         </span>
@@ -993,7 +997,14 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                             : 'border-gray-200 bg-gray-50/40 hover:bg-gray-50 hover:border-gray-300'
                         }`}
                       >
-                        <span className="text-xs font-bold text-gray-900">COD</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-900">COD</span>
+                          {isJuneTransformPage && (
+                            <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1.5 py-0.5 rounded">
+                              -₹250
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[9px] text-gray-500 mt-1 leading-tight">
                           Cash on Delivery
                         </p>

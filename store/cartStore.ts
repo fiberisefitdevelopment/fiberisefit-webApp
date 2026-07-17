@@ -78,15 +78,10 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
       // Apply dynamic discount calculation
       if (isCampaignValid && item.handle && campaign.applicableProducts.includes(item.handle)) {
-        const isJuneTransform = campaign.slug === 'june-transform'
-        const isPrepaid = get().paymentMethod === 'prepaid'
-
-        if (!isJuneTransform || isPrepaid) {
-          if (campaign.discountType === 'fixed') {
-            price = Math.max(0, item.price - campaign.discountValue)
-          } else if (campaign.discountType === 'percentage') {
-            price = Math.max(0, item.price * (1 - campaign.discountValue / 100))
-          }
+        if (campaign.discountType === 'fixed') {
+          price = Math.max(0, item.price - campaign.discountValue)
+        } else if (campaign.discountType === 'percentage') {
+          price = Math.max(0, item.price * (1 - campaign.discountValue / 100))
         }
       }
 

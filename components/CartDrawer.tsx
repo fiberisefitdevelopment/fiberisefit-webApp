@@ -77,7 +77,7 @@ export default function CartDrawer() {
             promoCode.trim() ||
             (paymentMethod === 'prepaid' && hasBogo ? 'PREPAID200' : undefined) ||
             pdCheckoutDiscountCode,
-          campaignSlug: (isCampaignValid && (activeCampaign.slug !== 'june-transform' || paymentMethod === 'prepaid')) ? activeCampaign.slug : undefined,
+          campaignSlug: isCampaignValid ? activeCampaign.slug : undefined,
         }),
       })
 
@@ -189,7 +189,7 @@ export default function CartDrawer() {
                       Free shipping • Easy returns
                     </p>
                     <div className="text-sm sm:text-base font-extrabold text-black pt-1">
-                      {isCampaignValid && item.handle && activeCampaign.applicableProducts.includes(item.handle) && (activeCampaign.slug !== 'june-transform' || paymentMethod === 'prepaid') ? (
+                      {isCampaignValid && item.handle && activeCampaign.applicableProducts.includes(item.handle) ? (
                         (() => {
                           const discountedPrice = item.price - activeCampaign.discountValue
                           return (
@@ -271,7 +271,7 @@ export default function CartDrawer() {
                           </span>
                         </div>
                         <p className="text-[9px] text-gray-500 mt-1 leading-tight">
-                          UPI, Card (Extra {hasJuneTransform ? '₹250' : '₹200'} OFF)
+                          {hasJuneTransform ? 'UPI, Cards, Net Banking' : 'UPI, Card (Extra ₹200 OFF)'}
                         </p>
                       </button>
                       <button
@@ -282,7 +282,14 @@ export default function CartDrawer() {
                             : 'border-gray-200 bg-gray-50/50 hover:bg-gray-50'
                           }`}
                       >
-                        <span className="text-xs font-bold text-gray-900">COD</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-gray-900">COD</span>
+                          {hasJuneTransform && (
+                            <span className="text-[9px] bg-red-100 text-red-700 font-extrabold px-1 py-0.5 rounded">
+                              -₹250
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[9px] text-gray-500 mt-1 leading-tight">
                           Cash on Delivery
                         </p>

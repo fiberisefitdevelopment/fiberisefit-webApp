@@ -31,7 +31,13 @@ export const PD_PRODUCTS: Record<string, PdProductConfig> = {
   },
 }
 
-export const HIDDEN_PRODUCT_HANDLES = Object.keys(PD_PRODUCTS) as Array<keyof typeof PD_PRODUCTS>
+/** Link-only handles without PD pricing overrides (Shopify price used as-is). */
+export const LINK_ONLY_PRODUCT_HANDLES = ['transformation-pack-1'] as const
+
+export const HIDDEN_PRODUCT_HANDLES = [
+  ...Object.keys(PD_PRODUCTS),
+  ...LINK_ONLY_PRODUCT_HANDLES,
+] as const
 
 export type HiddenProductHandle = (typeof HIDDEN_PRODUCT_HANDLES)[number]
 
@@ -48,8 +54,13 @@ export function isPdProduct(handle: string | null | undefined): boolean {
   return getPdProductConfig(handle) !== null
 }
 
+export function isLinkOnlyProduct(handle: string | null | undefined): boolean {
+  const normalized = normalizeProductHandle(handle)
+  return (LINK_ONLY_PRODUCT_HANDLES as readonly string[]).includes(normalized)
+}
+
 export function isHiddenProductHandle(handle: string | null | undefined): boolean {
-  return isPdProduct(handle)
+  return isPdProduct(handle) || isLinkOnlyProduct(handle)
 }
 
 export function getPdCheckoutDiscountCode(
@@ -63,7 +74,8 @@ export function getPdCheckoutDiscountCode(
 
   if (pdHandles.size !== 1) return undefined
 
-  return getPdProductConfig([...pdHandles][0])?.discountCode
+  const [handle] = Array.from(pdHandles)
+  return getPdProductConfig(handle)?.discountCode
 }
 
 export function filterVisibleProducts<T extends { slug?: string; handle?: string }>(
