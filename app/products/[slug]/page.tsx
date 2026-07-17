@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { shopifyFetch, formatProduct } from '@/lib/shopify/client'
 import { isHiddenProductHandle } from '@/lib/hidden-products'
 import { PRODUCT_BY_HANDLE_QUERY } from '@/lib/shopify/queries'
+import { withTransformationPackAssortedVariant } from '@/lib/transformation-pack-variants'
 
 const PRODUCT_META_BY_SLUG: Record<
   string,
@@ -189,7 +190,8 @@ async function getProductData(slug: string) {
       variables: { handle: slug },
     })
     if (!data.product) return null
-    return formatProduct(data.product)
+    const product = formatProduct(data.product)
+    return withTransformationPackAssortedVariant(product, slug)
   } catch (err) {
     console.error('SSR Product Fetch Error:', err)
     return null
@@ -244,10 +246,12 @@ export default async function Product({ params }: ProductProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
         />
       )}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      {breadcrumbSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        />
+      )}
       <ProductPage slug={slug} initialProduct={initialProduct} />
     </>
   )

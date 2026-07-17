@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { shopifyFetch, formatProduct } from '@/lib/shopify/client'
 import { PRODUCT_BY_HANDLE_QUERY } from '@/lib/shopify/queries'
+import { withTransformationPackAssortedVariant } from '@/lib/transformation-pack-variants'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,7 +42,7 @@ export async function GET(
     console.log('Product formatted successfully:', product.title)
 
     return NextResponse.json(
-      { product },
+      { product: withTransformationPackAssortedVariant(product, handle) },
       {
         headers: {
           'Cache-Control': 'no-store, max-age=0',

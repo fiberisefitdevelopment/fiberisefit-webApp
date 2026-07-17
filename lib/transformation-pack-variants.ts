@@ -37,13 +37,16 @@ export function withTransformationPackAssortedVariant<T extends ProductLike>(
     product.variants.find((variant) => /unflav/i.test(variant.name)) ??
     product.variants[0]
 
+  const variantKey = template.gid || template.id
+
   return {
     ...product,
     variants: [
       ...product.variants,
       {
         ...template,
-        id: `${template.gid}::assorted-flavours`,
+        id: `${variantKey}::assorted-flavours`,
+        gid: variantKey,
         name: TRANSFORMATION_PACK_ASSORTED_FLAVOUR,
       },
     ],
