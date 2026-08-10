@@ -7,7 +7,7 @@ import Footer from '@/components/Footer'
 import CartDrawer from '@/components/CartDrawer'
 import GlobalOfferBanner from '@/components/GlobalOfferBanner'
 import { AuthProvider } from '@/contexts/AuthContext'
-import ThirdPartyScripts from '../components/ThirdPartyScripts'
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '907008275541276'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -112,6 +112,19 @@ export default function RootLayout({
             gtag('config', 'AW-17953867063');
           `}
         </Script>
+        {/* Meta Pixel Code */}
+        <Script id="meta-pixel" strategy="afterInteractive">
+          {`!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '${META_PIXEL_ID}');
+fbq('track', 'PageView');`}
+        </Script>
         <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.shopify.com" />
         {/* Organization structured data — zero JS cost as inline JSON */}
@@ -130,6 +143,15 @@ export default function RootLayout({
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        </noscript>
         <AuthProvider>
           <GlobalOfferBanner />
           <Header />
@@ -137,8 +159,6 @@ export default function RootLayout({
           <Footer />
           <CartDrawer />
         </AuthProvider>
-        {/* ALL third-party scripts load ONLY after user interaction */}
-        <ThirdPartyScripts />
       </body>
     </html>
   )

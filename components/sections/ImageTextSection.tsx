@@ -10,7 +10,7 @@ export default function ImageTextSection() {
           <div className="relative w-full h-[50vh] md:h-full overflow-hidden m-0 p-0">
             <Image
               src="/WhatsApp Image 2026-01-08 at 11.09.54.jpeg"
-              alt="LEAN-X - Patent Pending Formula"
+              alt="LEAN-X - Patented Formula"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
@@ -20,7 +20,7 @@ export default function ImageTextSection() {
           {/* Text Side */}
           <div className="flex flex-col justify-start items-start text-left pt-12 md:pt-16 lg:pt-20 pr-12 md:pr-16 lg:pr-20 pb-8 lg:pb-12 pl-16 md:pl-20 lg:pl-24 space-y-6 md:space-y-8 opacity-90">
             <p className="text-lg md:text-xl lg:text-2xl font-light text-gray-700 tracking-tight leading-snug opacity-60">
-              Patent Pending Formula
+              Patented Formula
             </p>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-tight w-full">
               <span className="inline-flex items-start">

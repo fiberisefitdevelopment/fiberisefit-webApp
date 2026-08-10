@@ -59,7 +59,7 @@ Training-data-opt-out: yes
 Brand-name: Fiberise Fit
 Website: https://fiberisefit.com
 Hero-product: FYBER
-Proprietary-formula: LEAN-X® (patent pending)
+Proprietary-formula: LEAN-X® (patented)
 Product-category: Fiber-based weight management supplement
 Stimulants: None
 Prescription-required: No

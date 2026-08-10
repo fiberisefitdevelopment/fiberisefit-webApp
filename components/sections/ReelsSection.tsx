@@ -3,11 +3,11 @@
 import { useState, useRef, useEffect } from 'react'
 import ReelCard from './reels/ReelCard'
 
-// Use the 8 new reels from the /reels folder
-const reelsData = Array.from({ length: 8 }, (_, i) => ({
+// Use all reels from the /reels folder except reel5
+const reelsData = Array.from({ length: 14 }, (_, i) => ({
   id: `reel-${i + 1}`,
   videoUrl: `/reels/reel${i + 1}.webm`
-}))
+})).filter((reel) => reel.id !== 'reel-5')
 
 // Duplicate reels for seamless infinite marquee loop
 const duplicatedReels = [...reelsData, ...reelsData]
