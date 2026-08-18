@@ -11,4 +11,58 @@ Disallow: /_next/
 
 Content-Signal: ai-train=yes, search=yes, ai-input=yes
 
+User-Agent: Googlebot
+Allow: /
+
+User-Agent: Bingbot
+Allow: /
+
+# === AI Search/Citation bots — ALLOW (visibility, no training) ===
+User-Agent: OAI-SearchBot
+Allow: /
+
+User-Agent: ChatGPT-User
+Allow: /
+
+User-Agent: PerplexityBot
+Allow: /
+
+User-Agent: Perplexity-User
+Allow: /
+
+User-Agent: Claude-SearchBot
+Allow: /
+
+User-Agent: Claude-User
+Allow: /
+
+User-Agent: DuckAssistBot
+Allow: /
+
+# === AI Training-only bots — DISALLOW (no visibility benefit) ===
+User-Agent: ClaudeBot
+Disallow: /
+
+User-Agent: anthropic-ai
+Disallow: /
+
+User-Agent: Google-Extended
+Disallow: /
+
+User-Agent: FacebookBot
+Disallow: /
+
+User-Agent: Applebot-Extended
+Disallow: /
+
+User-Agent: CCBot
+Disallow: /
+
+User-Agent: Bytespider
+Disallow: /
+
+User-Agent: GPTBot
+Disallow: /
+
+
 Sitemap: https://fiberisefit.com/sitemap.xml
