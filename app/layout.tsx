@@ -25,32 +25,6 @@ const playfair = Playfair_Display({
 
 const SITE_URL = 'https://fiberisefit.com'
 const OG_IMAGE = `${SITE_URL}/icons/I%20Mark%20-%20BC%2001.png`
-const ORGANIZATION_SCHEMA = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Fiberise Fit',
-  url: 'https://fiberisefit.com/',
-  logo: 'https://fiberisefit.com/_next/image?url=%2Ffiberisefit%20dark%20logo.png&w=1920&q=75',
-  contactPoint: {
-    '@type': 'ContactPoint',
-    telephone: '+91-7070705026',
-    contactType: 'customer service',
-    areaServed: 'IN',
-    availableLanguage: 'English'
-  },
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: '731/508 S/F, PLOT NO.7 BLOCK 56 DB GUPTA ROAD Karol Bagh Central Delhi, New Delhi, Delhi, India 110005 Sat Nagar SO DELHI 110005',
-    addressLocality: 'Karol Bagh',
-    addressRegion: 'New Delhi',
-    postalCode: '110005',
-    addressCountry: 'IN'
-  },
-  sameAs: [
-    'https://www.instagram.com/fiberisefit',
-    'https://www.linkedin.com/company/fiberise-fit'
-  ]
-}
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -127,11 +101,6 @@ fbq('track', 'PageView');`}
         </Script>
         <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.shopify.com" />
-        {/* Organization structured data — zero JS cost as inline JSON */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
-        />
       </head>
       <body className={montserrat.className} suppressHydrationWarning>
         {/* GTM noscript fallback — zero JS cost */}
