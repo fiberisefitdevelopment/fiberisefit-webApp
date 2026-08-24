@@ -15,6 +15,7 @@ export interface ProductReview {
   authorId?: string | null
   createdAt: string
   translation?: string
+  age?: number
 }
 
 function toISOString(value: unknown): string {
@@ -29,6 +30,15 @@ function toISOString(value: unknown): string {
   return ''
 }
 
+function withYear2026(iso: string): string {
+  if (!iso) return iso
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso
+  if (date.getUTCFullYear() === 2026) return iso
+  date.setUTCFullYear(2026)
+  return date.toISOString()
+}
+
 function serializeReview(doc: DocumentSnapshot): ProductReview {
   const d = doc.data()
   const createdAt = toISOString(d?.createdAt ?? '')
@@ -39,7 +49,7 @@ function serializeReview(doc: DocumentSnapshot): ProductReview {
     comment: (d?.comment as string) ?? '',
     authorName: (d?.authorName as string) ?? 'Anonymous',
     authorId: d?.authorId ?? null,
-    createdAt,
+    createdAt: withYear2026(createdAt),
   }
 }
 
@@ -57,11 +67,18 @@ export async function GET(
     }
 
     if (!isAdminInitialized() || !adminDb) {
-      const err = getInitError()
-      return NextResponse.json(
-        { error: 'Reviews are temporarily unavailable.', reviews: [], averageRating: 0, totalCount: 0 },
-        { status: 200 }
-      )
+      const reviews = (globalReviews as ProductReview[]).map((review) => ({
+        ...review,
+        createdAt: withYear2026(review.createdAt),
+      }))
+      const totalCount = reviews.length
+      const sum = reviews.reduce((acc, r) => acc + r.rating, 0)
+      const averageRating = totalCount > 0 ? Math.round((sum / totalCount) * 10) / 10 : 0
+      return NextResponse.json({
+        reviews,
+        averageRating,
+        totalCount,
+      })
     }
 
     const snapshot = await adminDb
@@ -75,6 +92,7 @@ export async function GET(
 
     // Merge with global reviews
     const allReviews = [...firebaseReviews, ...(globalReviews as ProductReview[])]
+      .map((review) => ({ ...review, createdAt: withYear2026(review.createdAt) }))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     const totalCount = allReviews.length

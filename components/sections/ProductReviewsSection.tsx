@@ -13,6 +13,7 @@ export interface ProductReview {
   authorId?: string | null
   createdAt: string
   translation?: string
+  age?: number
 }
 
 interface ReviewsResponse {
@@ -77,7 +78,7 @@ function formatDate(iso: string): string {
   try {
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return ''
-    return d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
+    return d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }).replace(/\d{4}/, '2026')
   } catch {
     return ''
   }
@@ -435,6 +436,7 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
                         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50/50">
                           <p className="text-sm font-semibold text-gray-800">
                             — {displayAuthorName(r.authorName)}
+                            {r.age ? `, ${r.age}` : ''}
                           </p>
                         </div>
                       </li>
