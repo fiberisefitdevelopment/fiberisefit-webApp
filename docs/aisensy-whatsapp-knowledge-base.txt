@@ -75,18 +75,6 @@ SECTION 2 — PRODUCTS & PRICING
 
 NOTE FOR AI: Prices may change. Always direct customers to check live prices at fiberisefit.com. Prices below are from the website as of June 2026.
 
---- STARTER PACK ---
-Name: FYBER Starter Pack
-URL: https://fiberisefit.com/products/starter-pack
-Sachets: 7 sachets (~7 days)
-Best for: First-time users who want to try taste, mixability, and gentle appetite control
-Compare-at price: ₹1,200
-Sale price: ~₹599 (check website for current price)
-Per sachet: ~₹86
-Rating: 4.6 stars
-Special: 100% Money-Back Guarantee (marketing offer on Starter Pack page)
-Flavours: Assorted (Lime & Lemon, Unflavoured)
-
 --- TRANSFORMATION PACK ---
 Name: FYBER Transformation Pack
 URL: https://fiberisefit.com/products/transformation-pack
@@ -129,7 +117,6 @@ Note: Standalone LYTE band may be sold out — check website or contact support
 
 Q: Which pack should I choose?
 A:
-- Starter Pack (7 days): Try FYBER for the first time
 - Transformation Pack (30 days): Best for building a daily habit and seeing real craving/gut changes
 - Ultimate Pack (90 days): Best value for full transformation — includes free LYTE band
 - BOGO Pack: Limited-time buy-one-get-one offer
@@ -145,7 +132,6 @@ A: Prepaid (UPI, Credit/Debit Cards, Net Banking) and Cash on Delivery (COD). Pr
 
 Q: How do I place an order?
 A: Visit https://fiberisefit.com, choose your pack, add to cart, and checkout. You can also go directly to product pages:
-- Starter: fiberisefit.com/products/starter-pack
 - Transformation: fiberisefit.com/products/transformation-pack
 - Ultimate: fiberisefit.com/products/ultimate-pack
 - BOGO: fiberisefit.com/products/bogo
@@ -277,7 +263,7 @@ Q: How long do refunds take?
 A: Approved refunds are processed in 5–7 business days to the original payment method. For returns, refund is processed 5–7 business days after we receive the product.
 
 Q: Is there a money-back guarantee?
-A: The Starter Pack page features a 100% Money-Back Guarantee. Marketing also mentions a 7-day no-questions-asked guarantee. For guarantee claims, please contact support@fiberisefit.com with your order details — our team will review your case.
+A: Marketing mentions a 7-day no-questions-asked money-back guarantee. For guarantee claims, please contact support@fiberisefit.com with your order details — our team will review your case.
 
 Q: I want a refund but I'm not happy with the product taste/results.
 A: Supplements cannot be returned for taste dissatisfaction or unmet health expectations per our policy. However, if you believe you qualify under our money-back guarantee, please share your order number and reason — our support team will review it.
@@ -382,7 +368,6 @@ SECTION 12 — USEFUL LINKS
 Homepage: https://fiberisefit.com
 Science page: https://fiberisefit.com/science
 Blog: https://fiberisefit.com/blogs
-Starter Pack: https://fiberisefit.com/products/starter-pack
 Transformation Pack: https://fiberisefit.com/products/transformation-pack
 Ultimate Pack: https://fiberisefit.com/products/ultimate-pack
 BOGO Pack: https://fiberisefit.com/products/bogo
@@ -402,8 +387,7 @@ SECTION 13 — SAMPLE WHATSAPP CONVERSATIONS
 Customer: What is FYBER?
 Bot: Hi! 👋 FYBER is Fiberise Fit's natural craving-control supplement. It uses soluble fiber to help you feel full before meals — no stimulants, no prescription needed.
 
-It comes in 3 packs:
-• Starter (7 days) — ₹599
+It comes in these packs:
 • Transformation (30 days) — ₹2,249 ⭐ Most popular
 • Ultimate (90 days + FREE LYTE band) — ₹5,999
 

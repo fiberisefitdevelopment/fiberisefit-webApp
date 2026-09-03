@@ -128,7 +128,10 @@ export default function ProductsCarouselSection() {
   }
 
   const orderedProducts = [...products]
-    .filter(p => !p.title.toLowerCase().includes('lyte')) // Removing standalone lyte bands to match design
+    .filter(p => {
+      const t = p.title.toLowerCase()
+      return !t.includes('lyte') && !t.includes('starter pack') && p.slug !== 'starter-pack'
+    })
     .sort((a, b) => {
       const rank = (title: string) => {
         const t = title.toLowerCase()

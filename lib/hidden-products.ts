@@ -32,7 +32,7 @@ export const PD_PRODUCTS: Record<string, PdProductConfig> = {
 }
 
 /** Link-only handles without PD pricing overrides (Shopify price used as-is). */
-export const LINK_ONLY_PRODUCT_HANDLES = ['transformation-pack-1'] as const
+export const LINK_ONLY_PRODUCT_HANDLES = ['starter-pack', 'transformation-pack-1'] as const
 
 export const HIDDEN_PRODUCT_HANDLES = [
   ...Object.keys(PD_PRODUCTS),

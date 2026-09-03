@@ -16,16 +16,6 @@ interface Product {
 
 const SLIDES = [
   {
-    key: 'starter',
-    productSearch: 'starter pack',
-    slug: 'starter-pack',
-    desktopImage: '/banners/Starter Pack_Desktop Banner.jpg',
-    mobileImage: '/banners/Starter Pack_Mobile Banner (2).jpg',
-    alt: 'Starter Pack - India’s First Craving Control Supplement',
-    btnClass: 'bg-gradient-to-r from-[#f0cf82] to-[#d9a84e] text-[#3b2a0e] hover:brightness-95 focus:ring-[#d9a84e]',
-    btnText: 'Order Now',
-  },
-  {
     key: 'transformation',
     productSearch: 'transformation pack',
     slug: 'transformation-pack',
@@ -49,12 +39,6 @@ const SLIDES = [
 
 // Static fallback in case Shopify API is slow or fails
 const FALLBACK_PRODUCTS: Record<string, { id: string; title: string; price: number; image: string }> = {
-  'starter pack': {
-    id: 'gid://shopify/ProductVariant/53932294930707',
-    title: 'Starter pack',
-    price: 599,
-    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Starter_Pack_1.png?v=1779360427'
-  },
   'transformation pack': {
     id: 'gid://shopify/ProductVariant/53389411549459',
     title: 'Transformation Pack',
@@ -114,11 +98,10 @@ export default function HeroSection() {
 
       if (productDetails) {
         const slugMap: Record<string, string> = {
-          'starter pack': 'starter-pack',
           'transformation pack': 'transformation-pack',
           'ultimate pack': 'ultimate-pack',
         }
-        const handle = (productDetails as any).slug || slugMap[productSearch] || 'starter-pack'
+        const handle = (productDetails as any).slug || slugMap[productSearch] || 'transformation-pack'
 
         addItem({
           id: productDetails.id,

@@ -12,7 +12,6 @@ This document serves as the machine-readable summary and specifications file for
 
 ## Products
 
-- [Starter Pack](https://fiberisefit.com/products/starter-pack): Entry-level pack for first-time users of FYBER; ideal for a 30-day trial
 - [Transformation Pack](https://fiberisefit.com/products/transformation-pack): Most popular option; 90-day supply aligned with the brand's full body recomposition timeline
 - [Ultimate Pack](https://fiberisefit.com/products/ultimate-pack): Comprehensive long-term pack for maximum value and complete metabolic transformation
 - [LYTE](https://fiberisefit.com/products/lyte): A companion or standalone product in the Fiberise Fit ecosystem (details on product page)

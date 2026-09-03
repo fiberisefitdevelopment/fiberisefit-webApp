@@ -98,14 +98,6 @@ export const ORGANIZATION_SCHEMA = {
     itemListElement: [
       {
         '@type': 'Product',
-        '@id': 'https://fiberisefit.com/products/starter-pack#product',
-        name: 'FYBER Starter Pack',
-        brand: {
-          '@id': 'https://fiberisefit.com/#brand-fyber',
-        },
-      },
-      {
-        '@type': 'Product',
         '@id': 'https://fiberisefit.com/products/transformation-pack#product',
         name: 'FYBER Transformation Pack',
         brand: {
@@ -211,70 +203,23 @@ export const PRODUCT_ITEM_LIST_SCHEMA = {
   description:
     'Explore Fiberise Fit products including FYBER nutrition packs and LYTE health technology.',
   url: 'https://fiberisefit.com/',
-  numberOfItems: 3,
+  numberOfItems: 2,
   itemListElement: [
     {
       '@type': 'ListItem',
       position: 1,
-      item: {
-        '@id': 'https://fiberisefit.com/products/starter-pack#product',
-      },
-    },
-    {
-      '@type': 'ListItem',
-      position: 2,
       item: {
         '@id': 'https://fiberisefit.com/products/transformation-pack#product',
       },
     },
     {
       '@type': 'ListItem',
-      position: 3,
+      position: 2,
       item: {
         '@id': 'https://fiberisefit.com/products/ultimate-pack#product',
       },
     },
   ],
-}
-
-export const STARTER_PACK_PRODUCT_SCHEMA = {
-  '@context': 'https://schema.org',
-  '@type': 'Product',
-  '@id': 'https://fiberisefit.com/products/starter-pack#product',
-  name: 'FYBER Starter Pack',
-  url: 'https://fiberisefit.com/products/starter-pack',
-  description:
-    'Start your wellness journey with the FYBER Starter Pack, featuring 7 convenient sachets in assorted flavours. Formulated with natural prebiotic fiber and probiotics, it supports appetite control, gut health, and sustainable weight management. Perfect for first-time users, this easy-to-use pack helps you experience improved fullness, balanced digestion, and steady energy as part of a healthy lifestyle.',
-  image: [
-    'https://fiberisefit.com/_next/image?url=https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0959%2F3680%2F7187%2Ffiles%2FStater_Pack_203b5e25-bf89-4721-a671-835427fa19a4.png%3Fv%3D1786790618&w=750&q=75',
-  ],
-  brand: {
-    '@id': 'https://fiberisefit.com/#brand-fyber',
-  },
-  manufacturer: {
-    '@id': 'https://fiberisefit.com/#organization',
-  },
-  category: 'Dietary Supplement',
-  offers: {
-    '@type': 'Offer',
-    '@id': 'https://fiberisefit.com/products/starter-pack#offer',
-    url: 'https://fiberisefit.com/products/starter-pack',
-    priceCurrency: 'INR',
-    price: '599',
-    availability: 'https://schema.org/InStock',
-    itemCondition: 'https://schema.org/NewCondition',
-    seller: {
-      '@id': 'https://fiberisefit.com/#organization',
-    },
-  },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    '@id': 'https://fiberisefit.com/products/starter-pack#rating',
-    ratingValue: '4.5',
-    bestRating: '5',
-    worstRating: '1',
-    ratingCount: '31',
-  },
 }
 
 export const TRANSFORMATION_PACK_PRODUCT_SCHEMA = {
@@ -427,10 +372,10 @@ export const FAQ_SCHEMA = {
     },
     {
       '@type': 'Question',
-      name: 'Which pack should I choose — Starter, Transformation, or Ultimate?',
+      name: 'Which pack should I choose — Transformation or Ultimate?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The Starter Pack (7 Days) is ideal for experiencing initial taste, mixability, and gentle appetite control. The Transformation Pack (30 Days) is perfect for establishing a daily routine and noticing real changes in cravings and gut health. The Ultimate Pack (90 Days) is recommended for achieving full metabolic recalibration, continuous craving control, and maximum value.',
+        text: 'The Transformation Pack (30 Days) is perfect for establishing a daily routine and noticing real changes in cravings and gut health. The Ultimate Pack (90 Days) is recommended for achieving full metabolic recalibration, continuous craving control, and maximum value.',
       },
     },
     {
@@ -451,7 +396,6 @@ export const HOMEPAGE_SCHEMAS = [
   FYBER_BRAND_SCHEMA,
   LYTE_BRAND_SCHEMA,
   PRODUCT_ITEM_LIST_SCHEMA,
-  STARTER_PACK_PRODUCT_SCHEMA,
   TRANSFORMATION_PACK_PRODUCT_SCHEMA,
   ULTIMATE_PACK_PRODUCT_SCHEMA,
   FAQ_SCHEMA,
