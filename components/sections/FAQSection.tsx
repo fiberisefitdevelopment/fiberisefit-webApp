@@ -42,8 +42,8 @@ const FAQ_ITEMS: FAQItem[] = [
     answer: 'While dietary fibers are general wellness staples, we highly recommend consulting your obstetrician or primary care physician before adding any new supplement to your routine during pregnancy or lactation.'
   },
   {
-    question: 'Which pack should I choose — Transformation or Ultimate?',
-    answer: 'The Transformation Pack (30 Days) is perfect for establishing a daily routine and noticing real changes in cravings and gut health. The Ultimate Pack (90 Days) is recommended for achieving full metabolic recalibration, continuous craving control, and maximum value.'
+    question: 'Which pack should I choose — Transformation, Ultimate, or Elite?',
+    answer: 'The Transformation Pack (30 Days) is perfect for establishing a daily routine and noticing real changes in cravings and gut health. The Ultimate Pack (90 Days) includes a free LYTE Band and is recommended for full metabolic recalibration. The Elite Pack (120 Days) is the longest supply for continuous craving control and maximum long-term value.'
   },
   {
     question: 'Do I need to follow a specific diet or exercise plan while taking FYBER?',

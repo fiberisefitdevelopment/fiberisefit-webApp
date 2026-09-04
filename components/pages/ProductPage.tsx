@@ -560,10 +560,11 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
       ? 'VEGAN'
       : 'FYBER'
 
-  // Servings: Starter Pack = 7, Transformation Pack = 30, Ultimate Pack = 90
+  // Servings: Starter = 7, Transformation = 30, Ultimate = 90, Elite = 120
   const getServings = (label: string) => {
-    const l = label.toLowerCase()
+    const l = `${label} ${product.title}`.toLowerCase()
     if (l.includes('starter')) return 7
+    if (l.includes('elite')) return 120
     if (l.includes('transformation')) return 30
     if (l.includes('ultimate')) return 90
     return 30
@@ -759,7 +760,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                     >
                         <Image
                           src={image}
-                          alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') ? 'FYBER' : 'Fyber'} ${product.title} - Image ${index + 1}`}
+                          alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') || product.title.toLowerCase().includes('elite') ? 'FYBER' : 'Fyber'} ${product.title} - Image ${index + 1}`}
                           fill
                           sizes="80px"
                           className="object-cover"
@@ -774,7 +775,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                 <div className="relative w-full aspect-square">
                   <Image
                     src={displayImages[selectedImageIndex] || product.image || '/placeholder-product.png'}
-                    alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') ? 'FYBER' : 'Fyber'} ${product.title}`}
+                    alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') || product.title.toLowerCase().includes('elite') ? 'FYBER' : 'Fyber'} ${product.title}`}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-contain sm:p-8"
@@ -816,7 +817,7 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
                       >
                         <Image
                           src={image}
-                          alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') ? 'FYBER' : 'Fyber'} ${product.title} - Image ${index + 1}`}
+                          alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') || product.title.toLowerCase().includes('elite') ? 'FYBER' : 'Fyber'} ${product.title} - Image ${index + 1}`}
                           fill
                           sizes="64px"
                           className="object-cover"

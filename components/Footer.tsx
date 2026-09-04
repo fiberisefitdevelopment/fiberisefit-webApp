@@ -8,6 +8,7 @@ export default function Footer() {
     products: [
       { name: 'Transformation Pack', href: '/products/transformation-pack' },
       { name: 'Ultimate pack', href: '/products/ultimate-pack' },
+      { name: 'Elite pack', href: '/products/elite-pack' },
       { name: 'LYTE', href: '/products/lyte' },
       { name: 'Blog', href: '/blogs' },
     ],

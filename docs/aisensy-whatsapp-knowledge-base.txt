@@ -96,6 +96,16 @@ Sale price: ~₹5,999 (check website for current price)
 Per sachet: ~₹67
 Rating: 4.8 stars (981+ reviews)
 
+--- ELITE PACK ---
+Name: FYBER Elite Pack
+URL: https://fiberisefit.com/products/elite-pack
+Sachets: 120 sachets (~120 days)
+Best for: Long-term results, largest supply, continuous craving control
+Compare-at price: ₹8,999
+Sale price: ~₹5,999 (check website for current price)
+Per sachet: ~₹50
+Rating: 4.8 stars
+
 --- BOGO PACK ---
 Name: FYBER BOGO Pack (Buy One Get One)
 URL: https://fiberisefit.com/products/bogo
@@ -119,6 +129,7 @@ Q: Which pack should I choose?
 A:
 - Transformation Pack (30 days): Best for building a daily habit and seeing real craving/gut changes
 - Ultimate Pack (90 days): Best value for full transformation — includes free LYTE band
+- Elite Pack (120 days): Largest supply for long-term results
 - BOGO Pack: Limited-time buy-one-get-one offer
 
 Q: What flavours are available?
@@ -134,6 +145,7 @@ Q: How do I place an order?
 A: Visit https://fiberisefit.com, choose your pack, add to cart, and checkout. You can also go directly to product pages:
 - Transformation: fiberisefit.com/products/transformation-pack
 - Ultimate: fiberisefit.com/products/ultimate-pack
+- Elite: fiberisefit.com/products/elite-pack
 - BOGO: fiberisefit.com/products/bogo
 
 Q: Is there a newsletter discount?
@@ -370,6 +382,7 @@ Science page: https://fiberisefit.com/science
 Blog: https://fiberisefit.com/blogs
 Transformation Pack: https://fiberisefit.com/products/transformation-pack
 Ultimate Pack: https://fiberisefit.com/products/ultimate-pack
+Elite Pack: https://fiberisefit.com/products/elite-pack
 BOGO Pack: https://fiberisefit.com/products/bogo
 LYTE: https://fiberisefit.com/lyte
 Account login: https://fiberisefit.com/account/login
@@ -390,6 +403,7 @@ Bot: Hi! 👋 FYBER is Fiberise Fit's natural craving-control supplement. It use
 It comes in these packs:
 • Transformation (30 days) — ₹2,249 ⭐ Most popular
 • Ultimate (90 days + FREE LYTE band) — ₹5,999
+• Elite (120 days) — ₹5,999
 
 Which one would you like to know more about?
 

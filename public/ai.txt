@@ -20,6 +20,7 @@
 # Product Pages
 - https://fiberisefit.com/products/transformation-pack
 - https://fiberisefit.com/products/ultimate-pack
+- https://fiberisefit.com/products/elite-pack
 - https://fiberisefit.com/lyte
 
 # -----------------------------------------------------------------------

@@ -33,6 +33,12 @@ const PRODUCT_META_BY_SLUG: Record<
       'Fyber Ultimate Pack with 90 sachets and Lyte Band. The best weight loss tracking to control cravings, boost metabolism & support gut health. Free shipping.',
     keywords: 'fat loss medicine, best weight loss, ozempic medicine',
   },
+  'elite-pack': {
+    title: 'Fyber Elite Pack (120 Sachets) - Premium Fiber Weight Management | Fiberise',
+    description:
+      'FYBER Elite Pack with 120 sachets of prebiotic fiber and probiotics. Built for long-term appetite control, gut health, and sustainable weight management. Free shipping pan India.',
+    keywords: 'elite pack, 120 day fiber supplement, appetite control, weight management',
+  },
   'bogo': {
     title: 'Fyber BOGO Pack - Buy One Get One Free | Fiberise',
     description:
@@ -105,6 +111,33 @@ const PRODUCT_SCHEMA_BY_SLUG: Record<string, Record<string, unknown>> = {
       url: 'https://fiberisefit.com/products/ultimate-pack',
       priceCurrency: 'INR',
       price: '6499',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      bestRating: '5',
+      worstRating: '1',
+      ratingCount: '7',
+    },
+  },
+  'elite-pack': {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: 'Elite Pack',
+    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Elite-pack.png?v=1788543388',
+    description:
+      'The Elite Pack is a 120-sachet clinically tested weight-management solution formulated for long-term craving control, gut health, and sustainable weight management.',
+    brand: {
+      '@type': 'Brand',
+      name: 'Fiberise Fit',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: 'https://fiberisefit.com/products/elite-pack',
+      priceCurrency: 'INR',
+      price: '5999',
       availability: 'https://schema.org/InStock',
       itemCondition: 'https://schema.org/NewCondition',
     },
@@ -203,6 +236,7 @@ function getBreadcrumbSchema(slug: string) {
     'starter-pack': 'Starter Pack',
     'transformation-pack': 'Transformation Pack',
     'ultimate-pack': 'Ultimate Pack',
+    'elite-pack': 'Elite Pack',
   }
   const name = nameMap[slug] || slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
   return {

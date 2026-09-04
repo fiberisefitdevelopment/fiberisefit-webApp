@@ -41,6 +41,28 @@ interface CardConfig {
 function getCardConfig(title: string): CardConfig {
   const t = title.toLowerCase()
 
+  if (t.includes('elite')) {
+    return {
+      hasBadge: true,
+      badgeText: '120 DAYS',
+      badgeBg: 'linear-gradient(90deg, #2b5844, #1f4031)',
+      badgeTextColor: '#ffffff',
+      isTopBanner: true,
+      title: 'Elite Pack',
+      subtitle: 'Best for long-term results',
+      bottomTextBig: '',
+      bottomTextMid: '',
+      bottomTextSmall: '120 Sachets',
+      comparePrice: 8999,
+      buttonText: 'Add to cart',
+      buttonClass: 'bg-[#2b5844] text-white hover:bg-[#1f4031]',
+      rating: '4.8',
+      ratingScore: 4.8,
+      wrapperClass: 'border border-[#2b5844]/30 bg-[#faf8f5]',
+      priceColorClass: 'text-gray-900 font-normal',
+    }
+  }
+
   if (t.includes('ultimate')) {
     return {
       hasBadge: false,
@@ -133,13 +155,20 @@ export default function FeaturedProductsSection() {
     .filter((p) => {
       const t = p.title.toLowerCase()
       return (
-        (t.includes('transformation pack') || t.includes('ultimate pack')) &&
+        (t.includes('transformation pack') ||
+          t.includes('ultimate pack') ||
+          t.includes('elite pack')) &&
         p.slug !== 'starter-pack'
       )
     })
     .sort((a, b) => {
-      const rank = (title: string) =>
-        title.toLowerCase().includes('transformation') ? 0 : 1
+      const rank = (title: string) => {
+        const t = title.toLowerCase()
+        if (t.includes('transformation')) return 0
+        if (t.includes('ultimate')) return 1
+        if (t.includes('elite')) return 2
+        return 3
+      }
       return rank(a.title) - rank(b.title)
     })
 
@@ -159,22 +188,26 @@ export default function FeaturedProductsSection() {
         </div>
 
         {loading ? (
-          <div className="flex gap-10 md:gap-16 justify-center flex-wrap">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="w-[360px] h-[640px] rounded-2xl bg-[#ede8e2] animate-pulse" />
+          <div className="flex gap-8 md:gap-10 justify-center flex-wrap">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="w-[320px] h-[640px] rounded-2xl bg-[#ede8e2] animate-pulse" />
             ))}
           </div>
         ) : orderedProducts.length > 0 ? (
-          <div className="flex flex-col md:flex-row gap-10 md:gap-16 lg:gap-20 justify-center items-stretch">
+          <div className="flex flex-col md:flex-row gap-8 md:gap-10 lg:gap-12 justify-center items-stretch flex-wrap">
             {orderedProducts.map((product) => {
               const cfg = getCardConfig(product.title)
               const displayPrice = product.price
+              const comparePrice =
+                product.comparePrice && product.comparePrice > displayPrice
+                  ? product.comparePrice
+                  : cfg.comparePrice
               const isAvailable = product.available
 
               return (
                 <div
                   key={product.id}
-                  className={`relative flex flex-col rounded-2xl overflow-hidden w-[88%] max-w-[340px] mx-auto md:mx-0 md:w-[360px] lg:w-[385px] ${cfg.wrapperClass}`}
+                  className={`relative flex flex-col rounded-2xl overflow-hidden w-[88%] max-w-[340px] mx-auto md:mx-0 md:w-[320px] lg:w-[340px] ${cfg.wrapperClass}`}
                 >
                   {cfg.hasBadge && cfg.isTopBanner ? (
                     <div
@@ -213,7 +246,7 @@ export default function FeaturedProductsSection() {
 
                     <div className="mt-4 flex items-end justify-center gap-2 flex-wrap">
                       <span className="text-lg text-gray-400 line-through font-light">
-                        ₹{cfg.comparePrice}
+                        ₹{comparePrice}
                       </span>
                       <span className={`text-4xl leading-none ${cfg.priceColorClass || 'font-normal text-gray-900'}`}>
                         ₹{displayPrice}
@@ -221,11 +254,11 @@ export default function FeaturedProductsSection() {
                     </div>
 
                     <p className="mt-2 text-sm text-gray-500 flex justify-center items-center">
-                      {cfg.comparePrice > displayPrice && (
+                      {comparePrice > displayPrice && (
                         <span>
                           Save{' '}
                           <span className="text-red-500 font-bold ml-0.5">
-                            {Math.round(((cfg.comparePrice - displayPrice) / cfg.comparePrice) * 100)}%
+                            {Math.round(((comparePrice - displayPrice) / comparePrice) * 100)}%
                           </span>
                         </span>
                       )}

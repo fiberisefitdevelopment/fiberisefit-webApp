@@ -12,8 +12,9 @@ This document serves as the machine-readable summary and specifications file for
 
 ## Products
 
-- [Transformation Pack](https://fiberisefit.com/products/transformation-pack): Most popular option; 90-day supply aligned with the brand's full body recomposition timeline
-- [Ultimate Pack](https://fiberisefit.com/products/ultimate-pack): Comprehensive long-term pack for maximum value and complete metabolic transformation
+- [Transformation Pack](https://fiberisefit.com/products/transformation-pack): Most popular option; 30-day supply for establishing a daily routine
+- [Ultimate Pack](https://fiberisefit.com/products/ultimate-pack): Comprehensive 90-day pack with free LYTE Band for complete metabolic transformation
+- [Elite Pack](https://fiberisefit.com/products/elite-pack): 120-sachet long-term pack for continuous craving control and maximum supply
 - [LYTE](https://fiberisefit.com/products/lyte): A companion or standalone product in the Fiberise Fit ecosystem (details on product page)
 
 ## Blog Posts

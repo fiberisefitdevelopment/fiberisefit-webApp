@@ -20,7 +20,29 @@ interface Product {
 const getStaticCardData = (product: Product) => {
   const t = product.title.toLowerCase()
   const isMiddle = t.includes('transformation')
-  
+
+  if (t.includes('elite')) {
+    return {
+      badgeText: '120 DAYS',
+      badgeBg: 'bg-[#2b5844] text-white',
+      title: 'Elite Pack',
+      subtitle: 'Best for long-term results',
+      subtitle2: '120 Sachets',
+      comparePrice: product.comparePrice && product.comparePrice > (product.price || 5999) ? product.comparePrice : 8999,
+      price: product.price || 5999,
+      shippingStrikethrough: 0,
+      save: 3000,
+      perSachet: 50,
+      buttonText: 'Get Elite Pack',
+      buttonClass: 'bg-[#2b5844] text-white hover:bg-[#1f4031]',
+      rating: '4.8',
+      reviews: 'from 981 reviews',
+      footer: 'Free shipping · Secure checkout · No added sugar',
+      borderClass: 'border border-[#2b5844]/30 shadow-sm bg-[#faf9f6]',
+      isMiddle: false,
+    }
+  }
+
   if (t.includes('ultimate')) {
     return {
       badgeText: 'BEST VALUE',
@@ -138,7 +160,8 @@ export default function ProductsCarouselSection() {
         if (t.includes('starter pack')) return 1
         if (t.includes('transformation pack')) return 2
         if (t.includes('ultimate pack')) return 3
-        return 4
+        if (t.includes('elite pack')) return 4
+        return 5
       }
       return rank(a.title) - rank(b.title)
     })

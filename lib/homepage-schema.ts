@@ -114,6 +114,14 @@ export const ORGANIZATION_SCHEMA = {
       },
       {
         '@type': 'Product',
+        '@id': 'https://fiberisefit.com/products/elite-pack#product',
+        name: 'FYBER Elite Pack',
+        brand: {
+          '@id': 'https://fiberisefit.com/#brand-fyber',
+        },
+      },
+      {
+        '@type': 'Product',
         '@id': 'https://fiberisefit.com/lyte#product',
         name: 'LYTE',
         brand: {
@@ -203,7 +211,7 @@ export const PRODUCT_ITEM_LIST_SCHEMA = {
   description:
     'Explore Fiberise Fit products including FYBER nutrition packs and LYTE health technology.',
   url: 'https://fiberisefit.com/',
-  numberOfItems: 2,
+  numberOfItems: 3,
   itemListElement: [
     {
       '@type': 'ListItem',
@@ -217,6 +225,13 @@ export const PRODUCT_ITEM_LIST_SCHEMA = {
       position: 2,
       item: {
         '@id': 'https://fiberisefit.com/products/ultimate-pack#product',
+      },
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      item: {
+        '@id': 'https://fiberisefit.com/products/elite-pack#product',
       },
     },
   ],
@@ -302,6 +317,46 @@ export const ULTIMATE_PACK_PRODUCT_SCHEMA = {
   },
 }
 
+export const ELITE_PACK_PRODUCT_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  '@id': 'https://fiberisefit.com/products/elite-pack#product',
+  name: 'FYBER Elite Pack',
+  url: 'https://fiberisefit.com/products/elite-pack',
+  description:
+    'Start your wellness journey with the FYBER Elite Pack, featuring 120 convenient sachets in assorted flavours. Formulated with natural prebiotic fiber and probiotics, it supports appetite control, gut health, and sustainable weight management. Perfect for committed users, this easy-to-use pack helps you experience improved fullness, balanced digestion, and steady energy as part of a healthy lifestyle.',
+  image: [
+    'https://fiberisefit.com/_next/image?url=https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0959%2F3680%2F7187%2Ffiles%2FElite-pack.png%3Fv%3D1788543388&w=750&q=75',
+  ],
+  brand: {
+    '@id': 'https://fiberisefit.com/#brand-fyber',
+  },
+  manufacturer: {
+    '@id': 'https://fiberisefit.com/#organization',
+  },
+  category: 'Dietary Supplement',
+  offers: {
+    '@type': 'Offer',
+    '@id': 'https://fiberisefit.com/products/elite-pack#offer',
+    url: 'https://fiberisefit.com/products/elite-pack',
+    priceCurrency: 'INR',
+    price: '5999',
+    availability: 'https://schema.org/InStock',
+    itemCondition: 'https://schema.org/NewCondition',
+    seller: {
+      '@id': 'https://fiberisefit.com/#organization',
+    },
+  },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    '@id': 'https://fiberisefit.com/products/elite-pack#rating',
+    ratingValue: '4.4',
+    bestRating: '5',
+    worstRating: '1',
+    ratingCount: '30',
+  },
+}
+
 export const FAQ_SCHEMA = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -372,10 +427,10 @@ export const FAQ_SCHEMA = {
     },
     {
       '@type': 'Question',
-      name: 'Which pack should I choose — Transformation or Ultimate?',
+      name: 'Which pack should I choose — Transformation, Ultimate, or Elite?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The Transformation Pack (30 Days) is perfect for establishing a daily routine and noticing real changes in cravings and gut health. The Ultimate Pack (90 Days) is recommended for achieving full metabolic recalibration, continuous craving control, and maximum value.',
+        text: 'The Transformation Pack (30 Days) is perfect for establishing a daily routine and noticing real changes in cravings and gut health. The Ultimate Pack (90 Days) includes a free LYTE Band and is recommended for full metabolic recalibration. The Elite Pack (120 Days) is the longest supply for continuous craving control and maximum long-term value.',
       },
     },
     {
@@ -398,5 +453,6 @@ export const HOMEPAGE_SCHEMAS = [
   PRODUCT_ITEM_LIST_SCHEMA,
   TRANSFORMATION_PACK_PRODUCT_SCHEMA,
   ULTIMATE_PACK_PRODUCT_SCHEMA,
+  ELITE_PACK_PRODUCT_SCHEMA,
   FAQ_SCHEMA,
 ]

@@ -6,6 +6,7 @@ export function getProductRatingBySlug(slug?: string): number {
     'transformation-pack': 4.9,
     'transformation-pack-lyte-band': 4.9,
     'ultimate-pack': 4.8,
+    'elite-pack': 4.8,
     lyte: 4.7,
   }
 
