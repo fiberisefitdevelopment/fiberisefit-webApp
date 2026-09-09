@@ -59,7 +59,6 @@ export default function Header() {
                 <span className="text-xs md:text-sm text-white tracking-wider">India’s first Craving Control Supplement</span>
                 <span className="text-xs md:text-sm text-white tracking-wider">Sustainable Weight Management</span>
                 <span className="text-xs md:text-sm text-white tracking-wider">Free Shipping Pan India</span>
-                <span className="text-xs md:text-sm text-white tracking-wider">7 Days No Questions asked money back guarantee</span>
               </div>
             ))}
           </div>
