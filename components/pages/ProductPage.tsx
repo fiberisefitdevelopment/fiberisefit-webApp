@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useCartStore } from '@/store/cartStore'
 import { useCampaignStore, clearActiveCampaign } from '@/store/campaignStore'
-import { ChevronRight, ChevronLeft, Plus, Minus, Star, Clock, X } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Plus, Minus, Star, Clock } from 'lucide-react'
 import VideoSection from '@/components/sections/VideoSection'
 import MetabolismSection from '@/components/sections/science/MetabolismSection'
 import BenefitsGrid from '@/components/sections/science/BenefitsGrid'
@@ -112,7 +112,6 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
   const [firstOpenedTime, setFirstOpenedTime] = useState<number | null>(null)
   const [timeLeftText, setTimeLeftText] = useState('')
   const [bogoTimeLeftText, setBogoTimeLeftText] = useState('')
-  const [showRedirectNotification, setShowRedirectNotification] = useState(false)
   const [mounted, setMounted] = useState(false)
   const transformationExpiryHandledRef = useRef(false)
 
@@ -235,7 +234,6 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
           transformationExpiryHandledRef.current = true
           setIsLinkExpired(true)
           clearActiveCampaign()
-          setShowRedirectNotification(true)
         }
         return
       }
@@ -257,19 +255,6 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
 
     return () => clearInterval(timer)
   }, [slug, isJuneTransformPage, firstOpenedTime])
-
-  useEffect(() => {
-    if (showRedirectNotification) {
-      const timer = setTimeout(() => {
-        setShowRedirectNotification(false)
-      }, 8000)
-      return () => clearTimeout(timer)
-    }
-  }, [showRedirectNotification])
-
-  const dismissRedirectNotification = () => {
-    setShowRedirectNotification(false)
-  }
 
   const heroRef = useRef<HTMLDivElement>(null)
   const { addItem, paymentMethod } = useCartStore()
@@ -574,29 +559,6 @@ export default function ProductPage({ slug, initialProduct, isJuneTransformPage 
 
   return (
     <div className={`min-h-screen ${showStickyAddToCart ? 'pb-20' : ''}`}>
-      {/* Toast Notification */}
-      {showRedirectNotification && (
-        <div className="fixed top-24 right-4 md:right-8 z-50 max-w-sm w-full bg-white rounded-2xl shadow-2xl border border-amber-100 p-4 animate-fade-in transition-all duration-300">
-          <div className="flex gap-3 items-start">
-            <div className="bg-amber-50 p-2 rounded-xl text-amber-600 shrink-0">
-              <Clock className="w-5 h-5 animate-pulse" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 leading-tight">Discount Redirected</p>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                Your exclusive discount has expired. You have been redirected to the standard price.
-              </p>
-            </div>
-            <button
-              onClick={dismissRedirectNotification}
-              className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-50 transition-colors shrink-0"
-              aria-label="Close notification"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
       {slug === 'bogo' && bogoTimeLeftText && (
         <div className={`fixed left-0 right-0 z-30 ${activeCampaign ? 'top-[108px]' : 'top-[104px]'} bg-[#187254] text-white shadow-md`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">

@@ -5,7 +5,6 @@ import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import CartDrawer from '@/components/CartDrawer'
-import GlobalOfferBanner from '@/components/GlobalOfferBanner'
 import { AuthProvider } from '@/contexts/AuthContext'
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '907008275541276'
 
@@ -122,7 +121,6 @@ fbq('track', 'PageView');`}
           />
         </noscript>
         <AuthProvider>
-          <GlobalOfferBanner />
           <Header />
           <main className="min-h-screen">{children}</main>
           <Footer />
