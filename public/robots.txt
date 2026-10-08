@@ -49,8 +49,18 @@ Disallow: /
 User-Agent: Google-Extended
 Disallow: /
 
+# Meta Ads crawlers must be able to scrape landing pages for pixel/ad analytics
 User-Agent: FacebookBot
-Disallow: /
+Allow: /
+
+User-Agent: facebookexternalhit
+Allow: /
+
+User-Agent: Facebot
+Allow: /
+
+User-Agent: meta-externalagent
+Allow: /
 
 User-Agent: Applebot-Extended
 Disallow: /
