@@ -416,7 +416,7 @@ export default function SpecialOfferPage() {
             </div>
 
             {/* RIGHT COLUMN: Details & Duration Selector */}
-            <div className="order-2 w-full lg:w-1/2 min-w-0 px-4 sm:px-6 lg:px-0 lg:pl-6 pt-4 md:pt-8 lg:pt-0 space-y-6 overflow-x-hidden max-md:overflow-x-clip">
+            <div className="order-2 w-full lg:w-1/2 min-w-0 px-4 sm:px-6 lg:px-0 lg:pl-6 pt-4 md:pt-8 lg:pt-0 space-y-6 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto overflow-x-hidden max-md:overflow-x-clip lg:pr-2 scrollbar-hide">
               
               {/* Product Type & Title */}
               <div>
