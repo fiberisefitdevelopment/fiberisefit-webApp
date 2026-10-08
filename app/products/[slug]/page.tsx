@@ -1,5 +1,4 @@
 import ProductPage from '@/components/pages/ProductPage'
-import SpecialOfferPage from '@/components/pages/SpecialOfferPage'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { shopifyFetch, formatProduct } from '@/lib/shopify/client'
@@ -68,6 +67,12 @@ const PRODUCT_META_BY_SLUG: Record<
     description:
       'Get double the value with our exclusive BOGO pack. Control cravings, manage weight naturally, and support gut health.',
     keywords: 'bogo offer, weight loss supplement, appetite control',
+  },
+  'special-offer': {
+    title: 'Fyber Transformation Pack (30 Sachets) - Weight Management & Fat Burner',
+    description:
+      'Control cravings & manage weight naturally with the 30-sachet Transformation Pack. Supports fat burning & gut health - smart alternative for weight loss.',
+    keywords: 'ozempic for weight loss, weight management supplements, fat burner for women, best fiber supplement',
   },
 }
 
@@ -216,16 +221,23 @@ export async function generateMetadata({ params }: ProductProps): Promise<Metada
     alternates: {
       canonical: url,
     },
-    robots: isHidden
-      ? {
-          index: false,
-          follow: false,
-          googleBot: {
-            index: false,
-            follow: false,
-          },
-        }
-      : undefined,
+    robots:
+      key === 'special-offer'
+        ? {
+            index: true,
+            follow: true,
+            googleBot: { index: false, follow: false },
+          }
+        : isHidden
+          ? {
+              index: false,
+              follow: false,
+              googleBot: {
+                index: false,
+                follow: false,
+              },
+            }
+          : undefined,
     openGraph: {
       title,
       description,
@@ -308,10 +320,8 @@ export default async function Product({ params }: ProductProps) {
   if (slug === 'ultimate-pack-pd') {
     redirect('/offers/ultimate-pack')
   }
-  if (slug === 'special-offer') {
-    return <SpecialOfferPage />
-  }
-  const initialProduct = await getProductData(slug)
+  const productSlug = slug === 'special-offer' ? 'transformation-pack' : slug
+  const initialProduct = await getProductData(productSlug)
   const isHidden = isHiddenProductHandle(slug)
   const productSchema = isHidden ? null : PRODUCT_SCHEMA_BY_SLUG[slug]
   const breadcrumbSchema = isHidden ? null : getBreadcrumbSchema(slug)
@@ -330,7 +340,7 @@ export default async function Product({ params }: ProductProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
         />
       )}
-      <ProductPage slug={slug} initialProduct={initialProduct} />
+      <ProductPage slug={productSlug} initialProduct={initialProduct} />
     </>
   )
 }
