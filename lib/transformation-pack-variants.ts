@@ -1,0 +1,63 @@
+export const TRANSFORMATION_PACK_ASSORTED_FLAVOUR = 'Assorted Flavours'
+
+interface ProductVariantLike {
+  id: string
+  gid: string
+  name: string
+  price: number
+  compareAtPrice?: number | null
+  available: boolean
+}
+
+interface ProductLike {
+  variants: ProductVariantLike[]
+}
+
+const isAssortedFlavour = (name: string) => /assorted/i.test(name)
+
+export function withTransformationPackAssortedVariant<T extends ProductLike>(
+  product: T,
+  slug: string
+): T {
+  const normalizedSlug = slug.toLowerCase().trim()
+  const isTransformationPack =
+    normalizedSlug === 'transformation-pack' ||
+    normalizedSlug === 'transformation-pack-pd' ||
+    normalizedSlug === 'transformation-pack-1' ||
+    normalizedSlug === 'transformation-pack-discount'
+
+  if (!isTransformationPack || !product.variants?.length) {
+    return product
+  }
+
+  if (product.variants.some((variant) => isAssortedFlavour(variant.name))) {
+    return product
+  }
+
+  const template =
+    product.variants.find((variant) => /unflav/i.test(variant.name)) ??
+    product.variants[0]
+
+  const variantKey = template.gid || template.id
+
+  return {
+    ...product,
+    variants: [
+      ...product.variants,
+      {
+        ...template,
+        id: `${variantKey}::assorted-flavours`,
+        gid: variantKey,
+        name: TRANSFORMATION_PACK_ASSORTED_FLAVOUR,
+      },
+    ],
+  }
+}
+
+export function getShopifyVariantId(variantId: string): string {
+  return variantId.split('::')[0]
+}
+
+export function isSyntheticAssortedVariant(variantId: string): boolean {
+  return variantId.includes('::assorted-flavours')
+}

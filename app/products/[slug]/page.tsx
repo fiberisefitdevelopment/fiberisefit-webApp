@@ -1,0 +1,336 @@
+import ProductPage from '@/components/pages/ProductPage'
+import SpecialOfferPage from '@/components/pages/SpecialOfferPage'
+import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { shopifyFetch, formatProduct } from '@/lib/shopify/client'
+import {
+  isHiddenProductHandle,
+  LINK_DISCOUNT_FALLBACK_HANDLE,
+  normalizeProductHandle,
+} from '@/lib/hidden-products'
+import { PRODUCT_BY_HANDLE_QUERY } from '@/lib/shopify/queries'
+import { withTransformationPackAssortedVariant } from '@/lib/transformation-pack-variants'
+
+const PRODUCT_META_BY_SLUG: Record<
+  string,
+  { title: string; description: string; keywords: string }
+> = {
+  'starter-pack': {
+    title: 'Fyber Starter Pack (7 Sachets) - Natural Fiber Weight Management | Fiberise',
+    description:
+      'Fyber is a natural fiber weight management solution in easy sachet form. Control cravings, support fat metabolism & improve gut health. 7 Sachets included. Free shipping pan India.',
+    keywords: 'natural fiber, weight management',
+  },
+  'transformation-pack': {
+    title: 'Fyber Transformation Pack (30 Sachets) - Weight Management & Fat Burner',
+    description:
+      'Control cravings & manage weight naturally with the 30-sachet Transformation Pack. Supports fat burning & gut health - smart alternative for weight loss.',
+    keywords: 'ozempic for weight loss, weight management supplements, fat burner for women, best fiber supplement',
+  },
+  'transformation-pack-1': {
+    title: 'Fyber Transformation Pack (30 Sachets) - Special Offer | Fiberise',
+    description:
+      'Control cravings & manage weight naturally with the 30-sachet Transformation Pack. Special link-only offer with Assorted Flavours.',
+    keywords: 'transformation pack, weight management, assorted flavours',
+  },
+  'ultimate-pack': {
+    title: 'Fyber Ultimate Pack (90 Sachets + Lyte Band) - Best Weight Loss Set',
+    description:
+      'Fyber Ultimate Pack with 90 sachets and Lyte Band. The best weight loss tracking to control cravings, boost metabolism & support gut health. Free shipping.',
+    keywords: 'fat loss medicine, best weight loss, ozempic medicine',
+  },
+  'elite-pack': {
+    title: 'Fyber Elite Pack (120 Sachets) - Premium Fiber Weight Management | Fiberise',
+    description:
+      'FYBER Elite Pack with 120 sachets of prebiotic fiber and probiotics. Built for long-term appetite control, gut health, and sustainable weight management. Free shipping pan India.',
+    keywords: 'elite pack, 120 day fiber supplement, appetite control, weight management',
+  },
+  'transformation-pack-discount': {
+    title: 'Fyber Transformation Pack - Exclusive Offer | Fiberise',
+    description:
+      'Exclusive offer on the Fyber Transformation Pack. Control cravings, support metabolism and gut health.',
+    keywords: 'transformation pack offer, weight management',
+  },
+  'ultimate-pack-copy': {
+    title: 'Fyber Ultimate Pack (90 Sachets + Lyte Band) - Exclusive Offer | Fiberise',
+    description:
+      'Exclusive offer on the Fyber Ultimate Pack with 90 sachets and Lyte Band.',
+    keywords: 'ultimate pack offer, weight management',
+  },
+  'elite-pack-discount': {
+    title: 'Fyber Elite Pack (120 Sachets) - Exclusive Offer | Fiberise',
+    description:
+      'Exclusive offer on the FYBER Elite Pack with 120 sachets for long-term weight management.',
+    keywords: 'elite pack offer, weight management',
+  },
+  'bogo': {
+    title: 'Fyber BOGO Pack - Buy One Get One Free | Fiberise',
+    description:
+      'Get double the value with our exclusive BOGO pack. Control cravings, manage weight naturally, and support gut health.',
+    keywords: 'bogo offer, weight loss supplement, appetite control',
+  },
+}
+
+const PRODUCT_SCHEMA_BY_SLUG: Record<string, Record<string, unknown>> = {
+  'starter-pack': {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: 'Starter Pack',
+    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-01.png?v=1773251134',
+    description:
+      'The 7-sachet FYBER Starter Pack is designed for first-time users looking to experience natural craving suppression, better fat metabolism, and sustained daily energy.',
+    brand: {
+      '@type': 'Brand',
+      name: 'Fiberise Fit',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: 'https://fiberisefit.com/products/starter-pack',
+      priceCurrency: 'INR',
+      price: '2249',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+  },
+  'transformation-pack': {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: 'Transformation Pack',
+    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/kh.jpg?v=1773315591',
+    description:
+      'The Transformation Pack is a 30-sachet clinically tested weight-management solution formulated for deep daily craving control and regulated metabolism.',
+    brand: {
+      '@type': 'Brand',
+      name: 'Fiberise Fit',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: 'https://fiberisefit.com/products/transformation-pack',
+      priceCurrency: 'INR',
+      price: '5999',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      bestRating: '5',
+      worstRating: '1',
+      ratingCount: '7',
+    },
+  },
+  'ultimate-pack': {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: 'Ultimate Pack',
+    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/hf_20260312_061942_1ae37390-504a-4f8d-9c88-2036cfc3a423.jpg?v=1773309225',
+    description:
+      'The Ultimate Pack is a 90-sachet + Lyte Band clinically tested weight-management solution formulated for deep daily craving control, sustained energy, and healthy weight management.',
+    brand: {
+      '@type': 'Brand',
+      name: 'Fiberise Fit',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: 'https://fiberisefit.com/products/ultimate-pack',
+      priceCurrency: 'INR',
+      price: '6499',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      bestRating: '5',
+      worstRating: '1',
+      ratingCount: '7',
+    },
+  },
+  'elite-pack': {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: 'Elite Pack',
+    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Elite-pack.png?v=1788543388',
+    description:
+      'The Elite Pack is a 120-sachet clinically tested weight-management solution formulated for long-term craving control, gut health, and sustainable weight management.',
+    brand: {
+      '@type': 'Brand',
+      name: 'Fiberise Fit',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: 'https://fiberisefit.com/products/elite-pack',
+      priceCurrency: 'INR',
+      price: '5999',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      bestRating: '5',
+      worstRating: '1',
+      ratingCount: '7',
+    },
+  },
+  'bogo': {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: 'BOGO Pack',
+    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Starter_Pack_1.png?v=1779360427',
+    description:
+      'Get double the value with our exclusive BOGO pack. Control cravings, manage weight naturally, and support gut health.',
+    brand: {
+      '@type': 'Brand',
+      name: 'Fiberise Fit',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: 'https://fiberisefit.com/products/bogo',
+      priceCurrency: 'INR',
+      price: '1199',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+  },
+}
+
+type ProductProps = {
+  params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: ProductProps): Promise<Metadata> {
+  const { slug } = await params
+  const key = (slug || '').toLowerCase()
+  const meta = PRODUCT_META_BY_SLUG[key] ?? PRODUCT_META_BY_SLUG[key.replace(/^\//, '')]
+  const isHidden = isHiddenProductHandle(slug)
+
+  const title = meta?.title ?? 'Fiberise Fit'
+  const description = meta?.description ?? 'Smart health ecosystem powered by AI & innovation.'
+  const url = `/products/${slug}`
+
+  return {
+    title,
+    description,
+    keywords: meta?.keywords,
+    alternates: {
+      canonical: url,
+    },
+    robots: isHidden
+      ? {
+          index: false,
+          follow: false,
+          googleBot: {
+            index: false,
+            follow: false,
+          },
+        }
+      : undefined,
+    openGraph: {
+      title,
+      description,
+      url,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  }
+}
+
+async function getProductData(slug: string) {
+  try {
+    const normalizedSlug = normalizeProductHandle(slug)
+    const data = await shopifyFetch<{ product: any }>({
+      query: PRODUCT_BY_HANDLE_QUERY,
+      variables: { handle: normalizedSlug },
+    })
+    let shopifyProduct = data.product
+    const fallbackHandle = LINK_DISCOUNT_FALLBACK_HANDLE[normalizedSlug]
+    if (!shopifyProduct && fallbackHandle) {
+      const fallback = await shopifyFetch<{ product: any }>({
+        query: PRODUCT_BY_HANDLE_QUERY,
+        variables: { handle: fallbackHandle },
+      })
+      shopifyProduct = fallback.product
+    }
+    if (!shopifyProduct) return null
+    const product = formatProduct(shopifyProduct)
+    if (fallbackHandle && !data.product) {
+      product.handle = normalizedSlug
+      product.slug = normalizedSlug
+    }
+    return withTransformationPackAssortedVariant(product, normalizedSlug)
+  } catch (err) {
+    console.error('SSR Product Fetch Error:', err)
+    return null
+  }
+}
+
+function getBreadcrumbSchema(slug: string) {
+  const nameMap: Record<string, string> = {
+    'starter-pack': 'Starter Pack',
+    'transformation-pack': 'Transformation Pack',
+    'ultimate-pack': 'Ultimate Pack',
+    'elite-pack': 'Elite Pack',
+  }
+  const name = nameMap[slug] || slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': 'https://fiberisefit.com'
+      },
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': 'Products',
+        'item': 'https://fiberisefit.com/products'
+      },
+      {
+        '@type': 'ListItem',
+        'position': 3,
+        'name': name,
+        'item': `https://fiberisefit.com/products/${slug}`
+      }
+    ]
+  }
+}
+
+export default async function Product({ params }: ProductProps) {
+  const { slug } = await params
+  if (slug === 'ultimate-pack-pd') {
+    redirect('/offers/ultimate-pack')
+  }
+  if (slug === 'special-offer') {
+    return <SpecialOfferPage />
+  }
+  const initialProduct = await getProductData(slug)
+  const isHidden = isHiddenProductHandle(slug)
+  const productSchema = isHidden ? null : PRODUCT_SCHEMA_BY_SLUG[slug]
+  const breadcrumbSchema = isHidden ? null : getBreadcrumbSchema(slug)
+
+  return (
+    <>
+      {productSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        />
+      )}
+      {breadcrumbSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        />
+      )}
+      <ProductPage slug={slug} initialProduct={initialProduct} />
+    </>
+  )
+}

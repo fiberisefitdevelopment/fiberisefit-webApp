@@ -1,0 +1,297 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'QuadratGrotesk';
+  src: url('/QuadratGroteskNewW01-Reg.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-quadrat: 'QuadratGrotesk', system-ui, sans-serif;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --radius: 0.5rem;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+}
+
+body {
+  color: #1a1a1a; /* Midnight Obsidian */
+  background: #faf8f3; /* Ivory Dream */
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Smooth scrolling
+   NOTE: disabled global smooth scroll to allow natural browser
+   back/forward behavior to restore the exact previous scroll position,
+   especially when returning from policy pages on mobile. */
+/* html {
+  scroll-behavior: smooth;
+} */
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #000;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+/* Scrolling announcement bar animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 20s linear infinite;
+  display: inline-flex;
+}
+
+/* Marquee animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+  display: flex;
+  will-change: transform;
+}
+
+/* Hide scrollbar for product carousel */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Doctors Marquee Animation */
+@keyframes doctors-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-doctors-marquee {
+  animation: doctors-marquee 16s linear infinite;
+  display: flex;
+  will-change: transform;
+  min-width: max-content;
+}
+
+.animate-doctors-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Science Marquee Animation */
+@keyframes science-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-science-marquee {
+  animation: science-marquee 40s linear infinite;
+  display: flex;
+  will-change: transform;
+}
+
+.animate-science-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Product description rich text (from Shopify) */
+.product-description ul {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.product-description li {
+  margin-bottom: 0.25rem;
+}
+
+/* Add extra space before bold subheadings inside product description (e.g. "The advanced Lean X formulation") */
+.product-description p + p strong {
+  display: inline-block;
+  margin-top: 0.75rem;
+}
+
+/* Charcoal color utility */
+.text-charcoal {
+  color: #1a1a1a;
+}
+
+.bg-charcoal {
+  background-color: #1a1a1a;
+}
+
+/* Fade in animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+/* LYTE banner blocks: subtle appear when in view */
+.lyte-banner-block {
+  opacity: 0;
+}
+.lyte-banner-block.is-visible {
+  animation: fade-in-up 0.7s ease-out forwards;
+}
+
+.delay-75 {
+  animation-delay: 75ms;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-150 {
+  animation-delay: 150ms;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+/* Draw line animation for glucose graph */
+@keyframes draw-line {
+  from {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-draw-line {
+  animation: draw-line 2s ease-out forwards;
+}
+
+/* Slow spin animation */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* Hero Carousel Wrapper Aspect Ratio (padding-bottom hack) */
+.hero-carousel-wrapper {
+  height: 0 !important;
+  padding-bottom: 125% !important; /* 4:5 mobile aspect ratio */
+}
+
+@media (min-width: 768px) {
+  .hero-carousel-wrapper {
+    padding-bottom: 55.825% !important; /* 4000:2233 desktop aspect ratio */
+  }
+}
+

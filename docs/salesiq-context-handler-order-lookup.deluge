@@ -1,0 +1,222 @@
+// =============================================================================
+// Zoho SalesIQ – Context handler: order_support_lookup
+// Copy this into your SalesIQ Script → Context handler.
+// Replace YOUR_SUPPORT_SHARED_SECRET and yourdomain.com with your values.
+// =============================================================================
+
+response = Map();
+
+if(context_id.equals("order_support_lookup"))
+{
+    // 1) Read phone number the visitor entered
+    phoneAnswer = answers.get("phone").get("text");
+    phoneAnswer = ifnull(phoneAnswer,"").trim();
+
+    if(phoneAnswer.isEmpty())
+    {
+        response.put("action","reply");
+        response.put("replies",{
+            "I couldn't read your phone number. Please type your registered mobile number (e.g. +91XXXXXXXXXX)."
+        });
+        return response;
+    }
+
+    // 2) Build JSON body: request up to 10 recent orders
+    bodyString = '{"phone":"' + phoneAnswer + '","limit":10}';
+
+    headers = Map();
+    headers.put("Content-Type","application/json");
+    // Use the EXACT same secret as in your .env SALESIQ_SUPPORT_SHARED_SECRET (no spaces, same as in curl)
+    headers.put("Authorization","Bearer e2ecf0a3f1820ac818a68ea3591c5a0c539a9becb7c468a0f028e436047097ff");
+
+    url = "https://fiberisefit.com/api/support/order-by-phone";
+
+    // 3) Call the backend. postUrl(..., false) returns Map with responseCode, responseText, responseHeader
+    rawResp = postUrl(url, bodyString, headers, false);
+
+    // 4) Get body and parse JSON (responseText is the body; may be string)
+    respMap = Map();
+    bodyContent = rawResp.get("responseText");
+    respCode = ifnull(rawResp.get("responseCode"),0);
+
+    if(respCode != 200)
+    {
+        response.put("action","reply");
+        if(respCode == 401)
+        {
+            response.put("replies",{
+                "The order system connection was rejected. Please ask your administrator to check the SalesIQ script authorization token."
+            });
+        }
+        else
+        {
+            response.put("replies",{
+                "Sorry, I couldn't contact our order system right now. Please try again in a few minutes."
+            });
+        }
+        return response;
+    }
+
+    try
+    {
+        if(bodyContent != null)
+        {
+            if(isText(bodyContent))
+            {
+                respMap = bodyContent.toMap();
+            }
+            else
+            {
+                respMap = bodyContent;
+            }
+        }
+    }
+    catch(e)
+    {
+        response.put("action","reply");
+        response.put("replies",{
+            "Sorry, the order system returned a response we couldn't read. Please try again or contact support."
+        });
+        return response;
+    }
+
+    if(respMap.isEmpty())
+    {
+        response.put("action","reply");
+        response.put("replies",{
+            "Sorry, the order system returned an empty response. Please try again in a few minutes."
+        });
+        return response;
+    }
+
+    // 5) Handle no order found
+    found = ifnull(respMap.get("found"),false);
+
+    if(!found)
+    {
+        msgList = List();
+        msgList.add("I couldn't find any recent orders for that phone number.");
+        noMsg = ifnull(
+            respMap.get("message"),
+            "If you recently placed an order, it may take a few minutes to sync. You can also share your order ID with our team."
+        );
+        msgList.add(noMsg);
+
+        response.put("action","reply");
+        response.put("replies",msgList);
+        return response;
+    }
+
+    // 6) Build response from order(s): use "orders" array if present, else single "order"
+    ordersList = respMap.get("orders");
+    if(ordersList == null)
+    {
+        singleOrder = respMap.get("order");
+        ordersList = List();
+        if(singleOrder != null)
+        {
+            ordersList.add(singleOrder);
+        }
+    }
+
+    replies = List();
+    orderCount = ordersList.size();
+    if(orderCount == 0)
+    {
+        replies.add("No order details to show.");
+    }
+    else if(orderCount == 1)
+    {
+        replies.add("Here is your latest order:");
+    }
+    else
+    {
+        replies.add("You have " + orderCount + " recent orders (newest first):");
+    }
+
+    orderIndex = 0;
+    for each order in ordersList
+    {
+        orderIndex = orderIndex + 1;
+        if(order == null)
+        {
+            continue;
+        }
+        orderNumber = ifnull(order.get("orderNumber"),"N/A");
+        createdAt = ifnull(order.get("createdAt"),"N/A");
+        fulfillmentStatus = ifnull(order.get("fulfillmentStatus"),"PENDING");
+        deliveryStatus = ifnull(order.get("deliveryStatus"),"");
+        totalAmount = ifnull(order.get("totalAmount"),0.0);
+        currencyCode = ifnull(order.get("currencyCode"),"INR");
+
+        items = order.get("items");
+        if(items == null)
+        {
+            items = List();
+        }
+        firstItemTitle = "";
+        if(items.size() > 0)
+        {
+            firstItem = items.get(0);
+            if(firstItem != null)
+            {
+                firstItemTitle = ifnull(firstItem.get("title"),"");
+            }
+        }
+
+        trackingList = order.get("tracking");
+        if(trackingList == null)
+        {
+            trackingList = List();
+        }
+        trackingMsg = "";
+        if(trackingList.size() > 0)
+        {
+            t = trackingList.get(0);
+            if(t != null)
+            {
+                tCompany = ifnull(t.get("company"),"");
+                tNumber = ifnull(t.get("number"),"");
+                tUrl = ifnull(t.get("url"),"");
+
+                trackingMsg = "Tracking: " + tCompany + " " + tNumber;
+                if(!tUrl.isEmpty())
+                {
+                    trackingMsg = trackingMsg + " (" + tUrl + ")";
+                }
+            }
+        }
+
+        if(orderCount > 1)
+        {
+            replies.add("--- Order " + orderIndex + " ---");
+        }
+        replies.add("Order: " + orderNumber + ", placed on " + createdAt);
+        if(!firstItemTitle.isEmpty())
+        {
+            replies.add("Item: " + firstItemTitle);
+        }
+        statusLine = "Status: " + fulfillmentStatus;
+        if(!deliveryStatus.isEmpty())
+        {
+            statusLine = statusLine + " (" + deliveryStatus + ")";
+        }
+        replies.add(statusLine);
+        replies.add("Total: " + totalAmount.toString() + " " + currencyCode);
+        if(!trackingMsg.isEmpty())
+        {
+            replies.add(trackingMsg);
+        }
+    }
+
+    response.put("action","reply");
+    response.put("replies",replies);
+    response.put("suggestions",{
+        "Track another order",
+        "Talk to a human agent"
+    });
+
+    return response;
+}
+
+return response;

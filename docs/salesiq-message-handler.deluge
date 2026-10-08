@@ -1,0 +1,78 @@
+response = Map();
+msg = message.get("text");
+if(operation.equals("chat"))
+{
+    if(
+        !msg.equalsIgnoreCase("I'm new here, just browsing") &&
+        !msg.equalsIgnoreCase("I'm an existing customer and need help") &&
+        !msg.equalsIgnoreCase("I want a product demo")
+    )
+    {
+        response = Map();
+        response.put("action","reply");
+        response.put("replies",{"Hello there! Looking for anything specific?"});
+        response.put("suggestions",{
+            "I'm new here, just browsing",
+            "I'm an existing customer and need help",
+            "I want a product demo"
+        });
+        return response;
+    }
+
+    if(msg.equalsIgnoreCase("I'm new here, just browsing"))
+    {
+        response.put("action","context");
+        response.put("context_id","browsing");
+        question = {
+            "name":"browsing",
+            "replies":{
+                "Awesome. Let's get you started right away. Here's an on demand product demo that you can watch at your own pace."
+            },
+            "suggestions":{"Thanks"}
+        };
+        response.put("questions",{question});
+    }
+    else if(msg.equalsIgnoreCase("I'm an existing customer and need help"))
+    {
+        response.put("action","context");
+        response.put("context_id","order_support_lookup");
+        question = {
+            "name":"phone",
+            "replies":{
+                "Welcome back! To check your order, please share your registered mobile number (with country code, e.g. +91XXXXXXXXXX)."
+            }
+        };
+        response.put("questions",{question});
+    }
+    else if(msg.equalsIgnoreCase("I want a product demo"))
+    {
+        response.put("action","context");
+        response.put("context_id","demo");
+        question = {
+            "name":"time",
+            "replies":{
+                "Great! Let's set up a personalized demo. When would you like to schedule it?"
+            },
+            "input":{"type":"calendar"}
+        };
+        response.put("questions",{question});
+    }
+    else
+    {
+        response = Map();
+        response.put("action","reply");
+        response.put("replies",{"Is there anything else I can help you with?"});
+        response.put("suggestions",{
+            "I'm new here, just browsing",
+            "I'm an existing customer and need help",
+            "I want a product demo"
+        });
+        return response;
+    }
+
+    return response;
+}
+else
+{
+    return response;
+}
