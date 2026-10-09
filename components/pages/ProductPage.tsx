@@ -27,6 +27,7 @@ import {
   getProductPricingOverride,
   isLinkDiscountProduct,
 } from '@/lib/hidden-products'
+import { trackAddToCart, trackViewContent } from '@/lib/meta-pixel'
 
 interface ProductVariant {
   id: string
@@ -39,6 +40,7 @@ interface ProductVariant {
 
 interface Product {
   id: string
+  productId?: string
   title: string
   handle: string
   description: string
@@ -439,16 +441,32 @@ export default function ProductPage({
     return () => clearInterval(intervalId)
   }, [product?.id, product?.images?.length])
 
+  useEffect(() => {
+    if (!product) return
+    const pricingOverride = getProductPricingOverride(slug)
+    trackViewContent({
+      contentName: product.title,
+      contentIds: [
+        product.productId,
+        product.id,
+        selectedVariant?.gid,
+        selectedVariant?.id,
+      ],
+      value: pricingOverride?.salePrice ?? selectedVariant?.price ?? product.price,
+      quantity: 1,
+    })
+  }, [product?.id, product?.productId, slug, selectedVariant?.id, selectedVariant?.gid, selectedVariant?.price, product?.title, product?.price])
+
   const handleAddToCart = () => {
     if (!product || !selectedVariant) return
 
+    const pricingOverride = getProductPricingOverride(slug)
+    const itemPrice = pricingOverride
+      ? pricingOverride.salePrice
+      : selectedVariant.price || product.price
+
     // Add multiple items based on quantity
     for (let i = 0; i < quantity; i++) {
-      const pricingOverride = getProductPricingOverride(slug)
-      const itemPrice = pricingOverride
-        ? pricingOverride.salePrice
-        : selectedVariant.price || product.price
-
       addItem({
         id: selectedVariant.id || product.id,
         variantId: getShopifyVariantId(selectedVariant.gid || selectedVariant.id),
@@ -459,6 +477,18 @@ export default function ProductPage({
         variant: selectedVariant.name,
       })
     }
+
+    trackAddToCart({
+      contentName: product.title,
+      contentIds: [
+        product.productId,
+        product.id,
+        selectedVariant.gid,
+        selectedVariant.id,
+      ],
+      value: itemPrice * quantity,
+      quantity,
+    })
   }
 
   const toggleAccordion = (id: string) => {

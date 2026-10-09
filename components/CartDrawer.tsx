@@ -7,6 +7,7 @@ import { useCartStore } from '@/store/cartStore'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCampaignStore } from '@/store/campaignStore'
 import { getPdCheckoutDiscountCode } from '@/lib/hidden-products'
+import { trackInitiateCheckout } from '@/lib/meta-pixel'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -102,6 +103,15 @@ export default function CartDrawer({ isolatedPurchase = false }: CartDrawerProps
       }
 
       if (checkoutUrl) {
+        trackInitiateCheckout(
+          items.map((item) => ({
+            contentName: item.title,
+            contentIds: [item.variantId, item.id],
+            value: item.price * item.quantity,
+            quantity: item.quantity,
+          })),
+          getTotal()
+        )
         closeCart()
         window.location.href = checkoutUrl
       } else {

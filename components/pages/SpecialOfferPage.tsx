@@ -25,6 +25,7 @@ import {
   withStarterPackHero,
 } from '@/lib/starter-pack-hero'
 import { formatInr } from '@/lib/utils'
+import { trackAddToCart, trackViewContent } from '@/lib/meta-pixel'
 
 export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
   {
@@ -200,6 +201,15 @@ export default function SpecialOfferPage() {
     return () => window.clearInterval(intervalId)
   }, [galleryAutoPlay, selectedPackage.id, images.length])
 
+  useEffect(() => {
+    trackViewContent({
+      contentName: `FYBER ${selectedPackage.name}`,
+      contentIds: [selectedPackage.shopifyId, selectedPackage.variantId],
+      value: selectedPackage.price,
+      quantity: 1,
+    })
+  }, [selectedPackage.id, selectedPackage.name, selectedPackage.price, selectedPackage.shopifyId, selectedPackage.variantId])
+
   const handleAddToCart = () => {
     setIsAdding(true)
     try {
@@ -214,6 +224,12 @@ export default function SpecialOfferPage() {
           variant: 'Assorted Flavours',
         })
       }
+      trackAddToCart({
+        contentName: `FYBER ${selectedPackage.name}`,
+        contentIds: [selectedPackage.shopifyId, selectedPackage.variantId],
+        value: selectedPackage.price * quantity,
+        quantity,
+      })
     } catch (err) {
       console.error('Error adding special offer to cart:', err)
     } finally {
