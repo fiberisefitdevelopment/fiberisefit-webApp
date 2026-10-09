@@ -11,9 +11,10 @@ const LOCAL_BUSINESS_SCHEMA = {
   telephone: '7070705026',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: '731/508 S/F, PLOT NO.7 BLOCK 56 DB GUPTA ROAD Karol Bagh Central Delhi',
-    addressLocality: 'New Delhi',
-    postalCode: '110005',
+    streetAddress: 'Pride Corporate Park, Building A-153, Sector 136',
+    addressLocality: 'Noida',
+    addressRegion: 'Uttar Pradesh',
+    postalCode: '201304',
     addressCountry: 'IN',
   },
   sameAs: [
@@ -50,7 +51,7 @@ export default function ContactPolicyPage() {
           <p className="text-gray-800 leading-relaxed mb-6">You may contact us using the information below:</p>
           <ul className="list-none space-y-3 text-gray-800">
             <li><strong>Merchant Legal entity name:</strong> FIBERISE FIT PRIVATE LIMITED</li>
-            <li><strong>Registered Address:</strong> 731/508 S/F, PLOT NO.7 BLOCK 56 DB GUPTA ROAD Karol Bagh Central Delhi New Delhi Delhi India 110005 Sat Nagar SO DELHI 110005</li>
+            <li><strong>Registered Address:</strong> Pride Corporate Park, Building A-153, Sector 136, Noida, Uttar Pradesh – 201304</li>
             <li><strong>Telephone No:</strong> 7070705026</li>
             <li>
               <strong>WhatsApp:</strong>{' '}

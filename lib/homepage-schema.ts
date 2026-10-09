@@ -37,10 +37,10 @@ export const ORGANIZATION_SCHEMA = {
   },
   address: {
     '@type': 'PostalAddress',
-    streetAddress: '731/508 S/F, PLOT NO.7 BLOCK 56 DB GUPTA ROAD',
-    addressLocality: 'Karol Bagh, Central Delhi',
-    addressRegion: 'Delhi',
-    postalCode: '110005',
+    streetAddress: 'Pride Corporate Park, Building A-153, Sector 136',
+    addressLocality: 'Noida',
+    addressRegion: 'Uttar Pradesh',
+    postalCode: '201304',
     addressCountry: 'IN',
   },
   areaServed: {

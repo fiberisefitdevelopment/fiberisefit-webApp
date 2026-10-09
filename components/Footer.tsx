@@ -30,9 +30,8 @@ export default function Footer() {
             </h3>
             <div className="space-y-3 text-sm text-gray-400">
               <p>
-                <span className="text-white font-medium">Address:</span> 731/508 S/F, PLOT NO.7 BLOCK 56 DB
-                GUPTA ROAD Karol Bagh Central Delhi, New Delhi, Delhi, India 110005 Sat Nagar SO DELHI
-                110005
+                <span className="text-white font-medium">Address:</span>{' '}
+                Pride Corporate Park, Building A-153, Sector 136, Noida, Uttar Pradesh – 201304
               </p>
               <p>
                 <span className="text-white font-medium">Phone:</span>{' '}

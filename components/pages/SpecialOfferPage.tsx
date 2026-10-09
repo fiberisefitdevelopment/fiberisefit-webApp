@@ -186,17 +186,19 @@ export default function SpecialOfferPage() {
   const GALLERY_AUTO_MS = 2000
 
   useEffect(() => {
-    setSelectedImageIndex((prev) => (images.length ? prev % images.length : 0))
-  }, [images])
+    setSelectedImageIndex((prev) =>
+      images.length ? Math.min(prev, images.length - 1) : 0
+    )
+  }, [images.length])
 
-  // Auto-advance gallery every 2s while not held / tapped
+  // Auto-advance 1→2→…→n→1 (fade, no reverse rewind)
   useEffect(() => {
     if (!galleryAutoPlay || images.length <= 1) return
     const intervalId = window.setInterval(() => {
       setSelectedImageIndex((prev) => (prev + 1) % images.length)
     }, GALLERY_AUTO_MS)
     return () => window.clearInterval(intervalId)
-  }, [galleryAutoPlay, selectedPackage.id, images])
+  }, [galleryAutoPlay, selectedPackage.id, images.length])
 
   const handleAddToCart = () => {
     setIsAdding(true)
@@ -305,79 +307,66 @@ export default function SpecialOfferPage() {
                   className="md:hidden relative w-full overflow-hidden touch-pan-y cursor-pointer select-none"
                   {...galleryPressHandlers}
                 >
-                  {images.map((src, index) => {
-                    const errorKey = `${selectedPackage.id}-${index}`
-                    const imageSrc = imageError[errorKey] ? selectedPackage.image : src
-                    const isActive = index === selectedImageIndex
-                    return (
-                      <div
-                        key={`${selectedPackage.id}-mobile-slide-${index}`}
-                        className={
-                          isActive
-                            ? 'relative w-full'
-                            : 'absolute inset-x-0 top-0 w-full opacity-0 pointer-events-none'
+                  {images[selectedImageIndex] && (
+                    <div
+                      key={`${selectedPackage.id}-mobile-slide-${selectedImageIndex}`}
+                      className="relative w-full hero-slide-in"
+                    >
+                      <Image
+                        src={
+                          imageError[`${selectedPackage.id}-${selectedImageIndex}`]
+                            ? selectedPackage.image
+                            : images[selectedImageIndex]
                         }
-                        aria-hidden={!isActive}
-                      >
-                        <Image
-                          src={imageSrc || selectedPackage.image}
-                          alt={`FYBER ${selectedPackage.name} - Assorted Flavours ${index + 1}`}
-                          width={1080}
-                          height={1350}
-                          priority={index === 0}
-                          unoptimized
-                          className="block w-full h-auto max-w-full"
-                          sizes="100vw"
-                          onError={() =>
-                            setImageError((prev) => ({
-                              ...prev,
-                              [errorKey]: true,
-                            }))
-                          }
-                        />
-                      </div>
-                    )
-                  })}
+                        alt={`FYBER ${selectedPackage.name} - Assorted Flavours ${selectedImageIndex + 1}`}
+                        width={1080}
+                        height={1350}
+                        priority
+                        unoptimized
+                        className="block w-full h-auto max-w-full"
+                        sizes="100vw"
+                        onError={() =>
+                          setImageError((prev) => ({
+                            ...prev,
+                            [`${selectedPackage.id}-${selectedImageIndex}`]: true,
+                          }))
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {/* Desktop: horizontal swipe track */}
+                {/* Desktop: one mounted image at a time so Chrome actually swaps (no stacked opacity-0 LCP). */}
                 <div
                   className="hidden md:block relative w-full aspect-square overflow-hidden cursor-pointer select-none"
                   {...galleryPressHandlers}
                 >
-                  <div
-                    className="flex h-full w-full transition-transform duration-500 ease-in-out will-change-transform pointer-events-none"
-                    style={{
-                      transform: `translate3d(-${selectedImageIndex * 100}%, 0, 0)`,
-                    }}
-                  >
-                    {images.map((src, index) => {
-                      const errorKey = `${selectedPackage.id}-${index}`
-                      const imageSrc = imageError[errorKey] ? selectedPackage.image : src
-                      return (
-                        <div
-                          key={`${selectedPackage.id}-slide-${index}`}
-                          className="relative h-full w-full min-w-full flex-shrink-0"
-                        >
-                          <Image
-                            src={imageSrc || selectedPackage.image}
-                            alt={`FYBER ${selectedPackage.name} - Assorted Flavours ${index + 1}`}
-                            fill
-                            priority={index === 0}
-                            unoptimized
-                            className="object-contain p-8"
-                            sizes="50vw"
-                            onError={() =>
-                              setImageError((prev) => ({
-                                ...prev,
-                                [errorKey]: true,
-                              }))
-                            }
-                          />
-                        </div>
-                      )
-                    })}
-                  </div>
+                  {images[selectedImageIndex] && (
+                    <div
+                      key={`${selectedPackage.id}-slide-${selectedImageIndex}`}
+                      className="absolute inset-0 hero-slide-in"
+                    >
+                      <Image
+                        src={
+                          imageError[`${selectedPackage.id}-${selectedImageIndex}`]
+                            ? selectedPackage.image
+                            : images[selectedImageIndex]
+                        }
+                        alt={`FYBER ${selectedPackage.name} - Assorted Flavours ${selectedImageIndex + 1}`}
+                        fill
+                        priority
+                        unoptimized
+                        className="object-contain p-8"
+                        sizes="50vw"
+                        onError={() =>
+                          setImageError((prev) => ({
+                            ...prev,
+                            [`${selectedPackage.id}-${selectedImageIndex}`]: true,
+                          }))
+                        }
+                      />
+                    </div>
+                  )}
                   {images.length > 1 && (
                     <>
                       <button
@@ -612,7 +601,7 @@ export default function SpecialOfferPage() {
                   {expandedAccordion === 'how' && (
                     <div className="px-5 pb-4 text-xs text-gray-600 space-y-2 leading-relaxed border-t border-gray-100 pt-3">
                       <p>
-                        FYBER is an advanced soluble prebiotic fiber formulation combining Glucomannan, Inulin, L-Carnitine, L-Tyrosine, and targeted probiotics.
+                        FYBER is a patented natural fiber derived from Corn.
                       </p>
                       <p>
                         When dissolved in water and consumed 60 minutes before your meal, it expands gently into a soothing viscous gel in your stomach, triggering natural GLP-1 satiety signals to the brain and delaying gastric emptying. Cravings quieten down naturally and portion control becomes effortless.
@@ -638,10 +627,8 @@ export default function SpecialOfferPage() {
                   {expandedAccordion === 'usage' && (
                     <div className="px-5 pb-4 text-xs text-gray-600 space-y-2 leading-relaxed border-t border-gray-100 pt-3">
                       <ol className="list-decimal list-inside space-y-1.5">
-                        <li>Mix 1 sachet in a glass of normal or cold water (250–300ml).</li>
-                        <li>Stir briskly and drink immediately.</li>
-                        <li>Follow with an additional glass of water to support natural gel formation.</li>
-                        <li>Consume 60 minutes before your heaviest meal of the day.</li>
+                        <li>Mix 1 sachet in a glass of room temperature water (250–300ml).</li>
+                        <li>Stir and drink 30-60 minutes before meals.</li>
                       </ol>
                     </div>
                   )}

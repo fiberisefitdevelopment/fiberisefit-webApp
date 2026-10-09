@@ -85,7 +85,7 @@ export default function PrivacyPolicyPage() {
             We will not sell, distribute or lease your personal information to third parties unless we have your permission or are required by law to do so. We may use your personal information to send you promotional information about third parties which we think you may find interesting if you tell us that you wish this to happen.
           </p>
           <p className="text-gray-800 leading-relaxed">
-            If you believe that any information we are holding on you is incorrect or incomplete, please write to 731/508 S/F, PLOT NO.7 BLOCK 56 DB GUPTA ROAD Karol Bagh Central Delhi New Delhi Delhi India 110005 Sat Nagar SO DELHI 110005 or contact us as soon as possible. We will promptly correct any information found to be incorrect.
+            If you believe that any information we are holding on you is incorrect or incomplete, please write to Pride Corporate Park, Building A-153, Sector 136, Noida, Uttar Pradesh – 201304 or contact us as soon as possible. We will promptly correct any information found to be incorrect.
           </p>
         </div>
 
