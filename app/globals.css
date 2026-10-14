@@ -302,3 +302,44 @@ a {
   }
 }
 
+@keyframes offer-gallery-in-next {
+  from { transform: translate3d(100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes offer-gallery-out-next {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
+}
+
+@keyframes offer-gallery-in-prev {
+  from { transform: translate3d(-100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes offer-gallery-out-prev {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(100%, 0, 0); }
+}
+
+.offer-gallery-in-next,
+.offer-gallery-out-next,
+.offer-gallery-in-prev,
+.offer-gallery-out-prev {
+  will-change: transform;
+}
+
+.offer-gallery-in-next { animation: offer-gallery-in-next 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.offer-gallery-out-next { animation: offer-gallery-out-next 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.offer-gallery-in-prev { animation: offer-gallery-in-prev 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.offer-gallery-out-prev { animation: offer-gallery-out-prev 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .offer-gallery-in-next,
+  .offer-gallery-out-next,
+  .offer-gallery-in-prev,
+  .offer-gallery-out-prev {
+    animation: none;
+  }
+}
+

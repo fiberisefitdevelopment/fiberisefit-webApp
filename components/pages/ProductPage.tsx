@@ -120,6 +120,19 @@ export default function ProductPage({
   const [loading, setLoading] = useState(!initialProduct)
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [settledImageIndex, setSettledImageIndex] = useState(0)
+  const [galleryMotion, setGalleryMotion] = useState<{
+    from: number
+    to: number
+    dir: 'next' | 'prev'
+  } | null>(null)
+  const gallerySlideDir = useRef<'next' | 'prev'>('next')
+  const slideGallery = [
+    'starter-pack',
+    'transformation-pack',
+    'ultimate-pack',
+    'elite-pack',
+  ].some((pack) => slug === pack || slug.startsWith(`${pack}-`))
   const [error, setError] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null)
@@ -435,11 +448,36 @@ export default function ProductPage({
     if (images.length <= 1) return
 
     const intervalId = setInterval(() => {
+      gallerySlideDir.current = 'next'
       setSelectedImageIndex((prev) => (prev + 1) % images.length)
     }, 5000)
 
     return () => clearInterval(intervalId)
   }, [product?.id, product?.images?.length])
+
+  useEffect(() => {
+    if (!slideGallery || selectedImageIndex === settledImageIndex) return
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) {
+      setSettledImageIndex(selectedImageIndex)
+      setGalleryMotion(null)
+      return
+    }
+    setGalleryMotion({
+      from: settledImageIndex,
+      to: selectedImageIndex,
+      dir: gallerySlideDir.current,
+    })
+  }, [slideGallery, selectedImageIndex, settledImageIndex])
+
+  useEffect(() => {
+    if (!galleryMotion) return
+    const timeoutId = window.setTimeout(() => {
+      setSettledImageIndex(galleryMotion.to)
+      setGalleryMotion(null)
+    }, 520)
+    return () => window.clearTimeout(timeoutId)
+  }, [galleryMotion])
 
   useEffect(() => {
     if (!product) return
@@ -597,6 +635,36 @@ export default function ProductPage({
     slug,
     product.images && product.images.length > 0 ? product.images : [product.image]
   )
+  const galleryAlt = `${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') || product.title.toLowerCase().includes('elite') ? 'FYBER' : 'Fyber'} ${product.title}`
+  const galleryImage = (index: number, priority: boolean) => (
+    <Image
+      src={displayImages[index] || product.image || '/placeholder-product.png'}
+      alt={galleryAlt}
+      fill
+      sizes="(max-width: 768px) 100vw, 50vw"
+      className="object-contain sm:p-8"
+      priority={priority}
+      fetchPriority={priority ? 'high' : 'auto'}
+    />
+  )
+  const galleryLayers = () => {
+    if (galleryMotion && displayImages[galleryMotion.from] && displayImages[galleryMotion.to]) {
+      const outClass = galleryMotion.dir === 'next' ? 'offer-gallery-out-next' : 'offer-gallery-out-prev'
+      const inClass = galleryMotion.dir === 'next' ? 'offer-gallery-in-next' : 'offer-gallery-in-prev'
+      return (
+        <>
+          <div className={`absolute inset-0 ${outClass}`}>
+            {galleryImage(galleryMotion.from, false)}
+          </div>
+          <div className={`absolute inset-0 z-[1] ${inClass}`}>
+            {galleryImage(galleryMotion.to, true)}
+          </div>
+        </>
+      )
+    }
+    const index = displayImages[settledImageIndex] ? settledImageIndex : 0
+    return <div className="absolute inset-0">{galleryImage(index, true)}</div>
+  }
   //const ingredients = ['Unflavoured', 'Watermelon', 'Lemon', 'Assorted']
 
   // Servings: Starter = 7, Transformation = 30, Ultimate = 90, Elite = 120
@@ -780,7 +848,10 @@ export default function ProductPage({
                   {displayImages.map((image, index) => (
                     <button
                       key={index}
-                      onClick={() => setSelectedImageIndex(index)}
+                      onClick={() => {
+                        gallerySlideDir.current = index >= selectedImageIndex ? 'next' : 'prev'
+                        setSelectedImageIndex(index)
+                      }}
                       className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index
                         ? 'border-black scale-105'
                         : 'border-transparent hover:border-gray-400'
@@ -800,16 +871,20 @@ export default function ProductPage({
 
               {/* Main Image Display */}
               <div className="flex-1 relative bg-transparent rounded-none sm:rounded-lg overflow-hidden group">
-                <div className="relative w-full aspect-square">
-                  <Image
-                    src={displayImages[selectedImageIndex] || product.image || '/placeholder-product.png'}
-                    alt={`${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') || product.title.toLowerCase().includes('elite') ? 'FYBER' : 'Fyber'} ${product.title}`}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-contain sm:p-8"
-                    priority
-                    fetchPriority="high"
-                  />
+                <div className="relative w-full aspect-square overflow-hidden">
+                  {slideGallery ? (
+                    galleryLayers()
+                  ) : (
+                    <Image
+                      src={displayImages[selectedImageIndex] || product.image || '/placeholder-product.png'}
+                      alt={galleryAlt}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-contain sm:p-8"
+                      priority
+                      fetchPriority="high"
+                    />
+                  )}
                 </div>
 
               </div>
