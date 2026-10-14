@@ -25,6 +25,7 @@ import {
 } from '@/lib/starter-pack-hero'
 import { formatInr } from '@/lib/utils'
 import { trackAddToCart, trackViewContent } from '@/lib/meta-pixel'
+import SlidingImageGallery from '@/components/SlidingImageGallery'
 
 export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
   {
@@ -159,13 +160,6 @@ export default function SpecialOfferPage() {
   const heroRef = useRef<HTMLDivElement>(null)
   const mainButtonRef = useRef<HTMLButtonElement>(null)
   const galleryTouchStartX = useRef<number | null>(null)
-  const gallerySlideDir = useRef<'next' | 'prev'>('next')
-  const [settledImageIndex, setSettledImageIndex] = useState(0)
-  const [galleryMotion, setGalleryMotion] = useState<{
-    from: number
-    to: number
-    dir: 'next' | 'prev'
-  } | null>(null)
   const addItem = useCartStore((state) => state.addItem)
 
   // Product copy still comes from Shopify. Carousel files stay in /public/specialOfferCarousel.
@@ -193,7 +187,6 @@ export default function SpecialOfferPage() {
   // Reset selected image when changing package
   const handleSelectPackage = (pkg: PackageOption) => {
     const nextIndex = CAROUSEL_PACK_START[pkg.id] ?? 0
-    gallerySlideDir.current = nextIndex >= selectedImageIndex ? 'next' : 'prev'
     setSelectedPackage(pkg)
     setSelectedImageIndex(nextIndex)
     setImageError({})
@@ -226,35 +219,10 @@ export default function SpecialOfferPage() {
   useEffect(() => {
     if (!galleryAutoPlay || images.length <= 1) return
     const intervalId = window.setInterval(() => {
-      gallerySlideDir.current = 'next'
       setSelectedImageIndex((prev) => (prev + 1) % images.length)
     }, GALLERY_AUTO_MS)
     return () => window.clearInterval(intervalId)
   }, [galleryAutoPlay, selectedPackage.id, images.length])
-
-  useEffect(() => {
-    if (selectedImageIndex === settledImageIndex) return
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduceMotion || images.length <= 1) {
-      setSettledImageIndex(selectedImageIndex)
-      setGalleryMotion(null)
-      return
-    }
-    setGalleryMotion({
-      from: settledImageIndex,
-      to: selectedImageIndex,
-      dir: gallerySlideDir.current,
-    })
-  }, [images.length, selectedImageIndex, settledImageIndex])
-
-  useEffect(() => {
-    if (!galleryMotion) return
-    const timeoutId = window.setTimeout(() => {
-      setSettledImageIndex(galleryMotion.to)
-      setGalleryMotion(null)
-    }, 520)
-    return () => window.clearTimeout(timeoutId)
-  }, [galleryMotion])
 
   useEffect(() => {
     trackViewContent({
@@ -302,7 +270,6 @@ export default function SpecialOfferPage() {
 
   const goToGalleryImage = (direction: 'next' | 'prev') => {
     if (images.length <= 1) return
-    gallerySlideDir.current = direction
     setSelectedImageIndex((prev) =>
       direction === 'next'
         ? (prev + 1) % images.length
@@ -310,58 +277,26 @@ export default function SpecialOfferPage() {
     )
   }
 
-  const finishGalleryMotion = (event: React.AnimationEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget || !galleryMotion) return
-    setSettledImageIndex(galleryMotion.to)
-    setGalleryMotion(null)
-  }
+  const gallerySources = images.map((src, imageIndex) =>
+    imageError[`${selectedPackage.id}-${imageIndex}`] ? selectedPackage.image : src
+  )
 
-  const galleryImage = (index: number, padded: boolean) => {
-    const src = imageError[`${selectedPackage.id}-${index}`]
-      ? selectedPackage.image
-      : images[index]
-    if (!src) return null
-    return (
-      <Image
-        src={src}
-        alt={`FYBER ${selectedPackage.name} - Assorted Flavours ${index + 1}`}
-        fill
-        priority={index === selectedImageIndex}
-        unoptimized
-        className={padded ? 'object-contain p-8' : 'object-contain'}
-        sizes={padded ? '50vw' : '100vw'}
-        onError={() =>
-          setImageError((prev) => ({
-            ...prev,
-            [`${selectedPackage.id}-${index}`]: true,
-          }))
-        }
-      />
-    )
-  }
-
-  const galleryLayers = (padded: boolean) => {
-    if (!images.length) return null
-    if (galleryMotion && images[galleryMotion.from] && images[galleryMotion.to]) {
-      const outClass = galleryMotion.dir === 'next' ? 'offer-gallery-out-next' : 'offer-gallery-out-prev'
-      const inClass = galleryMotion.dir === 'next' ? 'offer-gallery-in-next' : 'offer-gallery-in-prev'
-      return (
-        <>
-          <div className={`absolute inset-0 ${outClass}`}>
-            {galleryImage(galleryMotion.from, padded)}
-          </div>
-          <div
-            className={`absolute inset-0 z-[1] ${inClass}`}
-            onAnimationEnd={finishGalleryMotion}
-          >
-            {galleryImage(galleryMotion.to, padded)}
-          </div>
-        </>
-      )
-    }
-    const index = images[settledImageIndex] ? settledImageIndex : 0
-    return <div className="absolute inset-0">{galleryImage(index, padded)}</div>
-  }
+  const renderGallery = (padded: boolean) => (
+    <SlidingImageGallery
+      images={gallerySources}
+      index={selectedImageIndex}
+      alt={`FYBER ${selectedPackage.name} - Assorted Flavours`}
+      padClassName={padded ? 'p-8' : ''}
+      unoptimized
+      sizes={padded ? '50vw' : '100vw'}
+      onImageError={(imageIndex) =>
+        setImageError((prev) => ({
+          ...prev,
+          [`${selectedPackage.id}-${imageIndex}`]: true,
+        }))
+      }
+    />
+  )
 
   const handleGalleryPressStart = (clientX: number) => {
     galleryTouchStartX.current = clientX
@@ -432,7 +367,7 @@ export default function SpecialOfferPage() {
                   className="md:hidden relative w-full aspect-square overflow-hidden touch-pan-y cursor-pointer select-none"
                   {...galleryPressHandlers}
                 >
-                  {galleryLayers(false)}
+                  {renderGallery(false)}
                 </div>
 
                 {/* Desktop: one mounted image at a time so Chrome actually swaps (no stacked opacity-0 LCP). */}
@@ -440,7 +375,7 @@ export default function SpecialOfferPage() {
                   className="hidden md:block relative w-full aspect-square overflow-hidden cursor-pointer select-none"
                   {...galleryPressHandlers}
                 >
-                  {galleryLayers(true)}
+                  {renderGallery(true)}
                   {images.length > 1 && (
                     <>
                       <button
