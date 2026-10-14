@@ -18,7 +18,7 @@ const POSTERS_DIR = path.join(REELS_DIR, 'posters')
 
 const HERO_BANNERS = [
   {
-    input: 'Transformation Pack_Mobile Banner.jpg',
+    input: 'Transformation Pack_Mobile Banner.webp',
     output: 'transformation-pack-mobile.webp',
     width: 1200,
   },
@@ -28,7 +28,7 @@ const HERO_BANNERS = [
     width: 1920,
   },
   {
-    input: 'Ultimate Pack_Mobile Banner.jpg',
+    input: 'Ultimate Pack_Mobile Banner.webp',
     output: 'ultimate-pack-mobile.webp',
     width: 1200,
   },

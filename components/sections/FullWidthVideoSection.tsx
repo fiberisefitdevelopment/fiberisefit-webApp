@@ -43,7 +43,7 @@ export default function FullWidthVideoSection() {
             preload="none"
             className="w-full h-full object-cover"
           >
-            <source src="/videos/sustainable-video.mp4" type="video/mp4" />
+            <source src="/videos/sustainable-video.webm" type="video/webm" />
           </video>
         ) : (
           <div className="w-full h-full bg-gray-900" />

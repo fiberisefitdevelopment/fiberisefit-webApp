@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useCartStore } from '@/store/cartStore'
 import {
@@ -21,7 +21,6 @@ import PackageDurationSelector, {
 } from '@/components/PackageDurationSelector'
 import {
   STARTER_PACK_HERO_IMAGE,
-  withoutFeelLighterImages,
   withStarterPackHero,
 } from '@/lib/starter-pack-hero'
 import { formatInr } from '@/lib/utils'
@@ -42,9 +41,16 @@ export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
     image: STARTER_PACK_HERO_IMAGE,
     images: [
       STARTER_PACK_HERO_IMAGE,
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/WhatsApp_Image_2026-05-06_at_07.10.16.jpg?v=1778041954',
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/WhatsApp_Image_2026-05-06_at_07.10.16_1.jpg?v=1778041953',
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/WhatsApp_Image_2026-05-06_at_07.10.17.jpg?v=1778041952',
+      '/specialOfferCarousel/WhatsApp_Image_2026-05-06_at_07.10.16.webp',
+      '/specialOfferCarousel/WhatsApp_Image_2026-05-06_at_07.10.18_1.webp',
+      '/specialOfferCarousel/WhatsApp_Image_2026-05-06_at_07.10.16_1.webp',
+      '/specialOfferCarousel/WhatsApp_Image_2026-05-06_at_07.10.18_2.webp',
+      '/specialOfferCarousel/WhatsApp_Image_2026-05-06_at_07.10.18.webp',
+      '/specialOfferCarousel/WhatsApp_Image_2026-05-06_at_07.10.17.webp',
+      '/specialOfferCarousel/WhatsApp_Image_2026-05-06_at_07.10.17_1.webp',
+      '/specialOfferCarousel/WhatsApp_Image_2026-05-06_at_07.10.19.webp',
+      '/specialOfferCarousel/WhatsApp_Image_2026-04-16_at_17.17.45.webp',
+      '/specialOfferCarousel/WhatsApp_Image_2026-04-16_at_17.17.46.webp',
     ],
     description:
       'The 7-sachet FYBER Starter Pack is designed for first-time users looking to experience natural craving suppression, better fat metabolism, and sustained daily energy.',
@@ -63,12 +69,19 @@ export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
     handle: 'transformation-pack',
     variantId: '54312470806803',
     shopifyId: 'gid://shopify/ProductVariant/54312470806803',
-    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Transformation_Pack.png?v=1779360501',
+    image: '/specialOfferCarousel/A_30Days_-02.webp',
     images: [
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Transformation_Pack.png?v=1779360501',
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Fiberise_Tranformation.png?v=1778853045',
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/WhatsApp_Image_2026-05-06_at_07.10.16_1.jpg?v=1778041953',
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/WhatsApp_Image_2026-05-06_at_07.10.17.jpg?v=1778041952',
+      '/specialOfferCarousel/notice-your-weight-changing.webp',
+      '/specialOfferCarousel/A_30Days_-02.webp',
+      '/specialOfferCarousel/A_30Days_-03.webp',
+      '/specialOfferCarousel/A_30Days_-04.webp',
+      '/specialOfferCarousel/A_30Days_-05.webp',
+      '/specialOfferCarousel/A_30Days_-06.webp',
+      '/specialOfferCarousel/A_30Days_-07.webp',
+      '/specialOfferCarousel/A_30Days_-08.webp',
+      '/specialOfferCarousel/A_30Days_-09.webp',
+      '/specialOfferCarousel/A_30Days_-10.webp',
+      '/specialOfferCarousel/A_30Days_-11.webp',
     ],
     description:
       'Start your wellness journey with the FYBER Transformation Pack, featuring 30 convenient sachets in assorted flavours. Formulated with natural prebiotic fiber and probiotics, it supports appetite control and gut health.',
@@ -88,17 +101,47 @@ export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
     handle: 'ultimate-pack',
     variantId: '54312506917139',
     shopifyId: 'gid://shopify/ProductVariant/54312506917139',
-    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Ultimate-pack.png?v=1779360564',
+    image: '/specialOfferCarousel/A_90Days_-01_cd556116-aa6c-4c67-9b94-25bb7f34c3d2.webp',
     images: [
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Ultimate-pack.png?v=1779360564',
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/WhatsApp_Image_2026-05-06_at_07.10.16_1.jpg?v=1778041953',
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/WhatsApp_Image_2026-05-06_at_07.10.17.jpg?v=1778041952',
-      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/WhatsApp_Image_2026-05-06_at_07.10.18_2.jpg?v=1778041953',
+      '/specialOfferCarousel/A_90Days_-01_cd556116-aa6c-4c67-9b94-25bb7f34c3d2.webp',
+      '/specialOfferCarousel/A_90Days_-02_8772be8e-1f78-4e3d-9483-99ff2df8d3c2.webp',
+      '/specialOfferCarousel/A_90Days_-03_3bafc180-2f82-4e5d-8dd0-cf6cbf1bc5cd.webp',
+      '/specialOfferCarousel/A_90Days_-04_7cbd92c7-5a41-4cd5-9d24-45648f5ba91d.webp',
+      '/specialOfferCarousel/A_90Days_-05_5d360ce6-cd92-4c40-a8ff-ad17b82ae7f0.webp',
+      '/specialOfferCarousel/A_90Days_-06_1e40cc52-fc1f-434d-a98d-2ff1977cb502.webp',
+      '/specialOfferCarousel/A_90Days_-07_9411fd52-b413-4900-945e-b91c6daa46bf.webp',
+      '/specialOfferCarousel/A_90Days_-08_93a07e82-2b8a-41af-b881-93f7b69fe003.webp',
+      '/specialOfferCarousel/A_90Days_-09_51f62b25-9d14-4b9e-920b-cadc6722dada.webp',
+      '/specialOfferCarousel/A_90Days_-10_991d7916-7de7-498a-a73d-15b40f651345.webp',
     ],
     description:
       'The comprehensive 90-day metabolic transformation pack with 90 sachets in assorted flavours. Includes a complimentary LYTE Smart Fitness Band for continuous habit and progress tracking.',
   },
 ]
+
+const STARTER_SLIDES_BEFORE_NEXT_PACK = 2
+
+function packGallery(pkg: PackageOption): string[] {
+  return withStarterPackHero(pkg.handle, pkg.images)
+}
+
+const CAROUSEL_BY_PACK = {
+  starter: packGallery(SPECIAL_OFFER_PACKAGES[0]).slice(0, STARTER_SLIDES_BEFORE_NEXT_PACK),
+  transformation: packGallery(SPECIAL_OFFER_PACKAGES[1]),
+  ultimate: packGallery(SPECIAL_OFFER_PACKAGES[2]),
+}
+
+const CAROUSEL_IMAGES = [
+  ...CAROUSEL_BY_PACK.starter,
+  ...CAROUSEL_BY_PACK.transformation,
+  ...CAROUSEL_BY_PACK.ultimate,
+]
+
+const CAROUSEL_PACK_START: Record<string, number> = {
+  starter: 0,
+  transformation: CAROUSEL_BY_PACK.starter.length,
+  ultimate: CAROUSEL_BY_PACK.starter.length + CAROUSEL_BY_PACK.transformation.length,
+}
 
 export default function SpecialOfferPage() {
   // Option 1 — Starter Pack (7 Days) selected by default
@@ -112,15 +155,13 @@ export default function SpecialOfferPage() {
   const [showStickyAddToCart, setShowStickyAddToCart] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
   const [galleryAutoPlay, setGalleryAutoPlay] = useState(true)
-  // Map of handle -> live Shopify images (fetched on mount)
-  const [shopifyImages, setShopifyImages] = useState<Record<string, string[]>>({})
   const [shopifyDescriptionHtml, setShopifyDescriptionHtml] = useState<Record<string, string>>({})
   const heroRef = useRef<HTMLDivElement>(null)
   const mainButtonRef = useRef<HTMLButtonElement>(null)
   const galleryTouchStartX = useRef<number | null>(null)
   const addItem = useCartStore((state) => state.addItem)
 
-  // Fetch product images from Shopify for all packages on mount
+  // Product copy still comes from Shopify. Carousel files stay in /public/specialOfferCarousel.
   useEffect(() => {
     const handles = SPECIAL_OFFER_PACKAGES.map((p) => p.handle)
     Promise.all(
@@ -128,26 +169,16 @@ export default function SpecialOfferPage() {
         fetch(`/api/shopify/product/${handle}`, { cache: 'no-store' })
           .then((r) => r.ok ? r.json() : null)
           .then((data) => {
-            if (data?.product) {
-              return {
-                handle,
-                images: withoutFeelLighterImages((data.product.images as string[]) || []),
-                descriptionHtml: (data.product.descriptionHtml as string) || '',
-              }
-            }
-            return null
+            const descriptionHtml = (data?.product?.descriptionHtml as string) || ''
+            return descriptionHtml ? { handle, descriptionHtml } : null
           })
           .catch(() => null)
       )
     ).then((results) => {
-      const imageMap: Record<string, string[]> = {}
       const descriptionMap: Record<string, string> = {}
       results.forEach((r) => {
-        if (!r) return
-        if (r.images.length > 0) imageMap[r.handle] = r.images
-        if (r.descriptionHtml) descriptionMap[r.handle] = r.descriptionHtml
+        if (r?.descriptionHtml) descriptionMap[r.handle] = r.descriptionHtml
       })
-      if (Object.keys(imageMap).length > 0) setShopifyImages(imageMap)
       if (Object.keys(descriptionMap).length > 0) setShopifyDescriptionHtml(descriptionMap)
     })
   }, [])
@@ -155,7 +186,7 @@ export default function SpecialOfferPage() {
   // Reset selected image when changing package
   const handleSelectPackage = (pkg: PackageOption) => {
     setSelectedPackage(pkg)
-    setSelectedImageIndex(0)
+    setSelectedImageIndex(CAROUSEL_PACK_START[pkg.id] ?? 0)
     setImageError({})
     setGalleryAutoPlay(true)
   }
@@ -172,17 +203,7 @@ export default function SpecialOfferPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const images = useMemo(() => {
-    // Starter pack keeps the curated gallery so Shopify's Feel Lighter featured
-    // image cannot re-enter the carousel after the live product fetch.
-    const source =
-      selectedPackage.id === 'starter'
-        ? selectedPackage.images
-        : shopifyImages[selectedPackage.handle]?.length
-          ? shopifyImages[selectedPackage.handle]
-          : selectedPackage.images
-    return withStarterPackHero(selectedPackage.handle, source)
-  }, [selectedPackage.handle, selectedPackage.id, selectedPackage.images, shopifyImages])
+  const images = CAROUSEL_IMAGES
 
   const GALLERY_AUTO_MS = 2000
 

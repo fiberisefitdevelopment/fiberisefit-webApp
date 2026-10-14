@@ -40,7 +40,7 @@ export default async function Home() {
       <link
         rel="preload"
         as="image"
-        href="/banners/optimized/transformation-pack-mobile.webp"
+        href="/banners/Transformation%20Pack_Mobile%20Banner.webp"
         type="image/webp"
         media="(max-width: 767px)"
         fetchPriority="high"

@@ -1,4 +1,4 @@
-export const STARTER_PACK_HERO_IMAGE = '/starter-pack-7-day-trial.jpg'
+export const STARTER_PACK_HERO_IMAGE = '/specialOfferCarousel/starter-pack-7-day-trial.webp'
 
 export function isStarterPackHandle(handle: string | null | undefined): boolean {
   return (handle || '').toLowerCase().includes('starter')

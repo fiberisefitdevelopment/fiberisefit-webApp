@@ -116,6 +116,19 @@ fbq('track', 'PageView');`}
             alt=""
           />
         </noscript>
+        <Script id="fiberise-analytics" strategy="afterInteractive">
+          {`(function(){
+            var origin=${JSON.stringify(process.env.NEXT_PUBLIC_ANALYTICS_ORIGIN || (process.env.NODE_ENV === 'development' ? 'http://localhost:3100' : ''))};
+            if(!origin) return;
+            fetch(origin+'/api/health',{mode:'cors'}).then(function(r){
+              if(!r.ok || window.__FIBERISE_ANALYTICS__) return;
+              var s=document.createElement('script');
+              s.src=origin+'/collect.js';
+              s.async=true;
+              document.head.appendChild(s);
+            }).catch(function(){});
+          })();`}
+        </Script>
         <AuthProvider>
           <SiteChrome>{children}</SiteChrome>
         </AuthProvider>

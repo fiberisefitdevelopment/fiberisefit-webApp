@@ -171,6 +171,96 @@ export async function getShiprocketOrders(params?: {
   return parseOrdersResponse(data)
 }
 
+export interface AwbTrackingActivity {
+  date: string
+  status: string
+  location: string
+}
+
+export interface AwbTrackingResult {
+  awb: string
+  status: string
+  courier: string
+  origin: string
+  destination: string
+  estimatedDelivery: string
+  trackingUrl: string
+  activities: AwbTrackingActivity[]
+}
+
+interface ShiprocketAwbTrackResponse {
+  tracking_data?: {
+    track_status?: number
+    error?: string
+    track_url?: string
+    shipment_track?: Array<{
+      awb_code?: string
+      current_status?: string
+      courier_name?: string
+      origin?: string
+      destination?: string
+      edd?: string
+    }>
+    shipment_track_activities?: Array<{
+      date?: string
+      status?: string
+      activity?: string
+      location?: string
+    }>
+  }
+}
+
+/**
+ * Look up a shipment by AWB. Returns null when Shiprocket has no shipment for that number.
+ */
+export async function trackShipmentByAwb(awb: string): Promise<AwbTrackingResult | null> {
+  const token = await getShiprocketToken()
+  const url = `${SHIPROCKET_CONFIG.baseUrl}/courier/track/awb/${encodeURIComponent(awb)}`
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 8000)
+
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+      cache: 'no-store',
+    })
+
+    if (res.status === 404) return null
+    if (!res.ok) {
+      throw new Error(`Shiprocket track failed (${res.status})`)
+    }
+
+    const data = (await res.json()) as ShiprocketAwbTrackResponse
+    const tracking = data.tracking_data
+    if (!tracking || tracking.track_status === 0 || tracking.error) return null
+
+    const shipment = tracking.shipment_track?.[0]
+    if (!shipment) return null
+
+    const activities = (tracking.shipment_track_activities ?? [])
+      .map((activity) => ({
+        date: activity.date ?? '',
+        status: activity.activity || activity.status || '',
+        location: activity.location ?? '',
+      }))
+      .filter((activity) => activity.status || activity.location || activity.date)
+
+    return {
+      awb: shipment.awb_code || awb,
+      status: shipment.current_status || 'In transit',
+      courier: shipment.courier_name ?? '',
+      origin: shipment.origin ?? '',
+      destination: shipment.destination ?? '',
+      estimatedDelivery: shipment.edd ?? '',
+      trackingUrl: tracking.track_url ?? '',
+      activities,
+    }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 /**
  * Find a Shiprocket order by channel order number (e.g. Shopify order #1021).
  * Fetches up to maxPages of orders and matches on channel_order_id, order_id, or order_number.

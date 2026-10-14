@@ -45,6 +45,11 @@ export default function Footer() {
                   support@fiberisefit.com
                 </a>
               </p>
+              <p>
+                <Link href="/track" className="text-white hover:text-gray-300 transition-colors">
+                  Track your order
+                </Link>
+              </p>
             </div>
             <div className="mt-4 flex items-center gap-4">
               <a href="https://www.instagram.com/fiberisefit?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
