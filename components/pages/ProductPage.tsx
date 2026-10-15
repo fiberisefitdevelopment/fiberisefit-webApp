@@ -437,7 +437,8 @@ export default function ProductPage({
         ? product.images
         : product.image
           ? [product.image]
-          : []
+          : [],
+      { includeHero: false }
     )
     if (images.length <= 1) return
 
@@ -506,7 +507,8 @@ export default function ProductPage({
     if (!product) return
     const galleryImages = withStarterPackHero(
       slug,
-      product.images && product.images.length > 0 ? product.images : [product.image]
+      product.images && product.images.length > 0 ? product.images : [product.image],
+      { includeHero: false }
     )
     setSelectedImageIndex((prev) => (prev + 1) % galleryImages.length)
   }
@@ -515,7 +517,8 @@ export default function ProductPage({
     if (!product) return
     const galleryImages = withStarterPackHero(
       slug,
-      product.images && product.images.length > 0 ? product.images : [product.image]
+      product.images && product.images.length > 0 ? product.images : [product.image],
+      { includeHero: false }
     )
     setSelectedImageIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)
   }
@@ -602,7 +605,8 @@ export default function ProductPage({
   const isAvailable = selectedVariant?.available ?? product.available
   const displayImages = withStarterPackHero(
     slug,
-    product.images && product.images.length > 0 ? product.images : [product.image]
+    product.images && product.images.length > 0 ? product.images : [product.image],
+    { includeHero: false }
   )
   const galleryAlt = `${product.title.toLowerCase().includes('transformation') || product.title.toLowerCase().includes('ultimate') || product.title.toLowerCase().includes('elite') ? 'FYBER' : 'Fyber'} ${product.title}`
   //const ingredients = ['Unflavoured', 'Watermelon', 'Lemon', 'Assorted']

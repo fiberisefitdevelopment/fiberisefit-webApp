@@ -1,9 +1,13 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star } from 'lucide-react'
+import { Loader2, ShoppingCart, Star, Zap } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
+import { useCampaignStore } from '@/store/campaignStore'
+import { useAuth } from '@/contexts/AuthContext'
+import { trackInitiateCheckout } from '@/lib/meta-pixel'
 import type { StorefrontProduct } from '@/lib/shopify/fetch-products'
 
 interface CardConfig {
@@ -16,12 +20,18 @@ interface CardConfig {
   subtitle: string
   bottomTextSmall: string
   comparePrice: number
-  buttonText: string
-  buttonClass: string
   rating: string
   ratingScore: number
   wrapperClass: string
   priceColorClass?: string
+}
+
+function cardOrderClass(title: string): string {
+  const t = title.toLowerCase()
+  if (t.includes('transformation')) return 'order-1 md:order-2'
+  if (t.includes('ultimate')) return 'order-2 md:order-1'
+  if (t.includes('elite')) return 'order-3'
+  return ''
 }
 
 function getCardConfig(title: string): CardConfig {
@@ -38,11 +48,10 @@ function getCardConfig(title: string): CardConfig {
       subtitle: 'Best for long-term results',
       bottomTextSmall: '120 Sachets',
       comparePrice: 8999,
-      buttonText: 'Add to cart',
-      buttonClass: 'bg-[#2b5844] text-white hover:bg-[#1f4031]',
       rating: '4.8',
       ratingScore: 4.8,
-      wrapperClass: 'border border-[#2b5844]/30 bg-[#faf8f5]',
+      wrapperClass:
+        'border border-[#2b5844]/30 bg-[#faf8f5] hover:border-[#2b5844] hover:shadow-[0_10px_28px_rgba(43,88,68,0.2)]',
       priceColorClass: 'text-gray-900 font-normal',
     }
   }
@@ -58,11 +67,10 @@ function getCardConfig(title: string): CardConfig {
       subtitle: '90 Sachets + Free Lyte Band',
       bottomTextSmall: '90 Sachets',
       comparePrice: 7999,
-      buttonText: 'Add to cart',
-      buttonClass: 'bg-[#e8ddd0] text-[#3d352b] hover:bg-[#d9cfc2]',
       rating: '4.8',
       ratingScore: 4.8,
-      wrapperClass: 'border border-[#e2dcd5] bg-[#faf8f5]',
+      wrapperClass:
+        'border border-[#e2dcd5] bg-[#faf8f5] hover:border-[#b7aea3] hover:shadow-[0_10px_28px_rgba(120,110,100,0.16)]',
       priceColorClass: 'text-gray-900 font-normal',
     }
   }
@@ -77,11 +85,10 @@ function getCardConfig(title: string): CardConfig {
     subtitle: 'Best for daily cravings control',
     bottomTextSmall: '30 Sachets',
     comparePrice: 2999,
-    buttonText: 'Add to Cart',
-    buttonClass: 'bg-gradient-to-r from-[#f0cf82] to-[#d9a84e] text-[#3b2a0e] hover:brightness-95',
     rating: '4.9',
     ratingScore: 4.9,
-    wrapperClass: 'border-2 border-[#d9a84e] bg-[#faf8f5] shadow-[0_0_20px_rgba(217,168,78,0.15)]',
+    wrapperClass:
+      'border-2 border-[#d9a84e] bg-[#faf8f5] shadow-[0_0_20px_rgba(217,168,78,0.15)] hover:border-[#c4922a] hover:shadow-[0_10px_32px_rgba(217,168,78,0.34)]',
     priceColorClass: 'text-[#a67517] font-normal drop-shadow-sm',
   }
 }
@@ -116,6 +123,60 @@ type FeaturedProductsGridProps = {
 
 export default function FeaturedProductsGrid({ products }: FeaturedProductsGridProps) {
   const addItem = useCartStore((state) => state.addItem)
+  const activeCampaign = useCampaignStore((state) => state.activeCampaign)
+  const getIdToken = useAuth().getIdToken
+  const [buyingId, setBuyingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const resetBuyingState = () => setBuyingId(null)
+    window.addEventListener('pageshow', resetBuyingState)
+    return () => window.removeEventListener('pageshow', resetBuyingState)
+  }, [])
+
+  const buyNow = async (product: StorefrontProduct) => {
+    if (!product.available || buyingId) return
+    setBuyingId(product.id)
+    try {
+      const token = await getIdToken()
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers.Authorization = `Bearer ${token}`
+
+      const campaignApplies =
+        !!activeCampaign &&
+        Date.now() < new Date(activeCampaign.expiresAt).getTime() &&
+        activeCampaign.applicableProducts.includes(product.slug)
+
+      const response = await fetch('/api/checkout/create', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          items: [{ id: product.id, quantity: 1 }],
+          ...(campaignApplies ? { campaignSlug: activeCampaign.slug } : {}),
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok || !data.checkoutUrl) {
+        throw new Error(data.error || 'Failed to start checkout')
+      }
+
+      trackInitiateCheckout(
+        [
+          {
+            contentName: product.title,
+            contentIds: [product.id],
+            value: product.price,
+            quantity: 1,
+          },
+        ],
+        product.price
+      )
+      window.location.href = data.checkoutUrl
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to proceed to checkout. Please try again.'
+      alert(message)
+      setBuyingId(null)
+    }
+  }
 
   if (products.length === 0) {
     return <div className="text-center py-16 text-gray-400">No products found.</div>
@@ -135,7 +196,7 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
         return (
           <div
             key={product.id}
-            className={`relative flex flex-col rounded-2xl overflow-hidden w-[88%] max-w-[340px] mx-auto md:mx-0 md:w-[320px] lg:w-[340px] ${cfg.wrapperClass}`}
+            className={`relative flex flex-col rounded-2xl overflow-hidden w-[88%] max-w-[340px] mx-auto md:mx-0 md:w-[320px] lg:w-[340px] transition-[border-color,box-shadow] duration-300 ease-out ${cardOrderClass(product.title)} ${cfg.wrapperClass}`}
           >
             {cfg.hasBadge && cfg.isTopBanner ? (
               <div
@@ -192,9 +253,10 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
                 )}
               </p>
 
-              <div className="mt-6">
+              <div className="mt-5 flex items-center gap-2">
                 <button
                   type="button"
+                  aria-label={isAvailable ? 'Add to cart' : 'Out of stock'}
                   onClick={() =>
                     isAvailable &&
                     addItem({
@@ -206,11 +268,37 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
                     })
                   }
                   disabled={!isAvailable}
-                  className={`w-full py-3.5 rounded-lg text-base font-semibold transition-all ${
-                    isAvailable ? cfg.buttonClass : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  className={`flex h-11 w-12 shrink-0 items-center justify-center rounded-[10px] transition-colors active:scale-95 ${
+                    isAvailable
+                      ? 'bg-[#f0c44a] text-[#1a1a1a] hover:bg-[#e4b63a]'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  {isAvailable ? cfg.buttonText : 'OUT OF STOCK'}
+                  <ShoppingCart className="h-[18px] w-[18px]" strokeWidth={2.25} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => buyNow(product)}
+                  disabled={!isAvailable || buyingId === product.id}
+                  className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[10px] text-[15px] font-semibold tracking-wide transition-colors active:scale-[0.99] ${
+                    isAvailable
+                      ? 'bg-[#1b2744] text-white hover:bg-[#243256]'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {buyingId === product.id ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Buy Now
+                    </>
+                  ) : isAvailable ? (
+                    <>
+                      <Zap className="h-4 w-4 fill-current" strokeWidth={2} />
+                      Buy Now
+                    </>
+                  ) : (
+                    'Out of stock'
+                  )}
                 </button>
               </div>
 

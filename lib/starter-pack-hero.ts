@@ -1,4 +1,4 @@
-export const STARTER_PACK_HERO_IMAGE = '/specialOfferCarousel/starter-pack-7-day-trial.webp'
+export const STARTER_PACK_HERO_IMAGE = '/specialOfferCarousel/money_back_starter.webp'
 
 export function isStarterPackHandle(handle: string | null | undefined): boolean {
   return (handle || '').toLowerCase().includes('starter')
@@ -16,8 +16,12 @@ export function withoutFeelLighterImages(images: string[]): string[] {
   return images.filter((src) => src && src !== STARTER_PACK_HERO_IMAGE && !isFeelLighterImage(src))
 }
 
-export function withStarterPackHero(handle: string | null | undefined, images: string[]): string[] {
+export function withStarterPackHero(
+  handle: string | null | undefined,
+  images: string[],
+  options?: { includeHero?: boolean }
+): string[] {
   const rest = withoutFeelLighterImages(images)
-  if (!isStarterPackHandle(handle)) return rest
+  if (!isStarterPackHandle(handle) || options?.includeHero === false) return rest
   return [STARTER_PACK_HERO_IMAGE, ...rest]
 }

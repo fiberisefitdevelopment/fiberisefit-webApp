@@ -13,10 +13,10 @@ export const HERO_FALLBACK_PRODUCTS: Record<
     slug: 'transformation-pack',
   },
   'ultimate pack': {
-    id: 'gid://shopify/ProductVariant/53812865171731',
+    id: 'gid://shopify/ProductVariant/67585010434323',
     title: 'Ultimate Pack',
     price: 5999,
-    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Ultimate-pack.png?v=1779360564',
+    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/A_90Days_-01.jpg?v=1791206641',
     slug: 'ultimate-pack',
   },
 }
@@ -35,8 +35,9 @@ export function pickFeaturedHomeProducts(products: StorefrontProduct[]): Storefr
     .sort((a, b) => {
       const rank = (title: string) => {
         const t = title.toLowerCase()
-        if (t.includes('transformation')) return 0
-        if (t.includes('ultimate')) return 1
+        // Desktop row is Ultimate | Transformation | Elite, so the popular pack sits in the center.
+        if (t.includes('ultimate')) return 0
+        if (t.includes('transformation')) return 1
         if (t.includes('elite')) return 2
         return 3
       }

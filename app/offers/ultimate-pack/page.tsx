@@ -2,6 +2,7 @@ import ProductPage from '@/components/pages/ProductPage'
 import type { Metadata } from 'next'
 import { shopifyFetch, formatProduct } from '@/lib/shopify/client'
 import { PRODUCT_BY_HANDLE_QUERY } from '@/lib/shopify/queries'
+import { LINK_DISCOUNT_FALLBACK_HANDLE } from '@/lib/hidden-products'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,8 +28,20 @@ async function getProductData() {
       query: PRODUCT_BY_HANDLE_QUERY,
       variables: { handle: PRODUCT_HANDLE },
     })
-    if (!data.product) return null
-    return formatProduct(data.product)
+    let shopifyProduct = data.product
+    const fallbackHandle = LINK_DISCOUNT_FALLBACK_HANDLE[PRODUCT_HANDLE]
+    if (!shopifyProduct && fallbackHandle) {
+      const fallback = await shopifyFetch<{ product: any }>({
+        query: PRODUCT_BY_HANDLE_QUERY,
+        variables: { handle: fallbackHandle },
+      })
+      shopifyProduct = fallback.product
+    }
+    if (!shopifyProduct) return null
+    const product = formatProduct(shopifyProduct)
+    product.handle = PRODUCT_HANDLE
+    product.slug = PRODUCT_HANDLE
+    return product
   } catch (err) {
     console.error('SSR Product Fetch Error:', err)
     return null

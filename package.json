@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:network": "next dev -H 0.0.0.0",
+    "dev": "BROWSERSLIST_IGNORE_OLD_DATA=1 NODE_OPTIONS='--max-old-space-size=2560' next dev --webpack",
+    "dev:turbo": "BROWSERSLIST_IGNORE_OLD_DATA=1 NODE_OPTIONS='--max-old-space-size=2560' next dev",
+    "dev:network": "BROWSERSLIST_IGNORE_OLD_DATA=1 NODE_OPTIONS='--max-old-space-size=2560' next dev --webpack -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

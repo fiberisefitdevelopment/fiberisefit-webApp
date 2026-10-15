@@ -60,6 +60,8 @@ export const LINK_DISCOUNT_FALLBACK_HANDLE: Record<string, string> = {
   'transformation-pack-discount': 'transformation-pack',
   'ultimate-pack-copy': 'ultimate-pack',
   'elite-pack-discount': 'elite-pack',
+  // The original ultimate-pack product was replaced in Shopify by ultimate-pack-copy.
+  'ultimate-pack': 'ultimate-pack-copy',
 }
 
 /** Link-only handles without PD pricing overrides (Shopify price used as-is). */
@@ -124,12 +126,22 @@ export function getPdCheckoutDiscountCode(
   return getPdProductConfig(handle)?.discountCode
 }
 
+/** Hidden Shopify handles that now stand in for a public catalog product. */
+const PUBLIC_CATALOG_HANDLE: Record<string, string> = {
+  'ultimate-pack-copy': 'ultimate-pack',
+}
+
 export function filterVisibleProducts<T extends { slug?: string; handle?: string }>(
   products: T[]
 ): T[] {
-  return products.filter((product) => {
-    const handle = product.slug || product.handle || ''
-    return !isHiddenProductHandle(handle)
+  return products.flatMap((product) => {
+    const raw = normalizeProductHandle(product.slug || product.handle)
+    const publicHandle = PUBLIC_CATALOG_HANDLE[raw]
+    if (publicHandle) {
+      return [{ ...product, slug: publicHandle, handle: publicHandle }]
+    }
+    if (isHiddenProductHandle(raw)) return []
+    return [product]
   })
 }
 
