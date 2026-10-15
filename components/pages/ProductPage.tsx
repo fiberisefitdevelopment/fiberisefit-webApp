@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useCartStore } from '@/store/cartStore'
 import { useCampaignStore, clearActiveCampaign } from '@/store/campaignStore'
 import { ChevronRight, ChevronLeft, Plus, Minus, Star, Clock } from 'lucide-react'
@@ -111,6 +112,8 @@ export default function ProductPage({
   isJuneTransformPage = false,
   isIsolatedPurchasePage: isIsolatedPurchasePageProp = false,
 }: ProductPageProps) {
+  const pathname = usePathname()
+  const isSpecialOfferProductPage = pathname === '/products/special-offer'
   const isIsolatedPurchasePage =
     isIsolatedPurchasePageProp || isLinkDiscountProduct(slug)
 
@@ -1090,6 +1093,20 @@ export default function ProductPage({
                 {/* Starter pack supporting images */}
                 {product.title.toLowerCase().includes('starter') && (
                   <div className="mt-4 -mx-4 sm:-mx-6 lg:mx-0 flex flex-col">
+                    <Image
+                      src="/MONEYBACK DESKTOP.png"
+                      alt="100% money-back guarantee. No questions asked."
+                      width={1200}
+                      height={400}
+                      className="w-full h-auto object-contain hidden md:block"
+                    />
+                    <Image
+                      src="/MONEYBACK MOBILE 2.png"
+                      alt="100% money-back guarantee. No questions asked."
+                      width={800}
+                      height={700}
+                      className="w-full h-auto object-contain block md:hidden"
+                    />
                     {/* Desktop Images */}
                     <div className="hidden md:flex flex-col gap-4">
                       <Image
@@ -1142,6 +1159,24 @@ export default function ProductPage({
                 {/* Timeline Image for Non-Starter Packs */}
                 {!product.title.toLowerCase().includes('starter') && (
                   <div className="mt-4 flex flex-col -mx-4 sm:-mx-6 lg:mx-0">
+                    {isSpecialOfferProductPage && (
+                      <>
+                        <Image
+                          src="/MONEYBACK DESKTOP.png"
+                          alt="100% money-back guarantee. No questions asked."
+                          width={1200}
+                          height={400}
+                          className="w-full h-auto object-contain hidden md:block"
+                        />
+                        <Image
+                          src="/MONEYBACK MOBILE 2.png"
+                          alt="100% money-back guarantee. No questions asked."
+                          width={800}
+                          height={700}
+                          className="w-full h-auto object-contain block md:hidden"
+                        />
+                      </>
+                    )}
                     <Image
                       src="/timeline mobile.png"
                       alt="Product Timeline - Measurable Results"
