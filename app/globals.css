@@ -60,6 +60,12 @@ a {
   text-decoration: none;
 }
 
+/* Safari paints <img> alt text through transparent PNGs when an ancestor
+   uses backdrop-filter (the frosted header). Keep that fallback text invisible. */
+img {
+  color: transparent;
+}
+
 /* Smooth scrolling
    NOTE: disabled global smooth scroll to allow natural browser
    back/forward behavior to restore the exact previous scroll position,

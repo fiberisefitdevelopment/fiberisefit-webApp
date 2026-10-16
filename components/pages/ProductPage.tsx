@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCartStore } from '@/store/cartStore'
+import { useAuth } from '@/contexts/AuthContext'
 import { useCampaignStore, clearActiveCampaign } from '@/store/campaignStore'
 import { ChevronRight, ChevronLeft, Plus, Minus, Star, Clock } from 'lucide-react'
 import VideoSection from '@/components/sections/VideoSection'
@@ -29,7 +30,7 @@ import {
   getProductPricingOverride,
   isLinkDiscountProduct,
 } from '@/lib/hidden-products'
-import { trackAddToCart, trackViewContent } from '@/lib/meta-pixel'
+import { trackAddToCart, trackInitiateCheckout, trackViewContent } from '@/lib/meta-pixel'
 
 interface ProductVariant {
   id: string
@@ -132,6 +133,7 @@ export default function ProductPage({
   ].some((pack) => slug === pack || slug.startsWith(`${pack}-`))
   const [error, setError] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null)
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null)
   const [joinEmail, setJoinEmail] = useState('')
@@ -288,6 +290,7 @@ export default function ProductPage({
 
   const heroRef = useRef<HTMLDivElement>(null)
   const { addItem, paymentMethod } = useCartStore()
+  const { getIdToken } = useAuth()
   const setPaymentMethod = useCartStore((state) => state.setPaymentMethod) || useCartStore.getState().setPaymentMethod
 
   // Diagnostic log to verify store contents at runtime and trigger a rebuild
@@ -320,7 +323,7 @@ export default function ProductPage({
     : DEFAULT_RATING
   const displayReviewCount = reviewRating?.totalCount ?? 0
 
-  const mainButtonRef = useRef<HTMLButtonElement>(null)
+  const mainButtonRef = useRef<HTMLDivElement>(null)
   const ingredientsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -500,6 +503,66 @@ export default function ProductPage({
       value: itemPrice * quantity,
       quantity,
     })
+  }
+
+  const handleBuyNow = async () => {
+    if (!product || !selectedVariant || isCheckingOut) return
+    if (!(selectedVariant.available ?? product.available)) return
+
+    setIsCheckingOut(true)
+    try {
+      const token = await getIdToken()
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers.Authorization = `Bearer ${token}`
+
+      const pricing = getProductPricingOverride(slug)
+      const campaignApplies =
+        !!activeCampaign &&
+        activeCampaign.applicableProducts.includes(slug) &&
+        Date.now() < new Date(activeCampaign.expiresAt).getTime() &&
+        !(slug === 'transformation-pack' && isLinkExpired)
+      const itemPrice = pricing ? pricing.salePrice : selectedVariant.price || product.price
+      const discountCode = campaignApplies
+        ? undefined
+        : pricing?.discountCode || (paymentMethod === 'prepaid' && slug === 'bogo' ? 'PREPAID200' : undefined)
+
+      const response = await fetch('/api/checkout/create', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          items: [
+            {
+              id: getShopifyVariantId(selectedVariant.gid || selectedVariant.id),
+              quantity,
+              flavor: selectedVariant.name,
+            },
+          ],
+          ...(campaignApplies && activeCampaign ? { campaignSlug: activeCampaign.slug } : {}),
+          ...(discountCode ? { discountCode } : {}),
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok || !data.checkoutUrl) {
+        throw new Error(data.error || 'Failed to start checkout')
+      }
+
+      trackInitiateCheckout(
+        [
+          {
+            contentName: product.title,
+            contentIds: [product.productId, product.id, selectedVariant.gid, selectedVariant.id],
+            value: itemPrice * quantity,
+            quantity,
+          },
+        ],
+        itemPrice * quantity
+      )
+      window.location.href = data.checkoutUrl
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to proceed to checkout. Please try again.'
+      alert(message)
+      setIsCheckingOut(false)
+    }
   }
 
   const toggleAccordion = (id: string) => {
@@ -789,15 +852,15 @@ export default function ProductPage({
               {/* Thumbnail Column (Vertical) - shows 5 at a time with scroll */}
               {displayImages.length > 1 && (
                 <div
-                  className="hidden lg:flex flex-col gap-3 flex-shrink-0 overflow-y-auto pr-1"
-                  style={{ maxHeight: 'calc(5 * 80px + 4 * 12px)' }}
+                  className="hidden lg:flex flex-col gap-3 flex-shrink-0 overflow-y-auto py-1 pl-1 pr-3 [scrollbar-gutter:stable]"
+                  style={{ maxHeight: 'calc(5 * 80px + 4 * 12px + 8px)' }}
                 >
                   {displayImages.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index
-                        ? 'border-black scale-105'
+                      className={`relative box-border h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${selectedImageIndex === index
+                        ? 'border-black'
                         : 'border-transparent hover:border-gray-400'
                         }`}
                     >
@@ -894,8 +957,8 @@ export default function ProductPage({
                   </div>
                 )}
 
-                 {/* Price Block AND Quantity Selector Side-by-Side */}
-                <div className="pt-2">
+                 {/* Price and quantity sit together so the stepper is not stranded at the far edge */}
+                <div className="pt-2 flex items-center gap-4">
                   {isCampaignActive ? (
                     (() => {
                       const mrp = displayCompareAt ?? (displayPrice + 750)
@@ -925,8 +988,7 @@ export default function ProductPage({
                       )
                     })()
                   ) : (
-                    <div className="flex justify-between items-end">
-                      <div className="flex flex-col">
+                    <div className="flex flex-col min-w-0">
                         <div className="flex items-baseline gap-2">
                           <span className="text-2xl font-normal text-black tracking-tight flex items-baseline">
                             <span className="text-xl mr-0.5">₹</span>
@@ -969,8 +1031,26 @@ export default function ProductPage({
                           </div>
                         )}
                       </div>
-                    </div>
                   )}
+                  <div className="flex shrink-0 items-center self-center border border-gray-200 bg-gray-50/50">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="px-3 py-1.5 hover:bg-gray-100 transition-colors text-black"
+                      aria-label="Decrease quantity"
+                    >
+                      <Minus className="w-4 h-4 pointer-events-none" strokeWidth={1.5} />
+                    </button>
+                    <span className="px-3 py-1.5 font-medium text-black border-x border-gray-200 min-w-[2.5rem] text-center text-sm">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="px-3 py-1.5 hover:bg-gray-100 transition-colors text-black"
+                      aria-label="Increase quantity"
+                    >
+                      <Plus className="w-4 h-4 pointer-events-none" strokeWidth={1.5} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Payment Method Selector */}
@@ -1031,30 +1111,6 @@ export default function ProductPage({
                   </div>
                 )}
 
-                <div className="flex justify-end pt-2">
-
-                  {/* Quantity Selector */}
-                  <div className="flex items-center border border-gray-200 bg-gray-50/50">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="px-3 py-1.5 hover:bg-gray-100 transition-colors text-black"
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus className="w-4 h-4 pointer-events-none" strokeWidth={1.5} />
-                    </button>
-                    <span className="px-3 py-1.5 font-medium text-black border-x border-gray-200 min-w-[2.5rem] text-center text-sm">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="px-3 py-1.5 hover:bg-gray-100 transition-colors text-black"
-                      aria-label="Increase quantity"
-                    >
-                      <Plus className="w-4 h-4 pointer-events-none" strokeWidth={1.5} />
-                    </button>
-                  </div>
-                </div>
-
                 {/* Description Area (Short descriptions/Subtitles) */}
                 <div className="space-y-2 pt-2">
                   <h3 className="text-base font-medium text-black tracking-tight">
@@ -1077,18 +1133,29 @@ export default function ProductPage({
                   )}
                 </div>
 
-                {/* Add to Cart Button */}
-                <button
-                  ref={mainButtonRef}
-                  onClick={handleAddToCart}
-                  disabled={!isAvailable}
-                  className={`w-full py-3 px-4 font-bold text-base uppercase tracking-wider transition-all ${!isAvailable
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-black text-white hover:bg-gray-800'
-                    }`}
-                >
-                  {!isAvailable ? 'OUT OF STOCK' : 'ADD TO CART'}
-                </button>
+                <div ref={mainButtonRef} className={isAvailable ? 'grid grid-cols-2 gap-2.5' : ''}>
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    disabled={!isAvailable || isCheckingOut}
+                    className={`min-w-0 py-3 px-3 font-bold text-sm sm:text-base uppercase tracking-wide transition-colors disabled:opacity-60 ${!isAvailable
+                      ? 'w-full bg-gray-200 text-gray-500 cursor-not-allowed'
+                      : 'bg-black text-white hover:bg-gray-800'
+                      }`}
+                  >
+                    {!isAvailable ? 'Out of Stock' : 'Add to Cart'}
+                  </button>
+                  {isAvailable && (
+                    <button
+                      type="button"
+                      onClick={handleBuyNow}
+                      disabled={isCheckingOut}
+                      className="min-w-0 py-3 px-3 font-bold text-sm sm:text-base uppercase tracking-wide text-white bg-[#197455] hover:bg-[#146048] transition-colors disabled:opacity-60"
+                    >
+                      {isCheckingOut ? 'Please Wait' : 'Buy Now'}
+                    </button>
+                  )}
+                </div>
 
                 {/* Starter pack supporting images */}
                 {product.title.toLowerCase().includes('starter') && (
@@ -1571,18 +1638,29 @@ export default function ProductPage({
 
       {/* Sticky Add to Cart - appears when hero scrolls out of view */}
       {showStickyAddToCart && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)] py-4 px-4 block md:hidden">
-          <div className="flex justify-center">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)] py-3 px-4 block md:hidden">
+          <div className={isAvailable ? 'grid grid-cols-2 gap-2.5' : ''}>
             <button
+              type="button"
               onClick={handleAddToCart}
-              disabled={!isAvailable}
-              className={`w-full py-3 px-4 font-bold text-base uppercase tracking-wider transition-all ${!isAvailable
-                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  : 'bg-black text-white hover:bg-gray-800'
+              disabled={!isAvailable || isCheckingOut}
+              className={`min-w-0 py-3 px-3 font-bold text-sm uppercase tracking-wide transition-colors disabled:opacity-60 ${!isAvailable
+                ? 'w-full bg-gray-200 text-gray-500 cursor-not-allowed'
+                : 'bg-black text-white hover:bg-gray-800'
                 }`}
             >
-              {!isAvailable ? 'OUT OF STOCK' : 'ADD TO CART'}
+              {!isAvailable ? 'Out of Stock' : 'Add to Cart'}
             </button>
+            {isAvailable && (
+              <button
+                type="button"
+                onClick={handleBuyNow}
+                disabled={isCheckingOut}
+                className="min-w-0 py-3 px-3 font-bold text-sm uppercase tracking-wide text-white bg-[#197455] hover:bg-[#146048] transition-colors disabled:opacity-60"
+              >
+                {isCheckingOut ? 'Please Wait' : 'Buy Now'}
+              </button>
+            )}
           </div>
         </div>
       )}

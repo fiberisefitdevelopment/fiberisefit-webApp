@@ -247,14 +247,14 @@ export default function LyteProductPage({ slug }: LyteProductPageProps) {
             <div className="w-full lg:w-1/2 flex gap-4 relative">
               {/* Thumbnails */}
               {displayImages.length > 1 && (
-                <div className="hidden lg:flex flex-col gap-3 flex-shrink-0">
+                <div className="hidden lg:flex flex-col gap-3 flex-shrink-0 py-1 pl-1 pr-1">
                   {displayImages.map((img, i) => (
                     <button
                       key={i}
                       onClick={() => setSelectedImageIndex(i)}
-                      className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`relative box-border h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
                         selectedImageIndex === i
-                          ? 'border-black scale-105'
+                          ? 'border-black'
                           : 'border-transparent hover:border-gray-300'
                       }`}
                     >

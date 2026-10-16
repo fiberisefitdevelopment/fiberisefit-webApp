@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Loader2, ShoppingCart, Star, Zap } from 'lucide-react'
+import { Check, Loader2, ShoppingCart, Star, Zap } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useCampaignStore } from '@/store/campaignStore'
 import { useAuth } from '@/contexts/AuthContext'
@@ -58,11 +58,11 @@ function getCardConfig(title: string): CardConfig {
 
   if (t.includes('ultimate')) {
     return {
-      hasBadge: false,
-      badgeText: '',
-      badgeBg: '',
-      badgeTextColor: '',
-      isTopBanner: false,
+      hasBadge: true,
+      badgeText: '90 DAYS',
+      badgeBg: 'linear-gradient(90deg, #e7eaee, #b7bcc4)',
+      badgeTextColor: '#2a2e34',
+      isTopBanner: true,
       title: 'Ultimate Pack',
       subtitle: '90 Sachets + Free Lyte Band',
       bottomTextSmall: '90 Sachets',
@@ -123,6 +123,8 @@ type FeaturedProductsGridProps = {
 
 export default function FeaturedProductsGrid({ products }: FeaturedProductsGridProps) {
   const addItem = useCartStore((state) => state.addItem)
+  const openCart = useCartStore((state) => state.openCart)
+  const cartItems = useCartStore((state) => state.items)
   const activeCampaign = useCampaignStore((state) => state.activeCampaign)
   const getIdToken = useAuth().getIdToken
   const [buyingId, setBuyingId] = useState<string | null>(null)
@@ -192,6 +194,7 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
             ? product.comparePrice
             : cfg.comparePrice
         const isAvailable = product.available
+        const inCart = cartItems.some((item) => item.id === product.id)
 
         return (
           <div
@@ -219,13 +222,13 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
             </div>
 
             <Link href={`/products/${product.slug}`} className="block px-6 mt-5 mb-1">
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden group">
+              <div className="relative w-full aspect-square overflow-hidden rounded-[11%] group">
                 <Image
                   src={product.image || '/placeholder-product.png'}
                   alt={product.title}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-contain group-hover:scale-105 transition-transform duration-500"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </Link>
@@ -256,9 +259,17 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
               <div className="mt-5 flex items-center gap-2">
                 <button
                   type="button"
-                  aria-label={isAvailable ? 'Add to cart' : 'Out of stock'}
-                  onClick={() =>
-                    isAvailable &&
+                  aria-label={
+                    !isAvailable ? 'Out of stock' : inCart ? 'Already added to cart' : 'Add to cart'
+                  }
+                  aria-pressed={inCart}
+                  title={inCart ? 'Already added' : 'Add to cart'}
+                  onClick={() => {
+                    if (!isAvailable) return
+                    if (inCart) {
+                      openCart()
+                      return
+                    }
                     addItem({
                       id: product.id,
                       title: product.title,
@@ -266,15 +277,21 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
                       image: product.image,
                       handle: product.slug,
                     })
-                  }
+                  }}
                   disabled={!isAvailable}
                   className={`flex h-11 w-12 shrink-0 items-center justify-center rounded-[10px] transition-colors active:scale-95 ${
-                    isAvailable
-                      ? 'bg-[#f0c44a] text-[#1a1a1a] hover:bg-[#e4b63a]'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    !isAvailable
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : inCart
+                        ? 'bg-[#1b2744] text-white hover:bg-[#243256]'
+                        : 'bg-[#f0c44a] text-[#1a1a1a] hover:bg-[#e4b63a]'
                   }`}
                 >
-                  <ShoppingCart className="h-[18px] w-[18px]" strokeWidth={2.25} />
+                  {inCart ? (
+                    <Check className="h-[18px] w-[18px]" strokeWidth={2.75} />
+                  ) : (
+                    <ShoppingCart className="h-[18px] w-[18px]" strokeWidth={2.25} />
+                  )}
                 </button>
                 <button
                   type="button"

@@ -9,6 +9,49 @@ interface ShopifyResponse<T> {
   }>
 }
 
+function isTransientShopifyError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  const code = (error as Error & { cause?: { code?: string } }).cause?.code
+  if (code === 'ECONNRESET' || code === 'ETIMEDOUT' || code === 'ECONNREFUSED' || code === 'EAI_AGAIN') {
+    return true
+  }
+  return (
+    error.message === 'fetch failed' ||
+    /status: (429|502|503|504)/.test(error.message)
+  )
+}
+
+async function shopifyFetchOnce<T>(query: string, variables?: Record<string, any>): Promise<T> {
+  const response = await fetch(SHOPIFY_STOREFRONT_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Storefront-Access-Token': SHOPIFY_CONFIG.storefrontAccessToken,
+    },
+    body: JSON.stringify({
+      query,
+      variables,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`)
+  }
+
+  const result: ShopifyResponse<T> = await response.json()
+
+  if (result.errors) {
+    throw new Error(result.errors.map((e) => e.message).join(', '))
+  }
+
+  if (!result.data) {
+    throw new Error('No data returned from Shopify')
+  }
+
+  return result.data
+}
+
 export async function shopifyFetch<T>({
   query,
   variables,
@@ -16,47 +59,22 @@ export async function shopifyFetch<T>({
   query: string
   variables?: Record<string, any>
 }): Promise<T> {
-  try {
-    
-    const response = await fetch(SHOPIFY_STOREFRONT_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_CONFIG.storefrontAccessToken,
-      },
-      body: JSON.stringify({
-        query,
-        variables,
-      }),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Shopify API error response:', errorText)
-      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`)
+  const attempts = 3
+  let lastError: unknown
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await shopifyFetchOnce<T>(query, variables)
+    } catch (error) {
+      lastError = error
+      const canRetry = attempt < attempts && isTransientShopifyError(error)
+      if (!canRetry) break
+      console.warn(`Shopify request dropped, retrying (${attempt}/${attempts - 1})`)
+      await new Promise((resolve) => setTimeout(resolve, 300 * attempt))
     }
-
-    const result: ShopifyResponse<T> = await response.json()
-
-    if (result.errors) {
-      console.error('GraphQL errors:', result.errors)
-      throw new Error(result.errors.map((e) => e.message).join(', '))
-    }
-
-    if (!result.data) {
-      console.error('No data in Shopify response')
-      throw new Error('No data returned from Shopify')
-    }
-
-    return result.data
-  } catch (error) {
-    console.error('Shopify fetch error:', error)
-    if (error instanceof Error) {
-      console.error('Error message:', error.message)
-      console.error('Error stack:', error.stack)
-    }
-    throw error
   }
+
+  console.error('Shopify fetch error:', lastError)
+  throw lastError
 }
 
 // Helper function to format product data

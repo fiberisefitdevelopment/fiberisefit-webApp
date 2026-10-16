@@ -15,7 +15,7 @@ export default function HeroSlideImage({ slide, isPriority }: HeroSlideImageProp
         alt={slide.alt}
         width={1200}
         height={1500}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover object-top md:object-center"
         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         loading="eager"
         fetchPriority={isPriority ? 'high' : 'low'}

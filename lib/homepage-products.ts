@@ -4,6 +4,14 @@ export const HERO_FALLBACK_PRODUCTS: Record<
   string,
   { id: string; title: string; price: number; image: string; slug: string }
 > = {
+  'starter pack': {
+    id: 'gid://shopify/ProductVariant/67627887427859',
+    title: 'Starter Pack',
+    price: 699,
+    image:
+      'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-01.png?v=1773251134',
+    slug: 'starter-pack',
+  },
   'transformation pack': {
     id: 'gid://shopify/ProductVariant/53389411549459',
     title: 'Transformation Pack',

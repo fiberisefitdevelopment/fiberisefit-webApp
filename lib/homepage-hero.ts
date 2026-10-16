@@ -1,5 +1,15 @@
 export const HERO_SLIDES = [
   {
+    key: 'starter',
+    productSearch: 'starter pack',
+    slug: 'starter-pack',
+    desktopImage: '/banners/optimized/Starter_Pack_Banner_Desktop.webp',
+    mobileImage: '/banners/optimized/Starter_PACK_Banner_Mobile.webp',
+    alt: 'Starter Pack - Feel Lighter in 7 Days',
+    btnClass: 'bg-[#1a365d] text-white hover:bg-[#122844] focus:ring-[#1a365d]',
+    btnText: 'Order Now',
+  },
+  {
     key: 'transformation',
     productSearch: 'transformation pack',
     slug: 'transformation-pack',

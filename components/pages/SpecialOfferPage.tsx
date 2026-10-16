@@ -24,7 +24,7 @@ import {
   withStarterPackHero,
 } from '@/lib/starter-pack-hero'
 import { formatInr } from '@/lib/utils'
-import { trackAddToCart, trackViewContent } from '@/lib/meta-pixel'
+import { trackAddToCart, trackInitiateCheckout, trackViewContent } from '@/lib/meta-pixel'
 import SlidingImageGallery from '@/components/SlidingImageGallery'
 
 export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
@@ -32,6 +32,9 @@ export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
     id: 'starter',
     name: 'Starter Pack',
     duration: '7 Days',
+    badge: 'GREAT FOR STARTERS',
+    badgeBg: '#1a1a1a',
+    badgeTextColor: '#ffffff',
     servings: '7 Sachets',
     flavour: 'Assorted Flavours',
     price: 699,
@@ -90,7 +93,7 @@ export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
   {
     id: 'ultimate',
     name: 'Ultimate Pack',
-    duration: '90 Days + Lite Fitband',
+    duration: '90 Days',
     badge: 'FREE FITBAND',
     badgeBg: 'linear-gradient(90deg, #2b5844, #1f4031)',
     badgeTextColor: '#ffffff',
@@ -120,31 +123,31 @@ export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
   },
 ]
 
-const STARTER_SLIDES_BEFORE_NEXT_PACK = 2
+const galleryCache: Record<string, string[]> = {}
+const preloadedGalleryUrls = new Set<string>()
 
-function packGallery(pkg: PackageOption): string[] {
-  return withStarterPackHero(pkg.handle, pkg.images)
+function shopifyGalleryFor(handle: string, urls: string[]): string[] {
+  return withStarterPackHero(handle, urls.filter(Boolean), { includeHero: false })
 }
 
-const CAROUSEL_BY_PACK = {
-  starter: packGallery(SPECIAL_OFFER_PACKAGES[0]).slice(0, STARTER_SLIDES_BEFORE_NEXT_PACK),
-  transformation: packGallery(SPECIAL_OFFER_PACKAGES[1]),
-  ultimate: packGallery(SPECIAL_OFFER_PACKAGES[2]),
+function preloadGalleryUrls(urls: string[]) {
+  if (typeof window === 'undefined') return
+  for (const src of urls) {
+    if (!src || preloadedGalleryUrls.has(src)) continue
+    preloadedGalleryUrls.add(src)
+    const img = new window.Image()
+    img.decoding = 'async'
+    img.src = src
+  }
 }
 
-const CAROUSEL_IMAGES = [
-  ...CAROUSEL_BY_PACK.starter,
-  ...CAROUSEL_BY_PACK.transformation,
-  ...CAROUSEL_BY_PACK.ultimate,
-]
-
-const CAROUSEL_PACK_START: Record<string, number> = {
-  starter: 0,
-  transformation: CAROUSEL_BY_PACK.starter.length,
-  ultimate: CAROUSEL_BY_PACK.starter.length + CAROUSEL_BY_PACK.transformation.length,
-}
-
-export default function SpecialOfferPage() {
+export default function SpecialOfferPage({
+  initialImages = {},
+  initialDescriptions = {},
+}: {
+  initialImages?: Record<string, string[]>
+  initialDescriptions?: Record<string, string>
+}) {
   // Option 1 — Starter Pack (7 Days) selected by default
   const [selectedPackage, setSelectedPackage] = useState<PackageOption>(
     SPECIAL_OFFER_PACKAGES[0]
@@ -155,40 +158,82 @@ export default function SpecialOfferPage() {
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>('box')
   const [showStickyAddToCart, setShowStickyAddToCart] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [galleryAutoPlay, setGalleryAutoPlay] = useState(true)
-  const [shopifyDescriptionHtml, setShopifyDescriptionHtml] = useState<Record<string, string>>({})
+  const [shopifyDescriptionHtml, setShopifyDescriptionHtml] = useState<Record<string, string>>(
+    () => ({ ...initialDescriptions })
+  )
+  const [shopifyImagesByHandle, setShopifyImagesByHandle] = useState<Record<string, string[]>>(
+    () => ({ ...galleryCache, ...initialImages })
+  )
   const heroRef = useRef<HTMLDivElement>(null)
   const mainButtonRef = useRef<HTMLButtonElement>(null)
   const galleryTouchStartX = useRef<number | null>(null)
   const addItem = useCartStore((state) => state.addItem)
 
-  // Product copy still comes from Shopify. Carousel files stay in /public/specialOfferCarousel.
+  // The page already includes the Shopify galleries. Warm the other packs in the
+  // background after the first slide has started, and only hit the network if
+  // the server did not send them.
   useEffect(() => {
     const handles = SPECIAL_OFFER_PACKAGES.map((p) => p.handle)
-    Promise.all(
-      handles.map((handle) =>
-        fetch(`/api/shopify/product/${handle}`, { cache: 'no-store' })
-          .then((r) => r.ok ? r.json() : null)
-          .then((data) => {
-            const descriptionHtml = (data?.product?.descriptionHtml as string) || ''
-            return descriptionHtml ? { handle, descriptionHtml } : null
-          })
-          .catch(() => null)
-      )
-    ).then((results) => {
-      const descriptionMap: Record<string, string> = {}
-      results.forEach((r) => {
-        if (r?.descriptionHtml) descriptionMap[r.handle] = r.descriptionHtml
+    const selectedHandle = SPECIAL_OFFER_PACKAGES[0].handle
+
+    const warm = (imageMap: Record<string, string[]>) => {
+      Object.assign(galleryCache, imageMap)
+      const selected = imageMap[selectedHandle] || []
+      const restOfSelected = selected.slice(1)
+      const otherPacks = handles
+        .filter((handle) => handle !== selectedHandle)
+        .flatMap((handle) => imageMap[handle] || [])
+      const first = selected[0]
+      let started = false
+      const preloadRest = () => {
+        if (started) return
+        started = true
+        preloadGalleryUrls(restOfSelected)
+        window.setTimeout(() => preloadGalleryUrls(otherPacks), 400)
+      }
+      if (!first) {
+        preloadRest()
+        return
+      }
+      const hero = new window.Image()
+      hero.decoding = 'async'
+      hero.onload = preloadRest
+      hero.onerror = preloadRest
+      hero.src = first
+      if (hero.complete) preloadRest()
+    }
+
+    if (handles.every((handle) => (shopifyImagesByHandle[handle] || []).length > 0)) {
+      warm(shopifyImagesByHandle)
+      return
+    }
+
+    let cancelled = false
+    fetch('/api/shopify/special-offer')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        const imageMap = (data.images || {}) as Record<string, string[]>
+        const descriptionMap = (data.descriptions || {}) as Record<string, string>
+        if (Object.keys(descriptionMap).length > 0) {
+          setShopifyDescriptionHtml((prev) => ({ ...prev, ...descriptionMap }))
+        }
+        if (Object.keys(imageMap).length > 0) {
+          setShopifyImagesByHandle((prev) => ({ ...prev, ...imageMap }))
+          warm(imageMap)
+        }
       })
-      if (Object.keys(descriptionMap).length > 0) setShopifyDescriptionHtml(descriptionMap)
-    })
+      .catch(() => null)
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  // Reset selected image when changing package
   const handleSelectPackage = (pkg: PackageOption) => {
-    const nextIndex = CAROUSEL_PACK_START[pkg.id] ?? 0
     setSelectedPackage(pkg)
-    setSelectedImageIndex(nextIndex)
+    setSelectedImageIndex(0)
     setImageError({})
     setGalleryAutoPlay(true)
   }
@@ -205,7 +250,11 @@ export default function SpecialOfferPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const images = CAROUSEL_IMAGES
+  const images = shopifyGalleryFor(
+    selectedPackage.handle,
+    shopifyImagesByHandle[selectedPackage.handle] || []
+  )
+  const galleryImage = images[0] || selectedPackage.image
 
   const GALLERY_AUTO_MS = 2000
 
@@ -242,7 +291,7 @@ export default function SpecialOfferPage() {
           variantId: selectedPackage.variantId,
           title: `FYBER ${selectedPackage.name}`,
           price: selectedPackage.price,
-          image: selectedPackage.image,
+          image: galleryImage,
           handle: selectedPackage.handle,
           variant: 'Assorted Flavours',
         })
@@ -260,8 +309,45 @@ export default function SpecialOfferPage() {
     }
   }
 
-  const handleBuyNow = () => {
-    handleAddToCart()
+  const handleBuyNow = async () => {
+    if (isCheckingOut || isAdding) return
+    setIsCheckingOut(true)
+    try {
+      const response = await fetch('/api/checkout/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: [
+            {
+              id: selectedPackage.variantId,
+              quantity,
+              flavor: 'Assorted Flavours',
+            },
+          ],
+        }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok || !data.checkoutUrl) {
+        throw new Error(data.error || 'Failed to start checkout')
+      }
+
+      trackInitiateCheckout(
+        [
+          {
+            contentName: `FYBER ${selectedPackage.name}`,
+            contentIds: [selectedPackage.shopifyId, selectedPackage.variantId],
+            value: selectedPackage.price * quantity,
+            quantity,
+          },
+        ],
+        selectedPackage.price * quantity
+      )
+      window.location.href = data.checkoutUrl
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to proceed to checkout. Please try again.'
+      alert(message)
+      setIsCheckingOut(false)
+    }
   }
 
   const toggleAccordion = (id: string) => {
@@ -278,7 +364,7 @@ export default function SpecialOfferPage() {
   }
 
   const gallerySources = images.map((src, imageIndex) =>
-    imageError[`${selectedPackage.id}-${imageIndex}`] ? selectedPackage.image : src
+    imageError[`${selectedPackage.id}-${imageIndex}`] && images[0] ? images[0] : src
   )
 
   const renderGallery = (padded: boolean) => (
@@ -414,7 +500,7 @@ export default function SpecialOfferPage() {
             </div>
 
             {/* RIGHT COLUMN: Details & Duration Selector */}
-            <div className="order-2 w-full lg:w-1/2 min-w-0 px-4 sm:px-6 lg:px-0 lg:pl-6 pt-4 md:pt-8 lg:pt-0 space-y-6 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto overflow-x-hidden max-md:overflow-x-clip lg:pr-2 scrollbar-hide">
+            <div className="order-2 w-full lg:w-1/2 min-w-0 px-4 sm:px-6 lg:px-0 lg:pl-6 pt-4 md:pt-8 lg:pt-0 space-y-4 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto overflow-x-hidden max-md:overflow-x-clip lg:pr-2 scrollbar-hide">
               
               {/* Product Type & Title */}
               <div>
@@ -450,6 +536,30 @@ export default function SpecialOfferPage() {
                 onSelect={handleSelectPackage}
               />
 
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 items-center border border-gray-300 rounded-xl bg-white px-1">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="flex h-full items-center px-3 text-gray-600 hover:text-black transition-colors"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="px-2 text-sm font-extrabold text-black min-w-[2rem] text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="flex h-full items-center px-3 text-gray-600 hover:text-black transition-colors"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
               {/* Pack subtitle + Shopify description (desktop only — avoids duplicate pack title on mobile) */}
               <div className="hidden md:block space-y-2 pt-1">
                 <h3 className="text-base font-medium text-black tracking-tight">
@@ -470,49 +580,25 @@ export default function SpecialOfferPage() {
               </div>
 
               {/* Quantity Selector + CTAs */}
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center border border-gray-300 rounded-xl bg-white px-2 py-1 shadow-sm">
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-2 text-gray-600 hover:text-black transition-colors"
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="px-3 text-sm font-extrabold text-black min-w-[2rem] text-center">
-                      {quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="p-2 text-gray-600 hover:text-black transition-colors"
-                      aria-label="Increase quantity"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Add to Cart Button */}
-                  <button
-                    ref={mainButtonRef}
-                    type="button"
-                    onClick={handleAddToCart}
-                    disabled={isAdding}
-                    className="flex-1 py-4 px-6 rounded-xl font-extrabold text-sm uppercase tracking-widest bg-black text-white hover:bg-gray-900 transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2"
-                  >
-                    {isAdding ? 'Adding to Cart...' : 'Add to Cart'}
-                  </button>
-                </div>
+              <div className="space-y-3">
+                <button
+                  ref={mainButtonRef}
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={isAdding}
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl px-6 font-extrabold text-sm uppercase tracking-widest bg-black text-white hover:bg-gray-900 transition-all shadow-md active:scale-[0.99] disabled:opacity-60"
+                >
+                  {isAdding ? 'Adding to Cart...' : 'Add to Cart'}
+                </button>
 
                 {/* Buy Now Button */}
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  className="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm uppercase tracking-widest bg-gradient-to-r from-[#2b5844] to-[#1f4031] text-white hover:opacity-95 transition-all shadow-sm active:scale-[0.99]"
+                  disabled={isCheckingOut || isAdding}
+                  className="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm uppercase tracking-widest bg-gradient-to-r from-[#2b5844] to-[#1f4031] text-white hover:opacity-95 transition-all shadow-sm active:scale-[0.99] disabled:opacity-60"
                 >
-                  Buy Now • Instant Checkout
+                  {isCheckingOut ? 'Redirecting to Checkout...' : 'Buy Now • Instant Checkout'}
                 </button>
               </div>
 
@@ -671,7 +757,7 @@ export default function SpecialOfferPage() {
             <div className="flex items-center gap-3 min-w-0">
               <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                 <Image
-                  src={selectedPackage.image}
+                  src={galleryImage}
                   alt={selectedPackage.name}
                   fill
                   className="object-contain p-1"

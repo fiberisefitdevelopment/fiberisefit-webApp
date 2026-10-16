@@ -93,10 +93,11 @@ export default function Header() {
             >
               <Image
                 src="/fiberisefit dark logo.png"
-                alt="Fiberise Logo"
+                alt=""
+                aria-hidden
                 width={88}
                 height={22}
-                className="object-contain object-center w-[5.5rem] h-[1.375rem]"
+                className="object-contain object-center w-[5.5rem] h-[1.375rem] select-none text-transparent"
                 priority
               />
             </Link>
@@ -108,9 +109,10 @@ export default function Header() {
             >
               <Image
                 src="/fiberisefit dark logo.png"
-                alt="Fiberise Logo"
+                alt=""
+                aria-hidden
                 fill
-                className="object-contain object-left"
+                className="object-contain object-left select-none text-transparent"
                 sizes="112px"
                 priority
               />

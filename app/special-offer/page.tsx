@@ -1,7 +1,8 @@
 import SpecialOfferPage from '@/components/pages/SpecialOfferPage'
+import { getSpecialOfferMedia } from '@/lib/shopify/special-offer-media'
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
 export const metadata: Metadata = {
   title: 'Special Offer — 7, 30 & 90 Days Packs | Fiberise Fit',
@@ -27,6 +28,21 @@ export const metadata: Metadata = {
   },
 }
 
-export default function Page() {
-  return <SpecialOfferPage />
+export default async function Page() {
+  const media = await getSpecialOfferMedia().catch(() => ({
+    images: {} as Record<string, string[]>,
+    descriptions: {} as Record<string, string>,
+  }))
+  const firstImage = media.images['starter-pack']?.[0]
+  return (
+    <>
+      {firstImage ? (
+        <link rel="preload" as="image" href={firstImage} fetchPriority="high" />
+      ) : null}
+      <SpecialOfferPage
+        initialImages={media.images}
+        initialDescriptions={media.descriptions}
+      />
+    </>
+  )
 }

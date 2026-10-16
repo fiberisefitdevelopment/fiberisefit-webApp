@@ -51,7 +51,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
     get().openCart()
   },
   removeItem: (id) => {
-    set({ items: get().items.filter((item) => item.id !== id) })
+    const items = get().items.filter((item) => item.id !== id)
+    set(items.length === 0 ? { items, isOpen: false } : { items })
   },
   updateQuantity: (id, quantity) => {
     if (quantity <= 0) {
