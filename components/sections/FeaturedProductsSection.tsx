@@ -17,13 +17,13 @@ export default async function FeaturedProductsSection(props: FeaturedProductsSec
     <section id="products" className="py-10 md:py-20 bg-[#f5f0eb]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10 md:mb-14">
-          <h1 className="text-xs md:text-sm font-bold tracking-[0.25em] uppercase text-[#a67517] mb-3">
+          <h1 className="text-xs md:text-sm font-bold tracking-[0.25em] uppercase text-[#845a11] mb-3">
             Science-Backed Natural Weight Management Supplement
           </h1>
-          <p className="text-2xl md:text-3xl text-gray-900 font-normal leading-snug mb-2">
+          <h2 className="text-2xl md:text-3xl text-gray-900 font-normal leading-snug mb-2">
             Control Appetite. Refine Weight
-          </p>
-          <p className="text-base md:text-lg text-gray-500 font-normal">
+          </h2>
+          <p className="text-base md:text-lg text-gray-600 font-normal">
             A science-driven approach to feeling full, lighter, and in control.
           </p>
         </div>

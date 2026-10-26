@@ -64,7 +64,7 @@ export default function FAQSection() {
         
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
-          <p className="text-base md:text-lg text-gray-500 font-medium mb-2">
+          <p className="text-base md:text-lg text-gray-600 font-medium mb-2">
             Everything You Need to Know!
           </p>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-black uppercase tracking-wide">
@@ -82,7 +82,9 @@ export default function FAQSection() {
                 className="border-b border-gray-200 py-6 md:py-8 first:pt-0"
               >
                 <button
+                  type="button"
                   onClick={() => toggleFAQ(index)}
+                  aria-expanded={isOpen}
                   className="w-full flex items-center justify-between py-2 text-left"
                 >
                   <span className="text-base md:text-lg font-semibold uppercase tracking-wider text-black pr-4">

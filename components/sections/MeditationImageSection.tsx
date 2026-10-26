@@ -5,7 +5,7 @@ export default function MeditationImageSection() {
     <section className="relative w-full h-[600px] md:h-[800px] lg:h-screen overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src="/Remove_the_clouds_202601061415.png"
+          src="/Remove_the_clouds_202601061415.webp"
           alt="Wellness and yoga - person performing yoga pose with mountains in background"
           fill
           className="object-cover"

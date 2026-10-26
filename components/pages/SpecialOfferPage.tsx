@@ -25,6 +25,7 @@ import {
 } from '@/lib/starter-pack-hero'
 import { formatInr } from '@/lib/utils'
 import { trackAddToCart, trackInitiateCheckout, trackViewContent } from '@/lib/meta-pixel'
+import { useCheckoutOtp } from '@/hooks/useCheckoutOtp'
 import SlidingImageGallery from '@/components/SlidingImageGallery'
 
 export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
@@ -167,6 +168,7 @@ export default function SpecialOfferPage({
     () => ({ ...galleryCache, ...initialImages })
   )
   const heroRef = useRef<HTMLDivElement>(null)
+  const { requireVerifiedPhone, checkoutOtpModal } = useCheckoutOtp()
   const mainButtonRef = useRef<HTMLButtonElement>(null)
   const galleryTouchStartX = useRef<number | null>(null)
   const addItem = useCartStore((state) => state.addItem)
@@ -309,45 +311,55 @@ export default function SpecialOfferPage({
     }
   }
 
-  const handleBuyNow = async () => {
+  const handleBuyNow = () => {
     if (isCheckingOut || isAdding) return
-    setIsCheckingOut(true)
-    try {
-      const response = await fetch('/api/checkout/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: [
-            {
-              id: selectedPackage.variantId,
-              quantity,
-              flavor: 'Assorted Flavours',
+    const pack = selectedPackage
+    const currentQuantity = quantity
+    void requireVerifiedPhone({
+      orderLabel: `FYBER ${pack.name}`,
+      orderTotal: pack.price * currentQuantity,
+      onVerified: async (token) => {
+        setIsCheckingOut(true)
+        try {
+          const response = await fetch('/api/checkout/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
             },
-          ],
-        }),
-      })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok || !data.checkoutUrl) {
-        throw new Error(data.error || 'Failed to start checkout')
-      }
+            body: JSON.stringify({
+              items: [
+                {
+                  id: pack.variantId,
+                  quantity: currentQuantity,
+                  flavor: 'Assorted Flavours',
+                },
+              ],
+            }),
+          })
+          const data = await response.json().catch(() => ({}))
+          if (!response.ok || !data.checkoutUrl) {
+            throw new Error(data.error || 'Failed to start checkout')
+          }
 
-      trackInitiateCheckout(
-        [
-          {
-            contentName: `FYBER ${selectedPackage.name}`,
-            contentIds: [selectedPackage.shopifyId, selectedPackage.variantId],
-            value: selectedPackage.price * quantity,
-            quantity,
-          },
-        ],
-        selectedPackage.price * quantity
-      )
-      window.location.href = data.checkoutUrl
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to proceed to checkout. Please try again.'
-      alert(message)
-      setIsCheckingOut(false)
-    }
+          trackInitiateCheckout(
+            [
+              {
+                contentName: `FYBER ${pack.name}`,
+                contentIds: [pack.shopifyId, pack.variantId],
+                value: pack.price * currentQuantity,
+                quantity: currentQuantity,
+              },
+            ],
+            pack.price * currentQuantity
+          )
+          window.location.href = data.checkoutUrl
+        } catch (error) {
+          setIsCheckingOut(false)
+          throw error
+        }
+      },
+    })
   }
 
   const toggleAccordion = (id: string) => {
@@ -792,6 +804,7 @@ export default function SpecialOfferPage({
         productSlug={selectedPackage.handle}
         productTitle={selectedPackage.name}
       />
+      {checkoutOtpModal}
     </div>
   )
 }

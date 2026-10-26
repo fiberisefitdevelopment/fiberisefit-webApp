@@ -91,6 +91,8 @@ export default function VideoSection() {
                     src={feature.icon}
                     alt={feature.title}
                     fill
+                    sizes="56px"
+                    loading="lazy"
                     className="object-contain opacity-50"
                   />
                 </div>
@@ -133,6 +135,8 @@ export default function VideoSection() {
                     src={feature.icon}
                     alt={feature.title}
                     fill
+                    sizes="56px"
+                    loading="lazy"
                     className="object-contain opacity-70"
                   />
                 </div>

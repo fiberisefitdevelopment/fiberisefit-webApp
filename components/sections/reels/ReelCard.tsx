@@ -124,6 +124,7 @@ export default function ReelCard({
             src={reel.posterUrl}
             alt=""
             fill
+            loading="lazy"
             sizes="(max-width: 768px) 200px, 280px"
             className={`object-cover transition-opacity duration-300 ${
               isPlaying ? 'opacity-0' : 'opacity-100'
@@ -136,7 +137,7 @@ export default function ReelCard({
 
           <video
             ref={videoRef}
-            poster={reel.posterUrl}
+            poster={isIntersecting ? reel.posterUrl : undefined}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
               isPlaying ? 'opacity-100' : 'opacity-0'
             }`}

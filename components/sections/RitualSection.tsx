@@ -8,7 +8,7 @@ export default function RitualSection() {
       {/* Mobile view */}
       <div className="relative w-full h-[95vh] md:hidden">
         <Image
-          src="/Frame 626636.png"
+          src="/Frame_626636.webp"
           alt="Ritual - Simple ritual. Powerful change."
           fill
           className="object-cover object-center"
@@ -19,7 +19,7 @@ export default function RitualSection() {
       {/* Desktop view */}
       <div className="relative w-full min-h-[70vh] hidden md:block">
         <Image
-          src="/Group 64939.png"
+          src="/Group_64939.webp"
           alt="Ritual - Simple ritual. Powerful change."
           fill
           className="object-cover object-center"

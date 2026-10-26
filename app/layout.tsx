@@ -64,38 +64,68 @@ export default function RootLayout({
     <html lang="en" className={`${montserrat.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
         <link rel="alternate" hrefLang="en-in" href="https://fiberisefit.com" />
-        {/* Google Tag Manager — deferred to reduce main-thread work during LCP */}
-        <Script id="gtm-head" strategy="lazyOnload">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-          })(window,document,'script','dataLayer','GTM-W8MBF3JG');`}
-        </Script>
-        {/* Google tag (gtag.js) — lazy loaded to avoid preloading script ahead of LCP image */}
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=AW-17953867063" strategy="lazyOnload" />
-        <Script id="google-analytics" strategy="lazyOnload">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+        <link
+          rel="preload"
+          as="image"
+          href="/banners/optimized/Starter_PACK_Banner_Mobile.webp"
+          type="image/webp"
+          media="(max-width: 767px)"
+          fetchPriority="high"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="/banners/optimized/Starter_Pack_Banner_Desktop.webp"
+          type="image/webp"
+          media="(min-width: 768px)"
+          fetchPriority="high"
+        />
+        {/* Third-party tracking: queue APIs initialized immediately; heavy external scripts load during idle without delaying LCP */}
+        <script
+          id="third-party-tracking"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'AW-17953867063');
 
-            gtag('config', 'AW-17953867063');
-          `}
-        </Script>
-        {/* Meta Pixel Code */}
-        <Script id="meta-pixel" strategy="afterInteractive">
-          {`!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '${META_PIXEL_ID}');
-fbq('track', 'PageView');`}
-        </Script>
+              !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+              n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+              fbq('init', '${META_PIXEL_ID}');
+              fbq('track', 'PageView');
+
+              function loadTrackingBundles() {
+                if (window.__trackingBundlesLoaded) return;
+                window.__trackingBundlesLoaded = true;
+
+                // Load GTM
+                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                })(window,document,'script','dataLayer','GTM-W8MBF3JG');
+
+                // Load gtag script
+                var g = document.createElement('script');
+                g.async = true;
+                g.src = 'https://www.googletagmanager.com/gtag/js?id=AW-17953867063';
+                document.head.appendChild(g);
+              }
+
+              if ('requestIdleCallback' in window) {
+                requestIdleCallback(function() { setTimeout(loadTrackingBundles, 1500); }, { timeout: 3500 });
+              } else {
+                window.addEventListener('load', function() { setTimeout(loadTrackingBundles, 1500); });
+              }
+              ['scroll', 'touchstart', 'click'].forEach(function(ev) {
+                window.addEventListener(ev, loadTrackingBundles, { once: true, passive: true });
+              });
+            `,
+          }}
+        />
       </head>
       <body className={montserrat.className} suppressHydrationWarning>
         {/* GTM noscript fallback — zero JS cost */}
@@ -116,7 +146,7 @@ fbq('track', 'PageView');`}
             alt=""
           />
         </noscript>
-        <Script id="fiberise-analytics" strategy="afterInteractive">
+        <Script id="fiberise-analytics" strategy="lazyOnload">
           {`(function(){
             var origin=${JSON.stringify(process.env.NEXT_PUBLIC_ANALYTICS_ORIGIN || (process.env.NODE_ENV === 'development' ? 'http://localhost:3100' : ''))};
             if(!origin) return;

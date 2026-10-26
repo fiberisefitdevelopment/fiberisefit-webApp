@@ -14,12 +14,14 @@ type HeroCarouselClientProps = {
 
 export default function HeroCarouselClient({ products }: HeroCarouselClientProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [hasTransitioned, setHasTransitioned] = useState(false)
   const [isAdding, setIsAdding] = useState<string | null>(null)
   const addItem = useCartStore((state) => state.addItem)
   const slide = HERO_SLIDES[currentIndex]
 
   useEffect(() => {
     const timer = window.setInterval(() => {
+      setHasTransitioned(true)
       setCurrentIndex((prevIndex) => (prevIndex + 1) % HERO_SLIDES.length)
     }, 6000)
     return () => window.clearInterval(timer)
@@ -45,10 +47,17 @@ export default function HeroCarouselClient({ products }: HeroCarouselClientProps
     }
   }
 
+  const handleSelectSlide = (index: number) => {
+    if (index !== currentIndex) {
+      setHasTransitioned(true)
+      setCurrentIndex(index)
+    }
+  }
+
   return (
     <section className="relative w-full overflow-hidden bg-white pt-20 md:pt-20 group">
       <div className="relative w-full aspect-[4/5] md:aspect-[4000/2233]">
-        <div key={slide.key} className="absolute inset-0 hero-slide-in">
+        <div key={slide.key} className={`absolute inset-0 ${hasTransitioned ? 'hero-slide-in' : ''}`}>
           <Link
             href={`/products/${slide.slug}`}
             className="absolute inset-0 cursor-pointer"
@@ -66,7 +75,7 @@ export default function HeroCarouselClient({ products }: HeroCarouselClientProps
           </button>
         </div>
 
-        <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2.5 px-3 py-1.5 rounded-full bg-black/15 backdrop-blur-sm">
+        <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/15 backdrop-blur-sm">
           {HERO_SLIDES.map((item, index) => (
             <button
               key={item.key}
@@ -74,13 +83,17 @@ export default function HeroCarouselClient({ products }: HeroCarouselClientProps
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                setCurrentIndex(index)
+                handleSelectSlide(index)
               }}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'
-              }`}
+              className="min-w-[32px] min-h-[32px] p-2 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-full"
               aria-label={`Go to slide ${index + 1}`}
-            />
+            >
+              <span
+                className={`block h-2 rounded-full transition-all duration-300 ${
+                  index === currentIndex ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'
+                }`}
+              />
+            </button>
           ))}
         </div>
       </div>

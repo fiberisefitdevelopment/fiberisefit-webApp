@@ -6,8 +6,8 @@ import Link from 'next/link'
 import { Check, Loader2, ShoppingCart, Star, Zap } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useCampaignStore } from '@/store/campaignStore'
-import { useAuth } from '@/contexts/AuthContext'
 import { trackInitiateCheckout } from '@/lib/meta-pixel'
+import { useCheckoutOtp } from '@/hooks/useCheckoutOtp'
 import type { StorefrontProduct } from '@/lib/shopify/fetch-products'
 
 interface CardConfig {
@@ -126,7 +126,7 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
   const openCart = useCartStore((state) => state.openCart)
   const cartItems = useCartStore((state) => state.items)
   const activeCampaign = useCampaignStore((state) => state.activeCampaign)
-  const getIdToken = useAuth().getIdToken
+  const { requireVerifiedPhone, checkoutOtpModal } = useCheckoutOtp()
   const [buyingId, setBuyingId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -135,49 +135,53 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
     return () => window.removeEventListener('pageshow', resetBuyingState)
   }, [])
 
-  const buyNow = async (product: StorefrontProduct) => {
+  const buyNow = (product: StorefrontProduct) => {
     if (!product.available || buyingId) return
-    setBuyingId(product.id)
-    try {
-      const token = await getIdToken()
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-      if (token) headers.Authorization = `Bearer ${token}`
+    const campaignApplies =
+      !!activeCampaign &&
+      Date.now() < new Date(activeCampaign.expiresAt).getTime() &&
+      activeCampaign.applicableProducts.includes(product.slug)
 
-      const campaignApplies =
-        !!activeCampaign &&
-        Date.now() < new Date(activeCampaign.expiresAt).getTime() &&
-        activeCampaign.applicableProducts.includes(product.slug)
+    void requireVerifiedPhone({
+      orderLabel: product.title,
+      orderTotal: product.price,
+      onVerified: async (token) => {
+        setBuyingId(product.id)
+        try {
+          const response = await fetch('/api/checkout/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              items: [{ id: product.id, quantity: 1 }],
+              ...(campaignApplies ? { campaignSlug: activeCampaign.slug } : {}),
+            }),
+          })
+          const data = await response.json().catch(() => ({}))
+          if (!response.ok || !data.checkoutUrl) {
+            throw new Error(data.error || 'Failed to start checkout')
+          }
 
-      const response = await fetch('/api/checkout/create', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          items: [{ id: product.id, quantity: 1 }],
-          ...(campaignApplies ? { campaignSlug: activeCampaign.slug } : {}),
-        }),
-      })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok || !data.checkoutUrl) {
-        throw new Error(data.error || 'Failed to start checkout')
-      }
-
-      trackInitiateCheckout(
-        [
-          {
-            contentName: product.title,
-            contentIds: [product.id],
-            value: product.price,
-            quantity: 1,
-          },
-        ],
-        product.price
-      )
-      window.location.href = data.checkoutUrl
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to proceed to checkout. Please try again.'
-      alert(message)
-      setBuyingId(null)
-    }
+          trackInitiateCheckout(
+            [
+              {
+                contentName: product.title,
+                contentIds: [product.id],
+                value: product.price,
+                quantity: 1,
+              },
+            ],
+            product.price
+          )
+          window.location.href = data.checkoutUrl
+        } catch (error) {
+          setBuyingId(null)
+          throw error
+        }
+      },
+    })
   }
 
   if (products.length === 0) {
@@ -185,6 +189,8 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
   }
 
   return (
+    <>
+    {checkoutOtpModal}
     <div className="flex flex-col md:flex-row gap-8 md:gap-10 lg:gap-12 justify-center items-stretch flex-wrap">
       {products.map((product) => {
         const cfg = getCardConfig(product.title)
@@ -227,7 +233,8 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
                   src={product.image || '/placeholder-product.png'}
                   alt={product.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  loading="lazy"
+                  sizes="(max-width: 768px) 340px, (max-width: 1200px) 320px, 340px"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -237,7 +244,7 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
               <p className="text-sm text-gray-500 mt-1">{cfg.bottomTextSmall}</p>
 
               <div className="mt-4 flex items-end justify-center gap-2 flex-wrap">
-                <span className="text-lg text-gray-400 line-through font-light">₹{comparePrice}</span>
+                <span className="text-lg text-gray-500 line-through font-light">₹{comparePrice}</span>
                 <span
                   className={`text-4xl leading-none ${cfg.priceColorClass || 'font-normal text-gray-900'}`}
                 >
@@ -332,5 +339,6 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
         )
       })}
     </div>
+    </>
   )
 }

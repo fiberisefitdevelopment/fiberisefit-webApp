@@ -19,7 +19,7 @@ export default function HeroSlideImage({ slide, isPriority }: HeroSlideImageProp
         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         loading="eager"
         fetchPriority={isPriority ? 'high' : 'low'}
-        decoding="async"
+        decoding={isPriority ? 'sync' : 'async'}
         draggable={false}
       />
     </picture>

@@ -5,8 +5,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCartStore } from '@/store/cartStore'
-import { useAuth } from '@/contexts/AuthContext'
 import { useCampaignStore, clearActiveCampaign } from '@/store/campaignStore'
+import { useCheckoutOtp } from '@/hooks/useCheckoutOtp'
 import { ChevronRight, ChevronLeft, Plus, Minus, Star, Clock } from 'lucide-react'
 import VideoSection from '@/components/sections/VideoSection'
 import ImageTextSection from '@/components/sections/ImageTextSection'
@@ -290,7 +290,7 @@ export default function ProductPage({
 
   const heroRef = useRef<HTMLDivElement>(null)
   const { addItem, paymentMethod } = useCartStore()
-  const { getIdToken } = useAuth()
+  const { requireVerifiedPhone, checkoutOtpModal } = useCheckoutOtp()
   const setPaymentMethod = useCartStore((state) => state.setPaymentMethod) || useCartStore.getState().setPaymentMethod
 
   // Diagnostic log to verify store contents at runtime and trigger a rebuild
@@ -505,64 +505,71 @@ export default function ProductPage({
     })
   }
 
-  const handleBuyNow = async () => {
+  const handleBuyNow = () => {
     if (!product || !selectedVariant || isCheckingOut) return
     if (!(selectedVariant.available ?? product.available)) return
 
-    setIsCheckingOut(true)
-    try {
-      const token = await getIdToken()
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-      if (token) headers.Authorization = `Bearer ${token}`
+    const pricing = getProductPricingOverride(slug)
+    const campaignApplies =
+      !!activeCampaign &&
+      activeCampaign.applicableProducts.includes(slug) &&
+      Date.now() < new Date(activeCampaign.expiresAt).getTime() &&
+      !(slug === 'transformation-pack' && isLinkExpired)
+    const itemPrice = pricing ? pricing.salePrice : selectedVariant.price || product.price
+    const discountCode = campaignApplies
+      ? undefined
+      : pricing?.discountCode || (paymentMethod === 'prepaid' && slug === 'bogo' ? 'PREPAID200' : undefined)
+    const variant = selectedVariant
+    const currentProduct = product
+    const currentQuantity = quantity
 
-      const pricing = getProductPricingOverride(slug)
-      const campaignApplies =
-        !!activeCampaign &&
-        activeCampaign.applicableProducts.includes(slug) &&
-        Date.now() < new Date(activeCampaign.expiresAt).getTime() &&
-        !(slug === 'transformation-pack' && isLinkExpired)
-      const itemPrice = pricing ? pricing.salePrice : selectedVariant.price || product.price
-      const discountCode = campaignApplies
-        ? undefined
-        : pricing?.discountCode || (paymentMethod === 'prepaid' && slug === 'bogo' ? 'PREPAID200' : undefined)
-
-      const response = await fetch('/api/checkout/create', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          items: [
-            {
-              id: getShopifyVariantId(selectedVariant.gid || selectedVariant.id),
-              quantity,
-              flavor: selectedVariant.name,
+    void requireVerifiedPhone({
+      orderLabel: currentProduct.title,
+      orderTotal: itemPrice * currentQuantity,
+      onVerified: async (token) => {
+        setIsCheckingOut(true)
+        try {
+          const response = await fetch('/api/checkout/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
             },
-          ],
-          ...(campaignApplies && activeCampaign ? { campaignSlug: activeCampaign.slug } : {}),
-          ...(discountCode ? { discountCode } : {}),
-        }),
-      })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok || !data.checkoutUrl) {
-        throw new Error(data.error || 'Failed to start checkout')
-      }
+            body: JSON.stringify({
+              items: [
+                {
+                  id: getShopifyVariantId(variant.gid || variant.id),
+                  quantity: currentQuantity,
+                  flavor: variant.name,
+                },
+              ],
+              ...(campaignApplies && activeCampaign ? { campaignSlug: activeCampaign.slug } : {}),
+              ...(discountCode ? { discountCode } : {}),
+            }),
+          })
+          const data = await response.json().catch(() => ({}))
+          if (!response.ok || !data.checkoutUrl) {
+            throw new Error(data.error || 'Failed to start checkout')
+          }
 
-      trackInitiateCheckout(
-        [
-          {
-            contentName: product.title,
-            contentIds: [product.productId, product.id, selectedVariant.gid, selectedVariant.id],
-            value: itemPrice * quantity,
-            quantity,
-          },
-        ],
-        itemPrice * quantity
-      )
-      window.location.href = data.checkoutUrl
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to proceed to checkout. Please try again.'
-      alert(message)
-      setIsCheckingOut(false)
-    }
+          trackInitiateCheckout(
+            [
+              {
+                contentName: currentProduct.title,
+                contentIds: [currentProduct.productId, currentProduct.id, variant.gid, variant.id],
+                value: itemPrice * currentQuantity,
+                quantity: currentQuantity,
+              },
+            ],
+            itemPrice * currentQuantity
+          )
+          window.location.href = data.checkoutUrl
+        } catch (error) {
+          setIsCheckingOut(false)
+          throw error
+        }
+      },
+    })
   }
 
   const toggleAccordion = (id: string) => {
@@ -1664,6 +1671,7 @@ export default function ProductPage({
           </div>
         </div>
       )}
+      {checkoutOtpModal}
     </div>
   )
 }

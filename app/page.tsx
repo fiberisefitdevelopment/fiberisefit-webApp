@@ -37,23 +37,6 @@ export default async function Home() {
 
   return (
     <div className="w-full">
-      <link
-        rel="preload"
-        as="image"
-        href="/banners/optimized/Starter_PACK_Banner_Mobile.webp"
-        type="image/webp"
-        media="(max-width: 767px)"
-        fetchPriority="high"
-      />
-      <link
-        rel="preload"
-        as="image"
-        href="/banners/optimized/Starter_Pack_Banner_Desktop.webp"
-        type="image/webp"
-        media="(min-width: 768px)"
-        fetchPriority="high"
-      />
-
       {HOMEPAGE_SCHEMAS.map((schema, index) => (
         <script
           key={index}

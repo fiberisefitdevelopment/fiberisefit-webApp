@@ -46,6 +46,7 @@ export default function JourneySection() {
                   src="/ritual/Group 64930.png"
                   alt="Wellness product"
                   fill
+                  loading="lazy"
                   className="object-contain object-center rounded-sm"
                   sizes="(max-width: 768px) 40vw, (max-width: 1024px) 20vw, 16vw"
                 />
@@ -57,6 +58,7 @@ export default function JourneySection() {
                     src="/ritual/Soft%20Tones%20Visual%20Minimalist%20Dessert%20Inspiration.jpg"
                     alt="Controls Cravings"
                     fill
+                    loading="lazy"
                     className="object-cover object-center rounded-lg"
                     sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 24vw"
                   />
@@ -75,6 +77,7 @@ export default function JourneySection() {
                   src="/ritual/Modern%20Aesthetic%20AI%20Stock%20Photos%20for%20Your%20Brand.jpg"
                   alt="Wellness fitness - BYE BLOATING"
                   fill
+                  loading="lazy"
                   className="object-contain object-center"
                   sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 24vw"
                 />
@@ -85,6 +88,7 @@ export default function JourneySection() {
                   src="/ritual/Group 64931.png"
                   alt="Wellness product"
                   fill
+                  loading="lazy"
                   className="object-contain object-center rounded-lg"
                   sizes="(max-width: 768px) 40vw, (max-width: 1024px) 20vw, 16vw"
                 />
@@ -127,6 +131,7 @@ export default function JourneySection() {
                     src="/ritual/Group 64929.png"
                     alt="Wellness product"
                     fill
+                    loading="lazy"
                     className="object-cover object-center rounded-sm"
                     sizes="(max-width: 768px) 40vw, (max-width: 1024px) 20vw, 16vw"
                   />
@@ -135,9 +140,10 @@ export default function JourneySection() {
                 <div className="flex flex-col flex-1">
                   <div className="relative w-full h-[240px] md:h-[300px] lg:h-[360px]">
                     <Image
-                      src="/ritual/Make_this_image_2k_202601091748.jpeg"
+                      src="/ritual/Make_this_image_2k.webp"
                       alt="WEIGHT RELEASES in 30 Days"
                       fill
+                      loading="lazy"
                       className="object-cover object-center rounded-lg"
                       sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 24vw"
                     />
@@ -153,16 +159,17 @@ export default function JourneySection() {
               {/* Larger image on left */}
               <div className="relative flex-[3] h-[240px] md:h-[300px] lg:h-[360px] rounded-2xl overflow-hidden">
                 <Image
-                  src="/ritual/Make_the_man_2k_202601120957.jpeg"
+                  src="/ritual/Make_the_man_2k.webp"
                   alt="BODY , REIMAGINED in 90 Days"
                   fill
+                  loading="lazy"
                   className="object-cover object-center"
                   sizes="(max-width: 768px) 60vw, (max-width: 1024px) 30vw, 24vw"
                 />
               </div>
               {/* Smaller image on right */}
               <div className="relative flex-[2] h-[240px] md:h-[300px] lg:h-[360px]">
-                <Image src="/ritual/Group 64928.png" alt="Wellness product" fill className="object-contain object-top rounded-lg" sizes="(max-width: 768px) 40vw, (max-width: 1024px) 20vw, 16vw" />
+                <Image src="/ritual/Group 64928.png" alt="Wellness product" fill loading="lazy" className="object-contain object-top rounded-lg" sizes="(max-width: 768px) 40vw, (max-width: 1024px) 20vw, 16vw" />
               </div>
             </div>
             {/* Text Right - Order 2 on mobile, 2 on desktop */}

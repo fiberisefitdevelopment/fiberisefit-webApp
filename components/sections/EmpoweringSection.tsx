@@ -200,9 +200,9 @@ export default function EmpoweringSection() {
             : 'mt-0 md:mt-32 lg:mt-40'
         }`}>
           {/* Main Headline */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] mb-4 md:mb-12 lg:mb-16">
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] mb-4 md:mb-12 lg:mb-16">
             MADE FOR THE<br /><span className="block mt-1.5 md:mt-3 lg:mt-5">INTELLIGENT</span>
-          </h1>
+          </h2>
 
           {/* Subtitle */}
           <p className="text-sm md:text-base text-gray-700 max-w-xl mx-auto mb-0 md:mb-6 leading-relaxed tracking-wide text-center !text-center md:!text-left">

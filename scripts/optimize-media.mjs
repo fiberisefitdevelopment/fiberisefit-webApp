@@ -18,6 +18,16 @@ const POSTERS_DIR = path.join(REELS_DIR, 'posters')
 
 const HERO_BANNERS = [
   {
+    input: 'Starter Pack_Mobile Banner (2).webp',
+    output: 'Starter_PACK_Banner_Mobile.webp',
+    width: 941,
+  },
+  {
+    input: 'Starter Pack_Desktop Banner.webp',
+    output: 'Starter_Pack_Banner_Desktop.webp',
+    width: 1672,
+  },
+  {
     input: 'Transformation Pack_Mobile Banner.webp',
     output: 'transformation-pack-mobile.webp',
     width: 1200,

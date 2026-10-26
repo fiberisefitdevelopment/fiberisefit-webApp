@@ -83,6 +83,7 @@ function PressLogoImage({
         width={compact ? 140 : 200}
         height={compact ? 40 : 56}
         className={imageClassName}
+        loading="lazy"
       />
     </div>
   )

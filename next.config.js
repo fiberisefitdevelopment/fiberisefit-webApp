@@ -49,6 +49,24 @@ const nextConfig = {
                 },
               ],
             },
+            {
+              source: '/(banners|reels|news_logo|ritual|icons|videos|team-photos)/(.*)',
+              headers: [
+                {
+                  key: 'Cache-Control',
+                  value: 'public, max-age=2592000, stale-while-revalidate=86400',
+                },
+              ],
+            },
+            {
+              source: '/(.*)\\.(png|jpg|jpeg|webp|svg|woff2|ttf|mp4|webm)',
+              headers: [
+                {
+                  key: 'Cache-Control',
+                  value: 'public, max-age=2592000, stale-while-revalidate=86400',
+                },
+              ],
+            },
           ]
         : []
     return [

@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCampaignStore } from '@/store/campaignStore'
 import { getPdCheckoutDiscountCode } from '@/lib/hidden-products'
 import { trackInitiateCheckout } from '@/lib/meta-pixel'
+import { useCheckoutOtp } from '@/hooks/useCheckoutOtp'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -20,7 +21,8 @@ export default function CartDrawer({ isolatedPurchase = false }: CartDrawerProps
   const { isOpen, items, closeCart, updateQuantity, removeItem, getTotal, paymentMethod } =
     useCartStore()
   const setPaymentMethod = useCartStore((state) => state.setPaymentMethod) || useCartStore.getState().setPaymentMethod
-  const { isAuthenticated, getIdToken, loading: authLoading, initializeAuth } = useAuth()
+  const { loading: authLoading } = useAuth()
+  const { requireVerifiedPhone, checkoutOtpModal } = useCheckoutOtp()
   const { activeCampaign } = useCampaignStore()
   const isCampaignValid = activeCampaign && new Date().getTime() < new Date(activeCampaign.expiresAt).getTime()
   const hasBogo = items.some((item) => item.handle === 'bogo')
@@ -44,34 +46,21 @@ export default function CartDrawer({ isolatedPurchase = false }: CartDrawerProps
     setPendingCheckoutUrl(null)
   }
 
-  const handleCheckout = async () => {
-    if (items.length === 0) {
-      return
-    }
-
+  const startCheckout = async (token: string) => {
     setIsProcessingCheckout(true)
-
     try {
-      await initializeAuth()
-      const token = await getIdToken()
-
-      // Prepare cart items for checkout
       const cartItems = items.map((item) => ({
         id: item.variantId || item.id,
         quantity: item.quantity,
         ...(item.variant ? { flavor: item.variant } : {}),
       }))
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-
       const response = await fetch('/api/checkout/create', {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           items: cartItems,
           discountCode:
@@ -102,32 +91,41 @@ export default function CartDrawer({ isolatedPurchase = false }: CartDrawerProps
         return
       }
 
-      if (checkoutUrl) {
-        trackInitiateCheckout(
-          items.map((item) => ({
-            contentName: item.title,
-            contentIds: [item.variantId, item.id],
-            value: item.price * item.quantity,
-            quantity: item.quantity,
-          })),
-          getTotal()
-        )
-        closeCart()
-        window.location.href = checkoutUrl
-      } else {
+      if (!checkoutUrl) {
         throw new Error('No checkout URL returned')
       }
-    } catch (error: any) {
-      console.error('Checkout error:', error)
-      alert(error.message || 'Failed to proceed to checkout. Please try again.')
+
+      trackInitiateCheckout(
+        items.map((item) => ({
+          contentName: item.title,
+          contentIds: [item.variantId, item.id],
+          value: item.price * item.quantity,
+          quantity: item.quantity,
+        })),
+        getTotal()
+      )
+      closeCart()
+      window.location.href = checkoutUrl
     } finally {
       setIsProcessingCheckout(false)
     }
   }
 
-  if (!isOpen) return null
+  const handleCheckout = () => {
+    if (items.length === 0) return
+    const orderLabel =
+      items.length === 1 ? items[0].title : `${items[0].title} + ${items.length - 1} more`
+    void requireVerifiedPhone({
+      orderLabel,
+      orderTotal: getTotal(),
+      onVerified: startCheckout,
+    })
+  }
 
   return (
+    <>
+      {checkoutOtpModal}
+      {isOpen && (
     <>
       {/* Backdrop */}
       <div
@@ -430,6 +428,8 @@ export default function CartDrawer({ isolatedPurchase = false }: CartDrawerProps
           )}
         </div>
       </div>
+    </>
+      )}
     </>
   )
 }
