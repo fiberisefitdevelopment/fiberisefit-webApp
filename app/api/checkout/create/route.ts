@@ -60,7 +60,14 @@ export async function POST(request: NextRequest) {
 
     // Get cart items and optional discount code from request body
     const body = await request.json()
-    const { items, discountCode, campaignSlug }: { items: CartItem[]; discountCode?: string; campaignSlug?: string } = body
+    const { items, discountCode, campaignSlug, phone: submittedPhone }: { items: CartItem[]; discountCode?: string; campaignSlug?: string; phone?: string } = body
+
+    if (!phone && typeof submittedPhone === 'string') {
+      const digits = submittedPhone.replace(/\D/g, '').slice(-10)
+      if (/^[6-9]\d{9}$/.test(digits)) {
+        phone = `+91${digits}`
+      }
+    }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -297,7 +304,10 @@ export async function POST(request: NextRequest) {
         if (phone && phone.trim()) {
           const normalizedPhone = phone.replace(/\D/g, '').slice(-10)
           if (normalizedPhone.length >= 10) {
-            url.searchParams.set('checkout[shipping_address][phone]', normalizedPhone)
+            // Include +91. A bare 10-digit value is parsed with Shopify's
+            // default phone country, which shows the US flag.
+            url.searchParams.set('checkout[shipping_address][phone]', `+91${normalizedPhone}`)
+            url.searchParams.set('checkout[shipping_address][country]', 'India')
           }
         }
         // Intentionally not setting checkout[email] so the contact field is not prefilled with system email.

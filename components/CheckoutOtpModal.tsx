@@ -15,9 +15,27 @@ type CheckoutOtpModalProps = {
   orderTotal: number
   onClose: () => void
   onVerified: (idToken: string) => Promise<void>
+  onBypass: (phoneDigits: string) => Promise<void>
 }
 
 const RESEND_SECONDS = 30
+const OTP_ATTEMPT_MS = 8000
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error('OTP_TIMEOUT')), ms)
+    promise.then(
+      (value) => {
+        window.clearTimeout(timer)
+        resolve(value)
+      },
+      (error) => {
+        window.clearTimeout(timer)
+        reject(error)
+      }
+    )
+  })
+}
 
 function formatRupee(amount: number) {
   return `₹${amount.toLocaleString('en-IN', {
@@ -37,6 +55,7 @@ export default function CheckoutOtpModal({
   orderTotal,
   onClose,
   onVerified,
+  onBypass,
 }: CheckoutOtpModalProps) {
   const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [phoneDigits, setPhoneDigits] = useState('')
@@ -102,12 +121,20 @@ export default function CheckoutOtpModal({
     return () => window.clearInterval(timer)
   }, [isOpen, step, confirmationResult])
 
+  const continueWithoutOtp = async (digits: string) => {
+    clearVerifier()
+    await onBypass(digits)
+  }
+
   const sendOtp = async () => {
     if (phoneDigits.length !== 10) {
       throw new Error('Enter a valid 10-digit mobile number.')
     }
     const verifier = createVerifier()
-    const confirmation = await signInWithPhoneNumber(auth, `+91${phoneDigits}`, verifier)
+    const confirmation = await withTimeout(
+      signInWithPhoneNumber(auth, `+91${phoneDigits}`, verifier),
+      OTP_ATTEMPT_MS
+    )
     setConfirmationResult(confirmation)
     setOtpDigits(Array(6).fill(''))
     setStep('otp')
@@ -120,15 +147,21 @@ export default function CheckoutOtpModal({
     try {
       await sendOtp()
     } catch (err) {
-      const code = (err as { code?: string }).code
-      if (code === 'auth/invalid-phone-number') {
-        setError('Enter a valid 10-digit Indian mobile number.')
-      } else if (code === 'auth/too-many-requests') {
-        setError('Too many attempts. Wait a few minutes and try again.')
-      } else {
-        setError(err instanceof Error ? err.message : 'Failed to send OTP. Please try again.')
+      if (err instanceof Error && err.message === 'Enter a valid 10-digit mobile number.') {
+        setError(err.message)
+        clearVerifier()
+        return
       }
-      clearVerifier()
+      console.error('OTP skipped, continuing to checkout:', err)
+      try {
+        await continueWithoutOtp(phoneDigits)
+      } catch (checkoutError) {
+        setError(
+          checkoutError instanceof Error
+            ? checkoutError.message
+            : 'Could not start checkout. Please try again.'
+        )
+      }
     } finally {
       setLoading(false)
     }
@@ -141,8 +174,16 @@ export default function CheckoutOtpModal({
     try {
       await sendOtp()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to resend OTP.')
-      clearVerifier()
+      console.error('OTP resend skipped, continuing to checkout:', err)
+      try {
+        await continueWithoutOtp(phoneDigits)
+      } catch (checkoutError) {
+        setError(
+          checkoutError instanceof Error
+            ? checkoutError.message
+            : 'Could not start checkout. Please try again.'
+        )
+      }
     } finally {
       setLoading(false)
     }
@@ -175,7 +216,28 @@ export default function CheckoutOtpModal({
       }
       await onVerified(idToken)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid OTP. Please try again.')
+      const code = (err as { code?: string }).code
+      const blocking =
+        code === 'auth/internal-error' ||
+        code === 'auth/invalid-app-credential' ||
+        code === 'auth/captcha-check-failed' ||
+        code === 'auth/network-request-failed' ||
+        code === 'auth/too-many-requests' ||
+        code === 'auth/app-not-authorized'
+      if (blocking) {
+        console.error('OTP confirm skipped, continuing to checkout:', err)
+        try {
+          await continueWithoutOtp(phoneDigits)
+        } catch (checkoutError) {
+          setError(
+            checkoutError instanceof Error
+              ? checkoutError.message
+              : 'Could not start checkout. Please try again.'
+          )
+        }
+      } else {
+        setError('That code did not match. Please try again.')
+      }
       setLoading(false)
     }
   }

@@ -318,14 +318,14 @@ export default function SpecialOfferPage({
     void requireVerifiedPhone({
       orderLabel: `FYBER ${pack.name}`,
       orderTotal: pack.price * currentQuantity,
-      onVerified: async (token) => {
+      onVerified: async (token, phoneDigits) => {
         setIsCheckingOut(true)
         try {
           const response = await fetch('/api/checkout/create', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify({
               items: [
@@ -335,6 +335,7 @@ export default function SpecialOfferPage({
                   flavor: 'Assorted Flavours',
                 },
               ],
+              ...(!token && phoneDigits ? { phone: phoneDigits } : {}),
             }),
           })
           const data = await response.json().catch(() => ({}))

@@ -526,14 +526,14 @@ export default function ProductPage({
     void requireVerifiedPhone({
       orderLabel: currentProduct.title,
       orderTotal: itemPrice * currentQuantity,
-      onVerified: async (token) => {
+      onVerified: async (token, phoneDigits) => {
         setIsCheckingOut(true)
         try {
           const response = await fetch('/api/checkout/create', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify({
               items: [
@@ -545,6 +545,7 @@ export default function ProductPage({
               ],
               ...(campaignApplies && activeCampaign ? { campaignSlug: activeCampaign.slug } : {}),
               ...(discountCode ? { discountCode } : {}),
+              ...(!token && phoneDigits ? { phone: phoneDigits } : {}),
             }),
           })
           const data = await response.json().catch(() => ({}))

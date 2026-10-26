@@ -7,7 +7,7 @@ import CheckoutOtpModal from '@/components/CheckoutOtpModal'
 type CheckoutOtpRequest = {
   orderLabel: string
   orderTotal: number
-  onVerified: (idToken: string) => Promise<void>
+  onVerified: (idToken: string | null, phoneDigits?: string) => Promise<void>
 }
 
 export function useCheckoutOtp() {
@@ -39,6 +39,11 @@ export function useCheckoutOtp() {
       onVerified={async (idToken) => {
         if (!request) return
         await request.onVerified(idToken)
+        setRequest(null)
+      }}
+      onBypass={async (phoneDigits) => {
+        if (!request) return
+        await request.onVerified(null, phoneDigits)
         setRequest(null)
       }}
     />

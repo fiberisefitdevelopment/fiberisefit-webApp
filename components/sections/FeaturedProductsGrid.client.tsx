@@ -145,18 +145,19 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
     void requireVerifiedPhone({
       orderLabel: product.title,
       orderTotal: product.price,
-      onVerified: async (token) => {
+      onVerified: async (token, phoneDigits) => {
         setBuyingId(product.id)
         try {
           const response = await fetch('/api/checkout/create', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             body: JSON.stringify({
               items: [{ id: product.id, quantity: 1 }],
               ...(campaignApplies ? { campaignSlug: activeCampaign.slug } : {}),
+              ...(!token && phoneDigits ? { phone: phoneDigits } : {}),
             }),
           })
           const data = await response.json().catch(() => ({}))

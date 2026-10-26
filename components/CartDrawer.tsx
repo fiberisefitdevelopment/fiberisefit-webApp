@@ -46,7 +46,7 @@ export default function CartDrawer({ isolatedPurchase = false }: CartDrawerProps
     setPendingCheckoutUrl(null)
   }
 
-  const startCheckout = async (token: string) => {
+  const startCheckout = async (token: string | null, phoneDigits?: string) => {
     setIsProcessingCheckout(true)
     try {
       const cartItems = items.map((item) => ({
@@ -59,7 +59,7 @@ export default function CartDrawer({ isolatedPurchase = false }: CartDrawerProps
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           items: cartItems,
@@ -68,6 +68,7 @@ export default function CartDrawer({ isolatedPurchase = false }: CartDrawerProps
             (paymentMethod === 'prepaid' && hasBogo ? 'PREPAID200' : undefined) ||
             pdCheckoutDiscountCode,
           campaignSlug: isCampaignValid ? activeCampaign.slug : undefined,
+          ...(!token && phoneDigits ? { phone: phoneDigits } : {}),
         }),
       })
 
