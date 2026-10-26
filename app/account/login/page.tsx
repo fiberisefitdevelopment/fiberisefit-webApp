@@ -181,18 +181,18 @@ export default function AccountLoginPage() {
   const busy = loading !== null
 
   return (
-    <div className="bg-[#F3EFE8] px-3 pb-4 pt-[5.5rem] sm:px-5 sm:pb-5 sm:pt-24 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden lg:px-6 lg:pb-4 lg:pt-[5.75rem]">
+    <div className="flex min-h-dvh flex-col bg-[#F3EFE8] px-3 pb-4 pt-[5.5rem] sm:px-5 sm:pb-5 sm:pt-24 lg:h-dvh lg:overflow-hidden lg:px-6 lg:pb-4 lg:pt-[5.75rem]">
       {/* <div id="recaptcha-container-login" className="hidden" /> */}
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_18px_50px_rgba(40,32,20,0.08)] sm:rounded-[28px] lg:min-h-0 lg:flex-1 lg:flex-row">
-        <div className="relative h-[min(38vh,320px)] w-full shrink-0 bg-[#1c3a2e] sm:h-[min(40vh,360px)] lg:h-auto lg:max-w-[42%] lg:w-auto lg:min-w-[240px] lg:self-stretch lg:aspect-[682/1024]">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_18px_50px_rgba(40,32,20,0.08)] sm:rounded-[28px] lg:min-h-0 lg:flex-row">
+        <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden sm:aspect-[2/1] lg:aspect-[682/1024] lg:h-auto lg:max-w-[42%] lg:min-w-[240px] lg:w-auto lg:self-stretch">
           <Image
             src="/login/smarter-wellness.webp"
             alt="Smarter wellness made simple with Fiberise"
             fill
             priority
             sizes="(min-width: 1024px) 420px, 100vw"
-            className="object-contain object-center lg:object-cover"
+            className="object-cover object-[center_28%] lg:object-center"
           />
         </div>
 
@@ -205,17 +205,7 @@ export default function AccountLoginPage() {
             Back to store
           </Link>
 
-          <div className="relative mt-6 h-8 w-32 shrink-0 sm:mt-7 sm:h-9 sm:w-36">
-            <Image
-              src="/fiberisefit dark logo.png"
-              alt="fiberise"
-              fill
-              className="object-contain object-left"
-              priority
-            />
-          </div>
-
-          <div className="flex flex-1 flex-col justify-start pt-8">
+          <div className="flex flex-1 flex-col justify-start pt-6">
           <div className="w-full max-w-[440px]">
 
           <h1 className="mb-2 font-serif text-[1.85rem] font-semibold leading-none text-[#1C1C1C] sm:text-[2.15rem]">
