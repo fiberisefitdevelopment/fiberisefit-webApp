@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb, isAdminInitialized, getInitError } from '@/lib/firebase/admin'
+import { addressFromLatestOrder, emptyAddress, readAddress } from '@/lib/customer-address'
 export const dynamic = 'force-dynamic'
 
 async function getDecodedToken(request: NextRequest) {
@@ -35,21 +36,39 @@ export async function GET(request: NextRequest) {
     )
   }
   const userDocId = phone
-  const userDoc = await adminDb.collection('users').doc(userDocId).get()
-  if (!userDoc.exists) {
-    return NextResponse.json({
-      phone,
-      firstName: '',
-      lastName: '',
-      displayName: '',
-    })
+  const userRef = adminDb.collection('users').doc(userDocId)
+  const userDoc = await userRef.get()
+  const data = userDoc.exists ? userDoc.data() : undefined
+  let address = readAddress(data?.address)
+  const typedByCustomer = data?.addressSource === 'profile'
+  if (!typedByCustomer) {
+    const seeded = await addressFromLatestOrder(phone)
+    if (seeded) {
+      address = seeded
+      await userRef.set(
+        {
+          phone,
+          address,
+          addressSource: 'order',
+          createdAt: data?.createdAt ?? new Date(),
+          updatedAt: new Date(),
+        },
+        { merge: true }
+      )
+    } else if (address.address1) {
+      address = emptyAddress()
+      await userRef.set(
+        { address, addressSource: null, updatedAt: new Date() },
+        { merge: true }
+      )
+    }
   }
-  const data = userDoc.data()
   return NextResponse.json({
     phone: data?.phone ?? phone ?? null,
     firstName: data?.firstName ?? '',
     lastName: data?.lastName ?? '',
     displayName: data?.displayName ?? '',
+    address,
   })
 }
 
@@ -79,6 +98,10 @@ export async function PATCH(request: NextRequest) {
   if (typeof body.firstName === 'string') updates.firstName = body.firstName
   if (typeof body.lastName === 'string') updates.lastName = body.lastName
   if (typeof body.displayName === 'string') updates.displayName = body.displayName
+  if (body.address && typeof body.address === 'object') {
+    updates.address = readAddress(body.address)
+    updates.addressSource = 'profile'
+  }
   if (Object.keys(updates).length <= 1) {
     return NextResponse.json({ success: true })
   }

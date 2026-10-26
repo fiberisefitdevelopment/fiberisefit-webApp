@@ -707,6 +707,44 @@ export const BLOGS_QUERY = `
   }
 `
 
+export const LATEST_ORDER_ADDRESS_QUERY = `
+  query LatestOrderAddress($query: String!) {
+    orders(first: 10, query: $query, sortKey: CREATED_AT, reverse: true) {
+      edges {
+        node {
+          phone
+          customer {
+            phone
+            defaultPhoneNumber {
+              phoneNumber
+            }
+          }
+          shippingAddress {
+            name
+            address1
+            address2
+            city
+            province
+            zip
+            country
+            phone
+          }
+          billingAddress {
+            name
+            address1
+            address2
+            city
+            province
+            zip
+            country
+            phone
+          }
+        }
+      }
+    }
+  }
+`
+
 export const ARTICLE_BY_HANDLE_QUERY = `
   query getArticleByHandle($handle: String!) {
     blog(handle: "news") {

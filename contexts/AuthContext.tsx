@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useState,
   useRef,
   useCallback,
@@ -30,6 +31,18 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+function hasFreshLoginHint(): boolean {
+  if (typeof window === 'undefined') return false
+  const timestamp = localStorage.getItem(AUTH_LOGIN_TIMESTAMP_KEY)
+  if (!timestamp) return false
+  const loginTime = Number(timestamp)
+  if (!Number.isFinite(loginTime) || Date.now() - loginTime >= SESSION_MS) {
+    localStorage.removeItem(AUTH_LOGIN_TIMESTAMP_KEY)
+    return false
+  }
+  return true
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
@@ -37,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     phone: null,
     user: null,
   })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const authRef = useRef<Auth | null>(null)
   const unsubscribeRef = useRef<(() => void) | undefined>()
   const initPromiseRef = useRef<Promise<void> | null>(null)
@@ -57,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       void (async () => {
-        setLoading(true)
         try {
           const { auth } = await import('@/lib/firebase/config')
           const { onAuthStateChanged, signOut } = await import('firebase/auth')
@@ -115,6 +127,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return initPromiseRef.current
   }, [])
+
+  useLayoutEffect(() => {
+    if (hasFreshLoginHint()) {
+      setAuthState((current) =>
+        current.isAuthenticated
+          ? current
+          : { isAuthenticated: true, uid: null, phone: null, user: null }
+      )
+      setLoading(false)
+      void initializeAuth()
+      return
+    }
+    setLoading(false)
+  }, [initializeAuth])
 
   useEffect(() => {
     return () => {

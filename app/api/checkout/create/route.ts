@@ -3,6 +3,7 @@ import { adminAuth, adminDb, isAdminInitialized, getInitError } from '@/lib/fire
 import { shopifyFetch } from '@/lib/shopify/client'
 import { CART_CREATE_MUTATION, CART_UPDATE_MUTATION, CART_BUYER_IDENTITY_UPDATE_MUTATION, CART_DISCOUNT_CODES_UPDATE_MUTATION } from '@/lib/shopify/queries'
 import { getCampaignBySlug, logCampaignEvent } from '@/lib/campaigns'
+import { addressFromLatestOrder, emptyAddress, readAddress } from '@/lib/customer-address'
 export const dynamic = 'force-dynamic'
 
 interface CartItem {
@@ -29,6 +30,16 @@ export async function POST(request: NextRequest) {
     // Get Authorization header
     const authHeader = request.headers.get('Authorization')
     let phone: string | undefined
+    let savedAddress: {
+      address1?: string
+      address2?: string
+      city?: string
+      province?: string
+      zip?: string
+      country?: string
+    } | null = null
+    let savedFirstName = ''
+    let savedLastName = ''
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const idToken = authHeader.split('Bearer ')[1]
@@ -55,6 +66,23 @@ export async function POST(request: NextRequest) {
             { status: 404 }
           )
         }
+        const profile = userDoc.data()
+        savedFirstName = typeof profile?.firstName === 'string' ? profile.firstName : ''
+        savedLastName = typeof profile?.lastName === 'string' ? profile.lastName : ''
+        let address = readAddress(profile?.address)
+        if (profile?.addressSource !== 'profile') {
+          const seeded = await addressFromLatestOrder(phone)
+          address = seeded ?? emptyAddress()
+          await adminDb.collection('users').doc(userDocId).set(
+            {
+              address,
+              addressSource: seeded ? 'order' : null,
+              updatedAt: new Date(),
+            },
+            { merge: true }
+          )
+        }
+        savedAddress = address.address1 ? address : null
       }
     }
 
@@ -307,9 +335,16 @@ export async function POST(request: NextRequest) {
             // Include +91. A bare 10-digit value is parsed with Shopify's
             // default phone country, which shows the US flag.
             url.searchParams.set('checkout[shipping_address][phone]', `+91${normalizedPhone}`)
-            url.searchParams.set('checkout[shipping_address][country]', 'India')
+            url.searchParams.set('checkout[shipping_address][country]', savedAddress?.country || 'India')
           }
         }
+        if (savedFirstName) url.searchParams.set('checkout[shipping_address][first_name]', savedFirstName)
+        if (savedLastName) url.searchParams.set('checkout[shipping_address][last_name]', savedLastName)
+        if (savedAddress?.address1) url.searchParams.set('checkout[shipping_address][address1]', savedAddress.address1)
+        if (savedAddress?.address2) url.searchParams.set('checkout[shipping_address][address2]', savedAddress.address2)
+        if (savedAddress?.city) url.searchParams.set('checkout[shipping_address][city]', savedAddress.city)
+        if (savedAddress?.province) url.searchParams.set('checkout[shipping_address][province]', savedAddress.province)
+        if (savedAddress?.zip) url.searchParams.set('checkout[shipping_address][zip]', savedAddress.zip)
         // Intentionally not setting checkout[email] so the contact field is not prefilled with system email.
         checkoutUrl = url.toString()
       } catch (error) {

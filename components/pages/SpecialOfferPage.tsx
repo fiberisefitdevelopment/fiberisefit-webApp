@@ -523,7 +523,7 @@ export default function SpecialOfferPage({
                     Fyber
                   </span>
                   <span className="block text-xl sm:text-2xl md:text-3xl font-light text-gray-900 tracking-tight mt-0.5">
-                    Weight management Solution
+                    Weight Management Solution
                   </span>
                   <span className="sr-only">{selectedPackage.name}</span>
                 </h1>

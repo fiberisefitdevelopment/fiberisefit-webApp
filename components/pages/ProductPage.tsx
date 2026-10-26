@@ -921,7 +921,7 @@ export default function ProductPage({
                       Fyber
                     </span>
                     <span className="block text-xl md:text-2xl font-light text-black leading-tight mt-0.5">
-                      Weight management Solution
+                      Weight Management Solution
                     </span>
                     <span className="sr-only">{product.title}</span>
                   </h1>
