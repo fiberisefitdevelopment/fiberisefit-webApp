@@ -62,7 +62,7 @@ export default function Header() {
   ]
 
   const mobileProducts = [
-    { name: 'Starter Pack', href: '/products/starter-pack' },
+    // { name: 'Starter Pack', href: '/products/starter-pack' },
     { name: 'Transformation Pack', href: '/products/transformation-pack' },
     { name: 'Ultimate Pack', href: '/products/ultimate-pack' },
     { name: 'Elite Pack', href: '/products/elite-pack' },
