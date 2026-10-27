@@ -7,6 +7,7 @@ export interface CartItem {
   price: number
   quantity: number
   image: string
+  compareAtPrice?: number
   variant?: string
   variantId?: string // Optional: for backward compatibility
   handle?: string // Optional: Shopify product handle for campaign discount checking
@@ -51,8 +52,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
     get().openCart()
   },
   removeItem: (id) => {
-    const items = get().items.filter((item) => item.id !== id)
-    set(items.length === 0 ? { items, isOpen: false } : { items })
+    set({ items: get().items.filter((item) => item.id !== id) })
   },
   updateQuantity: (id, quantity) => {
     if (quantity <= 0) {

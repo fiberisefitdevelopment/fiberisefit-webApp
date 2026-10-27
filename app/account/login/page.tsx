@@ -184,19 +184,19 @@ export default function AccountLoginPage() {
     <div className="flex min-h-dvh flex-col bg-[#F3EFE8] px-3 pb-4 pt-[5.5rem] sm:px-5 sm:pb-5 sm:pt-24 lg:h-dvh lg:overflow-hidden lg:px-6 lg:pb-4 lg:pt-[5.75rem]">
       {/* <div id="recaptcha-container-login" className="hidden" /> */}
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_18px_50px_rgba(40,32,20,0.08)] sm:rounded-[28px] lg:min-h-0 lg:flex-row">
-        <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden sm:aspect-[2/1] lg:aspect-[682/1024] lg:h-auto lg:max-w-[42%] lg:min-w-[240px] lg:w-auto lg:self-stretch">
+      <div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_18px_50px_rgba(40,32,20,0.08)] sm:rounded-[28px] lg:h-full lg:w-fit lg:max-w-[860px] lg:flex-row">
+        <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden sm:aspect-[2/1] lg:aspect-auto lg:h-full lg:w-[360px] lg:min-w-[320px] lg:max-w-[360px]">
           <Image
             src="/login/smarter-wellness.webp"
             alt="Smarter wellness made simple with Fiberise"
             fill
             priority
-            sizes="(min-width: 1024px) 420px, 100vw"
-            className="object-cover object-[center_28%] lg:object-center"
+            sizes="(min-width: 1024px) 360px, 100vw"
+            className="h-full w-full object-cover object-[20%_28%] lg:object-[20%_center]"
           />
         </div>
 
-        <div className="flex w-full min-w-0 flex-1 flex-col px-6 py-6 sm:px-12 lg:px-14 lg:py-8">
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col px-6 py-6 sm:px-10 lg:w-[460px] lg:flex-none lg:px-10 lg:py-8">
           <Link
             href="/"
             className="inline-flex w-fit shrink-0 items-center gap-2 text-sm text-[#8A8680] hover:text-[#1a1a1a]"
@@ -344,7 +344,7 @@ export default function AccountLoginPage() {
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="/policies/privacy-policy" className="text-[#1B4332] underline underline-offset-2">
+            <Link href="/policies/privacy-policy" className="whitespace-nowrap text-[#1B4332] underline underline-offset-2">
               Privacy Policy
             </Link>
             .

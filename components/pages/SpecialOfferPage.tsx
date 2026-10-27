@@ -293,6 +293,10 @@ export default function SpecialOfferPage({
           variantId: selectedPackage.variantId,
           title: `FYBER ${selectedPackage.name}`,
           price: selectedPackage.price,
+          compareAtPrice:
+            selectedPackage.comparePrice > selectedPackage.price
+              ? selectedPackage.comparePrice
+              : undefined,
           image: galleryImage,
           handle: selectedPackage.handle,
           variant: 'Assorted Flavours',

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ShoppingBag, Menu, X, User } from 'lucide-react'
+import { ChevronDown, ShoppingBag, Menu, X, User } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCampaignStore } from '@/store/campaignStore'
@@ -20,7 +20,8 @@ import { cn } from '@/lib/utils'
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { openCart, getItemCount } = useCartStore()
+  const [productsOpen, setProductsOpen] = useState(false)
+  const { openCart, closeCart, getItemCount, isOpen: isCartOpen } = useCartStore()
   const { isAuthenticated } = useAuth()
   const { hydrateCampaign } = useCampaignStore()
   const router = useRouter()
@@ -29,6 +30,21 @@ export default function Header() {
   useEffect(() => {
     hydrateCampaign()
   }, [hydrateCampaign])
+
+  useEffect(() => {
+    if (isCartOpen) setIsMobileMenuOpen(false)
+  }, [isCartOpen])
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      setProductsOpen(false)
+      return
+    }
+    document.body.style.overflow = 'hidden'
+    return () => {
+      if (!useCartStore.getState().isOpen) document.body.style.overflow = ''
+    }
+  }, [isMobileMenuOpen])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,6 +59,13 @@ export default function Header() {
     { name: 'CONTACT', href: '/contact' },
     { name: 'LYTE', href: '/lyte' },
     { name: 'BUY', href: '/#products' },
+  ]
+
+  const mobileProducts = [
+    { name: 'Starter Pack', href: '/products/starter-pack' },
+    { name: 'Transformation Pack', href: '/products/transformation-pack' },
+    { name: 'Ultimate Pack', href: '/products/ultimate-pack' },
+    { name: 'Elite Pack', href: '/products/elite-pack' },
   ]
 
   return (
@@ -75,7 +98,14 @@ export default function Header() {
               <button
                 type="button"
                 className="p-1.5 transition-colors text-[#1a1a1a]"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                onClick={() => {
+                  if (isMobileMenuOpen) {
+                    setIsMobileMenuOpen(false)
+                    return
+                  }
+                  closeCart()
+                  setIsMobileMenuOpen(true)
+                }}
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
@@ -190,7 +220,10 @@ export default function Header() {
 
               <button
                 type="button"
-                onClick={openCart}
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  openCart()
+                }}
                 className="relative p-1.5 lg:p-2 transition-colors text-[#1a1a1a] hover:opacity-70"
                 aria-label="Shopping cart"
               >
@@ -205,40 +238,72 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 bg-white">
-            <nav className="px-4 py-6 space-y-4 text-center">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className="block text-sm font-semibold uppercase tracking-wide py-2 text-[#1a1a1a]"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false)
-                  }}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              <button
-                type="button"
-                onClick={() => {
-                  if (isAuthenticated) {
-                    router.push('/account/orders')
-                  } else {
-                    router.push('/account/login')
-                  }
-                  setIsMobileMenuOpen(false)
-                }}
-                className="block w-full text-center text-sm font-semibold uppercase tracking-wide py-2 text-[#1a1a1a]"
-              >
-                {isAuthenticated ? 'My Account' : 'Login'}
-              </button>
-            </nav>
-          </div>
-        )}
       </header>
+
+      {isMobileMenuOpen && (
+        <div className="fixed inset-x-0 bottom-0 top-[calc(1.75rem+3rem)] z-[60] md:top-[calc(1.75rem+3.5rem)] lg:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
+            aria-label="Close menu"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+            <nav className="animate-menu-drawer absolute bottom-0 left-0 top-0 flex w-52 max-w-[62vw] flex-col overflow-y-auto bg-white px-5 py-8 shadow-2xl">
+              {navLinks.map((link, index) => (
+                <div key={link.name}>
+                  <Link
+                    href={link.href}
+                    style={{ animationDelay: `${index * 70}ms` }}
+                    className="animate-menu-item block py-3 text-sm font-semibold uppercase tracking-wide text-[#1a1a1a]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.name}
+                  </Link>
+                  {link.name === 'LYTE' && (
+                    <div className="animate-menu-item" style={{ animationDelay: `${index * 70 + 40}ms` }}>
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-between py-3 text-left text-sm font-semibold uppercase tracking-wide text-[#1a1a1a]"
+                        aria-expanded={productsOpen}
+                        onClick={() => setProductsOpen((open) => !open)}
+                      >
+                        Products
+                        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${productsOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      <div
+                        className={`grid transition-[grid-template-rows] duration-300 ${productsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+                      >
+                        <div className="overflow-hidden">
+                          {mobileProducts.map((product) => (
+                            <Link
+                              key={product.href}
+                              href={product.href}
+                              className="block py-2 pl-4 text-sm text-[#3a3a3a]"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              {product.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            <button
+              type="button"
+              style={{ animationDelay: `${navLinks.length * 70}ms` }}
+              onClick={() => {
+                router.push(isAuthenticated ? '/account/orders' : '/account/login')
+                setIsMobileMenuOpen(false)
+              }}
+              className="animate-menu-item py-3 text-left text-sm font-semibold uppercase tracking-wide text-[#1a1a1a]"
+            >
+              {isAuthenticated ? 'My Account' : 'Login'}
+            </button>
+          </nav>
+        </div>
+      )}
     </>
   )
 }

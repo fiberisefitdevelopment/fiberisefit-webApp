@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import CheckoutOtpModal from '@/components/CheckoutOtpModal'
+import { useCartStore } from '@/store/cartStore'
 
 type CheckoutOtpRequest = {
   orderLabel: string
@@ -27,6 +28,7 @@ export function useCheckoutOtp() {
       return
     }
 
+    useCartStore.getState().closeCart()
     setRequest({ orderLabel, orderTotal, onVerified })
   }
 

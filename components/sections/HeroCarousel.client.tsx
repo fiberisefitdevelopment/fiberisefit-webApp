@@ -38,6 +38,12 @@ export default function HeroCarouselClient({ products }: HeroCarouselClientProps
           id: productDetails.id,
           title: productDetails.title,
           price: productDetails.price,
+          compareAtPrice:
+            'comparePrice' in productDetails &&
+            productDetails.comparePrice != null &&
+            productDetails.comparePrice > productDetails.price
+              ? productDetails.comparePrice
+              : undefined,
           image: productDetails.image,
           handle: productDetails.slug,
         })

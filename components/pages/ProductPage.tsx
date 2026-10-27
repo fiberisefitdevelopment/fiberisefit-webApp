@@ -478,6 +478,7 @@ export default function ProductPage({
     const itemPrice = pricingOverride
       ? pricingOverride.salePrice
       : selectedVariant.price || product.price
+    const compareAt = selectedVariant.compareAtPrice ?? product.comparePrice ?? null
 
     // Add multiple items based on quantity
     for (let i = 0; i < quantity; i++) {
@@ -486,6 +487,7 @@ export default function ProductPage({
         variantId: getShopifyVariantId(selectedVariant.gid || selectedVariant.id),
         title: product.title,
         price: itemPrice,
+        compareAtPrice: compareAt != null && compareAt > itemPrice ? compareAt : undefined,
         image: isStarterPackHandle(slug) ? STARTER_PACK_HERO_IMAGE : product.image,
         handle: slug,
         variant: selectedVariant.name,

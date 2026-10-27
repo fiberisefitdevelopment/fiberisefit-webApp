@@ -166,7 +166,15 @@ export default function LyteProductPage({ slug }: LyteProductPageProps) {
 
     // Match cart behavior on other product pages: add one item per quantity
     for (let i = 0; i < quantity; i++) {
-      addItem({ id, title: product.title, price, image: product.image, handle: slug })
+      addItem({
+        id,
+        title: product.title,
+        price,
+        compareAtPrice:
+          displayCompareAt != null && displayCompareAt > price ? displayCompareAt : undefined,
+        image: product.image,
+        handle: slug,
+      })
     }
   }
 

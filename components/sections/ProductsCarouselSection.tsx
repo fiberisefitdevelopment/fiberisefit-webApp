@@ -265,7 +265,18 @@ export default function ProductsCarouselSection() {
 
                       <div className="mt-auto pt-7">
                         <button
-                          onClick={() => isAvailable && addItem({ id: product.id, title: product.title, price: product.price, image: product.image, handle: product.slug })}
+                          onClick={() =>
+                            isAvailable &&
+                            addItem({
+                              id: product.id,
+                              title: product.title,
+                              price: product.price,
+                              compareAtPrice:
+                                data.comparePrice > product.price ? data.comparePrice : undefined,
+                              image: product.image,
+                              handle: product.slug,
+                            })
+                          }
                           disabled={!isAvailable}
                           className={`w-full py-3.5 px-6 rounded-md font-semibold text-[15px] md:text-lg transition-all ${data.buttonClass}`}
                         >

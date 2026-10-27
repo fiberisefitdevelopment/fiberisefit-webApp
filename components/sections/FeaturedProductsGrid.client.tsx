@@ -282,6 +282,7 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
                       id: product.id,
                       title: product.title,
                       price: product.price,
+                      compareAtPrice: comparePrice > product.price ? comparePrice : undefined,
                       image: product.image,
                       handle: product.slug,
                     })
