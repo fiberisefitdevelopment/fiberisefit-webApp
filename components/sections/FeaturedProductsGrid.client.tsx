@@ -7,6 +7,7 @@ import { Check, Loader2, ShoppingCart, Star, Zap } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useCampaignStore } from '@/store/campaignStore'
 import { trackInitiateCheckout } from '@/lib/meta-pixel'
+import { openAiCheckoutFields } from '@/lib/openai-pixel'
 import { useCheckoutOtp } from '@/hooks/useCheckoutOtp'
 import type { StorefrontProduct } from '@/lib/shopify/fetch-products'
 
@@ -158,6 +159,7 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
               items: [{ id: product.id, quantity: 1 }],
               ...(campaignApplies ? { campaignSlug: activeCampaign.slug } : {}),
               ...(!token && phoneDigits ? { phone: phoneDigits } : {}),
+              ...openAiCheckoutFields(),
             }),
           })
           const data = await response.json().catch(() => ({}))

@@ -81,7 +81,7 @@ export default function HeroCarouselClient({ products }: HeroCarouselClientProps
           </button>
         </div>
 
-        <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/15 backdrop-blur-sm">
+        <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-30 hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/15 backdrop-blur-sm">
           {HERO_SLIDES.map((item, index) => (
             <button
               key={item.key}

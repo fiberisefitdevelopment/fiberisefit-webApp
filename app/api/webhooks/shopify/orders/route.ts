@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { logCampaignEvent } from '@/lib/campaigns'
+import { sendOpenAiOrderCreated } from '@/lib/openai-conversions'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,6 +51,12 @@ export async function POST(request: NextRequest) {
       })
     } else {
       console.log(`ℹ️ [Shopify Webhook] No campaign attribute associated with order ${orderId}`)
+    }
+
+    try {
+      await sendOpenAiOrderCreated(order)
+    } catch (conversionError) {
+      console.error('❌ [OpenAI Ads] Failed to send order_created:', conversionError)
     }
 
     return NextResponse.json({ success: true })

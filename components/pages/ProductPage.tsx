@@ -31,6 +31,7 @@ import {
   isLinkDiscountProduct,
 } from '@/lib/hidden-products'
 import { trackAddToCart, trackInitiateCheckout, trackViewContent } from '@/lib/meta-pixel'
+import { openAiCheckoutFields } from '@/lib/openai-pixel'
 
 interface ProductVariant {
   id: string
@@ -138,7 +139,6 @@ export default function ProductPage({
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null)
   const [joinEmail, setJoinEmail] = useState('')
   const [joinSubmitted, setJoinSubmitted] = useState(false)
-  const [showStickyAddToCart, setShowStickyAddToCart] = useState(false)
   const [reviewRating, setReviewRating] = useState<{ averageRating: number; totalCount: number } | null>(null)
   const [isLinkExpired, setIsLinkExpired] = useState(false)
   const [firstOpenedTime, setFirstOpenedTime] = useState<number | null>(null)
@@ -322,42 +322,6 @@ export default function ProductPage({
     ? reviewRating.averageRating
     : DEFAULT_RATING
   const displayReviewCount = reviewRating?.totalCount ?? 0
-
-  const mainButtonRef = useRef<HTMLDivElement>(null)
-  const ingredientsRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (!mainButtonRef.current) {
-            ticking = false;
-            return;
-          }
-
-          const buttonRect = mainButtonRef.current.getBoundingClientRect()
-          let isIngredientsInView = false
-
-          if (ingredientsRef.current) {
-            const ingredientsRect = ingredientsRef.current.getBoundingClientRect()
-            isIngredientsInView = ingredientsRect.top < window.innerHeight && ingredientsRect.bottom > 0
-          }
-
-          const isPastButton = buttonRect.bottom < 0
-
-          setShowStickyAddToCart(isPastButton && !isIngredientsInView)
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }
-
-    // Call initially and add listener
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   useEffect(() => {
     async function fetchProduct() {
@@ -548,6 +512,7 @@ export default function ProductPage({
               ...(campaignApplies && activeCampaign ? { campaignSlug: activeCampaign.slug } : {}),
               ...(discountCode ? { discountCode } : {}),
               ...(!token && phoneDigits ? { phone: phoneDigits } : {}),
+              ...openAiCheckoutFields(),
             }),
           })
           const data = await response.json().catch(() => ({}))
@@ -700,7 +665,7 @@ export default function ProductPage({
   const displayServings = getServings(product.title)
 
   return (
-    <div className={`min-h-screen ${showStickyAddToCart ? 'pb-20' : ''}`}>
+    <div className="min-h-screen pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">
       {slug === 'bogo' && bogoTimeLeftText && (
         <div className={`fixed left-0 right-0 z-30 ${activeCampaign ? 'top-[108px]' : 'top-[104px]'} bg-[#187254] text-white shadow-md`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
@@ -1143,7 +1108,7 @@ export default function ProductPage({
                   )}
                 </div>
 
-                <div ref={mainButtonRef} className={isAvailable ? 'grid grid-cols-2 gap-2.5' : ''}>
+                <div className={`hidden md:grid ${isAvailable ? 'grid-cols-2 gap-2.5' : ''}`}>
                   <button
                     type="button"
                     onClick={handleAddToCart}
@@ -1342,7 +1307,7 @@ export default function ProductPage({
                   </div>
 
                   {/* INGREDIENTS Accordion */}
-                  <div className="border-b border-gray-200" ref={ingredientsRef}>
+                  <div className="border-b border-gray-200">
                     <button
                       onClick={() => toggleAccordion('ingredients')}
                       className="w-full flex items-center justify-between py-4 text-left"
@@ -1646,34 +1611,32 @@ export default function ProductPage({
         </div>
       </section>
 
-      {/* Sticky Add to Cart - appears when hero scrolls out of view */}
-      {showStickyAddToCart && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)] py-3 px-4 block md:hidden">
-          <div className={isAvailable ? 'grid grid-cols-2 gap-2.5' : ''}>
+      {/* Mobile sticky Add to Cart / Buy Now — always visible, not scroll-gated */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)] py-3 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden">
+        <div className={isAvailable ? 'grid grid-cols-2 gap-2.5' : ''}>
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={!isAvailable || isCheckingOut}
+            className={`min-w-0 py-3 px-3 font-bold text-sm uppercase tracking-wide transition-colors disabled:opacity-60 ${!isAvailable
+              ? 'w-full bg-gray-200 text-gray-500 cursor-not-allowed'
+              : 'bg-black text-white hover:bg-gray-800'
+              }`}
+          >
+            {!isAvailable ? 'Out of Stock' : 'Add to Cart'}
+          </button>
+          {isAvailable && (
             <button
               type="button"
-              onClick={handleAddToCart}
-              disabled={!isAvailable || isCheckingOut}
-              className={`min-w-0 py-3 px-3 font-bold text-sm uppercase tracking-wide transition-colors disabled:opacity-60 ${!isAvailable
-                ? 'w-full bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-black text-white hover:bg-gray-800'
-                }`}
+              onClick={handleBuyNow}
+              disabled={isCheckingOut}
+              className="min-w-0 py-3 px-3 font-bold text-sm uppercase tracking-wide text-white bg-[#197455] hover:bg-[#146048] transition-colors disabled:opacity-60"
             >
-              {!isAvailable ? 'Out of Stock' : 'Add to Cart'}
+              {isCheckingOut ? 'Please Wait' : 'Buy Now'}
             </button>
-            {isAvailable && (
-              <button
-                type="button"
-                onClick={handleBuyNow}
-                disabled={isCheckingOut}
-                className="min-w-0 py-3 px-3 font-bold text-sm uppercase tracking-wide text-white bg-[#197455] hover:bg-[#146048] transition-colors disabled:opacity-60"
-              >
-                {isCheckingOut ? 'Please Wait' : 'Buy Now'}
-              </button>
-            )}
-          </div>
+          )}
         </div>
-      )}
+      </div>
       {checkoutOtpModal}
     </div>
   )

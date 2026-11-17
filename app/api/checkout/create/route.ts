@@ -88,7 +88,14 @@ export async function POST(request: NextRequest) {
 
     // Get cart items and optional discount code from request body
     const body = await request.json()
-    const { items, discountCode, campaignSlug, phone: submittedPhone }: { items: CartItem[]; discountCode?: string; campaignSlug?: string; phone?: string } = body
+    const { items, discountCode, campaignSlug, phone: submittedPhone, openaiOppref, openaiObref }: {
+      items: CartItem[]
+      discountCode?: string
+      campaignSlug?: string
+      phone?: string
+      openaiOppref?: string
+      openaiObref?: string
+    } = body
 
     if (!phone && typeof submittedPhone === 'string') {
       const digits = submittedPhone.replace(/\D/g, '').slice(-10)
@@ -172,6 +179,13 @@ export async function POST(request: NextRequest) {
       lines: cartLines,
     }
 
+    const cartAttribute = (key: string, value: unknown) => {
+      if (typeof value !== 'string') return null
+      const trimmed = value.trim()
+      if (!trimmed || /[\r\n]/.test(trimmed)) return null
+      return { key, value: trimmed.slice(0, 500) }
+    }
+
     const attributes: Array<{ key: string; value: string }> = []
     if (phone) {
       attributes.push({ key: 'user_phone', value: phone })
@@ -179,6 +193,10 @@ export async function POST(request: NextRequest) {
     if (campaignSlug) {
       attributes.push({ key: 'campaign_slug', value: campaignSlug })
     }
+    const opprefAttr = cartAttribute('openai_oppref', openaiOppref)
+    const obrefAttr = cartAttribute('openai_obref', openaiObref)
+    if (opprefAttr) attributes.push(opprefAttr)
+    if (obrefAttr) attributes.push(obrefAttr)
 
     if (attributes.length > 0) {
       cartInput.attributes = attributes
@@ -225,13 +243,7 @@ export async function POST(request: NextRequest) {
     let checkoutUrl = cartResult.cartCreate.cart.checkoutUrl
 
     // Update cart attributes to ensure user_phone and campaign_slug are set
-    const updateAttrs: Array<{ key: string; value: string }> = []
-    if (phone) {
-      updateAttrs.push({ key: 'user_phone', value: phone })
-    }
-    if (campaignSlug) {
-      updateAttrs.push({ key: 'campaign_slug', value: campaignSlug })
-    }
+    const updateAttrs: Array<{ key: string; value: string }> = [...attributes]
 
     if (updateAttrs.length > 0) {
       try {

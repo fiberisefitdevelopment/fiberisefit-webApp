@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCampaignStore } from '@/store/campaignStore'
 import { getPdCheckoutDiscountCode } from '@/lib/hidden-products'
 import { trackInitiateCheckout } from '@/lib/meta-pixel'
+import { openAiCheckoutFields } from '@/lib/openai-pixel'
 import { useCheckoutOtp } from '@/hooks/useCheckoutOtp'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -176,6 +177,7 @@ export default function CartDrawer({ isolatedPurchase = false }: CartDrawerProps
             pdCheckoutDiscountCode,
           campaignSlug: isCampaignValid ? activeCampaign?.slug : undefined,
           ...(!token && phoneDigits ? { phone: phoneDigits } : {}),
+          ...openAiCheckoutFields(),
         }),
       })
 

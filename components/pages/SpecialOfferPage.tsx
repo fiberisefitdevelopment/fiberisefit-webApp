@@ -25,6 +25,7 @@ import {
 } from '@/lib/starter-pack-hero'
 import { formatInr } from '@/lib/utils'
 import { trackAddToCart, trackInitiateCheckout, trackViewContent } from '@/lib/meta-pixel'
+import { openAiCheckoutFields } from '@/lib/openai-pixel'
 import { useCheckoutOtp } from '@/hooks/useCheckoutOtp'
 import SlidingImageGallery from '@/components/SlidingImageGallery'
 
@@ -340,6 +341,7 @@ export default function SpecialOfferPage({
                 },
               ],
               ...(!token && phoneDigits ? { phone: phoneDigits } : {}),
+              ...openAiCheckoutFields(),
             }),
           })
           const data = await response.json().catch(() => ({}))

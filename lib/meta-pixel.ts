@@ -1,3 +1,5 @@
+import { trackOpenAiCheckout, trackOpenAiContents } from '@/lib/openai-pixel'
+
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void
@@ -42,16 +44,30 @@ function productPayload(item: PixelProduct) {
   }
 }
 
+function trackOpenAiFromProduct(
+  event: 'contents_viewed' | 'items_added',
+  item: PixelProduct
+) {
+  trackOpenAiContents(event, {
+    contentName: item.contentName,
+    contentIds: uniqueNumericIds(item.contentIds),
+    value: item.value,
+    quantity: item.quantity,
+  })
+}
+
 export function trackViewContent(item: PixelProduct) {
   const payload = productPayload(item)
   if (!payload.content_ids.length) return
   trackMetaEvent('ViewContent', payload)
+  trackOpenAiFromProduct('contents_viewed', item)
 }
 
 export function trackAddToCart(item: PixelProduct) {
   const payload = productPayload(item)
   if (!payload.content_ids.length) return
   trackMetaEvent('AddToCart', payload)
+  trackOpenAiFromProduct('items_added', item)
 }
 
 export function trackInitiateCheckout(items: PixelProduct[], value: number) {
@@ -70,4 +86,13 @@ export function trackInitiateCheckout(items: PixelProduct[], value: number) {
     currency: 'INR',
     num_items: items.reduce((sum, item) => sum + (item.quantity || 1), 0),
   })
+  trackOpenAiCheckout(
+    items.map((item) => ({
+      contentName: item.contentName,
+      contentIds: uniqueNumericIds(item.contentIds),
+      value: item.value,
+      quantity: item.quantity,
+    })),
+    value
+  )
 }

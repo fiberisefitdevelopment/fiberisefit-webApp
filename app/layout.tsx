@@ -4,6 +4,7 @@ import { Montserrat, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import SiteChrome from '@/components/SiteChrome'
 import { AuthProvider } from '@/contexts/AuthContext'
+import OpenAIPixel from "@/components/openAiPixel";
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '907008275541276'
 
 const montserrat = Montserrat({
@@ -54,6 +55,8 @@ export const metadata: Metadata = {
     images: [OG_IMAGE],
   },
 }
+
+
 
 export default function RootLayout({
   children,
@@ -129,6 +132,7 @@ export default function RootLayout({
       </head>
       <body className={montserrat.className} suppressHydrationWarning>
         {/* GTM noscript fallback — zero JS cost */}
+        <OpenAIPixel />
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-W8MBF3JG"
