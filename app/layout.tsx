@@ -70,7 +70,7 @@ export default function RootLayout({
         <link
           rel="preload"
           as="image"
-          href="/banners/optimized/Starter_PACK_Banner_Mobile.webp"
+          href="/banners/optimized/transformation-pack-mobile.webp"
           type="image/webp"
           media="(max-width: 767px)"
           fetchPriority="high"
@@ -78,7 +78,7 @@ export default function RootLayout({
         <link
           rel="preload"
           as="image"
-          href="/banners/optimized/Starter_Pack_Banner_Desktop.webp"
+          href="/banners/optimized/transformation-pack-desktop.webp"
           type="image/webp"
           media="(min-width: 768px)"
           fetchPriority="high"
