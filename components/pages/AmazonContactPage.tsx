@@ -1,7 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import { FlaskConical, Headphones, Mail, MapPin, Package, Phone, User } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Check, FlaskConical, Headphones, Mail, MapPin, Package, Phone, User } from 'lucide-react'
+import { requestWhatsAppOtp } from '@/lib/whatsapp-login'
 
 const emptyForm = {
   name: '',
@@ -18,6 +19,74 @@ export default function AmazonContactPage() {
   const [feedback, setFeedback] = useState('')
   const [pinLookup, setPinLookup] = useState<'idle' | 'loading' | 'error'>('idle')
   const pinRequestRef = useRef(0)
+  const [otp, setOtp] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [otpBusy, setOtpBusy] = useState<'send' | 'verify' | null>(null)
+  const [otpMessage, setOtpMessage] = useState('')
+  const [otpError, setOtpError] = useState('')
+  const [resendIn, setResendIn] = useState(0)
+
+  useEffect(() => {
+    if (resendIn <= 0) return
+    const timer = window.setTimeout(() => setResendIn((seconds) => seconds - 1), 1000)
+    return () => window.clearTimeout(timer)
+  }, [resendIn])
+
+  const resetPhoneVerification = () => {
+    setPhoneVerified(false)
+    setOtp('')
+    setOtpSent(false)
+    setOtpMessage('')
+    setOtpError('')
+    setResendIn(0)
+    setOtpBusy(null)
+  }
+
+  const sendOtp = async () => {
+    if (formData.phone.length !== 10 || otpBusy || phoneVerified) return
+    setOtpBusy('send')
+    setOtpError('')
+    try {
+      const result = await requestWhatsAppOtp(formData.phone)
+      setOtpSent(true)
+      setResendIn(result.expiresIn || 300)
+      setOtpMessage(
+        result.alreadySent
+          ? 'A code is already on WhatsApp. Enter that code.'
+          : `Code sent by WhatsApp to +91 ${formData.phone}`
+      )
+    } catch (error) {
+      setOtpError(error instanceof Error ? error.message : 'Could not send the WhatsApp code.')
+    } finally {
+      setOtpBusy(null)
+    }
+  }
+
+  const verifyOtp = async () => {
+    if (otp.replace(/\D/g, '').length !== 6 || otpBusy) return
+    setOtpBusy('verify')
+    setOtpError('')
+    try {
+      const response = await fetch('/api/otp/whatsapp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formData.phone, otp }),
+      })
+      const body = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(typeof body.error === 'string' ? body.error : 'That code did not match.')
+      }
+      setPhoneVerified(true)
+      setOtpSent(false)
+      setOtp('')
+      setOtpMessage('Phone number verified.')
+    } catch (error) {
+      setOtpError(error instanceof Error ? error.message : 'Could not verify the code.')
+    } finally {
+      setOtpBusy(null)
+    }
+  }
 
   const setField = (key: keyof typeof emptyForm, value: string) => {
     setFormData((current) => ({ ...current, [key]: value }))
@@ -57,6 +126,11 @@ export default function AmazonContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (status === 'loading') return
+    if (!phoneVerified) {
+      setStatus('error')
+      setFeedback('Please verify your phone number with the WhatsApp OTP first.')
+      return
+    }
     setStatus('loading')
     setFeedback('')
 
@@ -72,6 +146,7 @@ export default function AmazonContactPage() {
           pincode: formData.pincode,
           city: formData.city,
           state: formData.state,
+          phoneVerified: true,
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -84,6 +159,7 @@ export default function AmazonContactPage() {
       setFeedback(data.message || 'Thank you. We will get back to you within 24 hours.')
       setFormData(emptyForm)
       setPinLookup('idle')
+      resetPhoneVerification()
     } catch {
       setStatus('error')
       setFeedback('Something went wrong. Please try again.')
@@ -151,10 +227,10 @@ export default function AmazonContactPage() {
                   </span>
                 </label>
 
-                <label className="block">
+                <div>
                   <span className="block text-sm font-medium text-[#3f3f3f] mb-1.5">Phone Number *</span>
-                  <span className="flex">
-                    <span className="inline-flex items-center rounded-l-xl border border-r-0 border-[#e6e1d8] bg-[#f3eee6] px-3 text-sm text-[#5c5c5c]">
+                  <div className="flex h-12 overflow-hidden rounded-xl border border-[#e6e1d8] bg-[#faf9f6] focus-within:ring-2 focus-within:ring-black/80 focus-within:border-transparent">
+                    <span className="inline-flex shrink-0 items-center border-r border-[#e6e1d8] bg-[#f3eee6] px-3 text-sm text-[#5c5c5c]">
                       +91
                     </span>
                     <input
@@ -164,11 +240,63 @@ export default function AmazonContactPage() {
                       autoComplete="tel"
                       placeholder="Enter your mobile number"
                       value={formData.phone}
-                      onChange={(e) => setField('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      className={`${inputClass} rounded-l-none`}
+                      onChange={(e) => {
+                        setField('phone', e.target.value.replace(/\D/g, '').slice(0, 10))
+                        resetPhoneVerification()
+                      }}
+                      className="min-w-0 flex-1 bg-transparent px-4 text-[#1a1a1a] placeholder:text-gray-400 outline-none"
                     />
-                  </span>
-                </label>
+                  </div>
+                  {phoneVerified ? (
+                    <div className="mt-3 flex h-12 items-center justify-center gap-2 rounded-xl border border-[#cfe3d6] bg-[#eaf6ee] text-sm font-semibold text-[#1b4332]">
+                      <Check className="h-4 w-4" />
+                      WhatsApp number verified
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void sendOtp()}
+                      disabled={formData.phone.length !== 10 || otpBusy !== null || (otpSent && resendIn > 0)}
+                      className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] text-sm font-semibold text-white hover:bg-[#1DA851] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <WhatsAppIcon />
+                      {otpBusy === 'send' ? 'Sending OTP…' : otpSent ? 'Resend WhatsApp OTP' : 'Send OTP on WhatsApp'}
+                    </button>
+                  )}
+                  {otpSent && !phoneVerified && (
+                    <div className="mt-3 space-y-3">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        maxLength={6}
+                        placeholder="6-digit WhatsApp code"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        className={`${inputClass} h-12 text-center tracking-[0.35em]`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void verifyOtp()}
+                        disabled={otp.length !== 6 || otpBusy !== null}
+                        className="flex h-12 w-full items-center justify-center rounded-xl bg-[#25D366] text-sm font-semibold text-white hover:bg-[#1DA851] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {otpBusy === 'verify' ? 'Verifying…' : 'Verify OTP'}
+                      </button>
+                    </div>
+                  )}
+                  {(otpMessage || otpError) && (
+                    <p className={`mt-1.5 text-xs ${otpError ? 'text-red-600' : 'text-[#2b5844]'}`}>
+                      {otpError || otpMessage}
+                    </p>
+                  )}
+                  {otpSent && !phoneVerified && resendIn > 0 && (
+                    <p className="mt-1 text-xs text-[#6b6b6b]">
+                      You can resend after {Math.floor(resendIn / 60)}:
+                      {String(resendIn % 60).padStart(2, '0')}.
+                    </p>
+                  )}
+                </div>
 
                 <label className="block">
                   <span className="block text-sm font-medium text-[#3f3f3f] mb-1.5">Email Address *</span>
@@ -244,11 +372,26 @@ export default function AmazonContactPage() {
 
                 <button
                   type="submit"
-                  disabled={status === 'loading' || pinLookup === 'loading' || !formData.city || !formData.state}
-                  className="w-full rounded-xl bg-[#2b5844] text-white py-3.5 text-sm font-semibold uppercase tracking-[0.16em] hover:bg-[#244a39] transition-colors disabled:opacity-60"
+                  disabled={
+                    status === 'loading' ||
+                    pinLookup === 'loading' ||
+                    !formData.city ||
+                    !formData.state ||
+                    !phoneVerified
+                  }
+                  className={`w-full rounded-xl py-3.5 text-sm font-semibold uppercase tracking-[0.16em] transition-colors disabled:cursor-not-allowed ${
+                    phoneVerified
+                      ? 'bg-[#2b5844] text-white hover:bg-[#244a39] disabled:opacity-60'
+                      : 'bg-[#cfd6d2] text-white/80 pointer-events-none'
+                  }`}
                 >
                   {status === 'loading' ? 'Sending request…' : 'Request Consultation'}
                 </button>
+                {!phoneVerified && (
+                  <p className="text-center text-xs text-[#6b6b6b]">
+                    Verify your WhatsApp number to continue.
+                  </p>
+                )}
               </form>
 
               {feedback && (
@@ -311,5 +454,16 @@ export default function AmazonContactPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function WhatsAppIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M12.04 2C6.58 2 2.15 6.43 2.15 11.89c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.89-4.43 9.89-9.89C21.94 6.43 17.5 2 12.04 2Zm5.8 14.01c-.24.68-1.4 1.29-1.93 1.37-.49.07-1.1.1-1.77-.11-.41-.13-.93-.3-1.61-.59-2.83-1.22-4.67-4.08-4.81-4.27-.14-.19-1.15-1.53-1.15-2.92 0-1.39.73-2.07 1-2.35.24-.25.64-.36.85-.36h.61c.2 0 .46-.04.72.55.27.61.91 2.11.99 2.26.08.16.13.34.03.54-.1.2-.15.33-.3.51-.15.18-.31.4-.44.53-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.36 1.46.3.15.47.12.64-.07.18-.2.73-.85.93-1.14.2-.3.39-.24.66-.14.27.1 1.7.8 1.99.95.29.14.48.22.55.34.07.12.07.7-.17 1.38Z"
+      />
+    </svg>
   )
 }

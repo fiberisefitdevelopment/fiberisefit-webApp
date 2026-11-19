@@ -31,6 +31,12 @@ export async function POST(request: NextRequest) {
       if (!/^\d{10}$/.test(phone)) {
         return NextResponse.json({ error: 'Enter a valid 10-digit mobile number.' }, { status: 400 })
       }
+      if (body.phoneVerified !== true) {
+        return NextResponse.json(
+          { error: 'Please verify your phone number with the WhatsApp OTP first.' },
+          { status: 400 }
+        )
+      }
       if (!/^\d{6}$/.test(pincode)) {
         return NextResponse.json({ error: 'Enter a valid 6-digit pincode.' }, { status: 400 })
       }
@@ -68,6 +74,7 @@ export async function POST(request: NextRequest) {
         createdAt: new Date(),
         status: 'new',
         source,
+        phoneVerified: body.phoneVerified === true,
       })
     } else {
       await adminDb.collection('userFeedback').add({
