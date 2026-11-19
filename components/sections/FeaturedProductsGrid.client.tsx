@@ -335,11 +335,11 @@ function MobileLoopCarousel({
     const el = scrollerRef.current
     if (!el) return null
     const cards = [...el.querySelectorAll<HTMLElement>('[data-copy]')]
-    const probe = el.scrollLeft + el.clientWidth * 0.35
+    const probe = el.scrollLeft + el.clientWidth / 2
     let best: HTMLElement | null = null
     let bestDist = Infinity
     for (const card of cards) {
-      const dist = Math.abs(card.offsetLeft - probe)
+      const dist = Math.abs(card.offsetLeft + card.offsetWidth / 2 - probe)
       if (dist < bestDist) {
         bestDist = dist
         best = card
@@ -348,14 +348,18 @@ function MobileLoopCarousel({
     return best
   }, [])
 
+  const scrollToCard = useCallback((card: HTMLElement, el: HTMLDivElement) => {
+    el.scrollLeft = card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2
+  }, [])
+
   const jumpToMiddle = useCallback(() => {
     const el = scrollerRef.current
-    const width = copyWidth()
-    if (!el || width < 8) return false
+    const card = cardAt(1, 0)
+    if (!el || !card) return false
     el.style.scrollSnapType = 'none'
-    el.scrollLeft = width
+    scrollToCard(card, el)
     return true
-  }, [copyWidth])
+  }, [cardAt, scrollToCard])
 
   const wrapIfNeeded = useCallback(() => {
     if (!readyRef.current) return
@@ -365,8 +369,13 @@ function MobileLoopCarousel({
     const card = nearest()
     if (!card) return
     const copy = Number(card.dataset.copy)
-    if (copy === 0) el.scrollLeft += width
-    else if (copy === 2) el.scrollLeft -= width
+    if (copy === 0 || copy === 2) {
+      el.style.scrollSnapType = 'none'
+      el.scrollLeft += copy === 0 ? width : -width
+      requestAnimationFrame(() => {
+        el.style.scrollSnapType = ''
+      })
+    }
     const after = nearest()
     if (after?.dataset.index) setActiveIndex(Number(after.dataset.index))
   }, [copyWidth, nearest])
@@ -422,7 +431,7 @@ function MobileLoopCarousel({
         role="region"
         aria-roledescription="carousel"
         aria-label="Product packs"
-        className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide overscroll-x-contain pb-1 pl-4 pr-4"
+        className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide overscroll-x-contain pb-1 px-[9%]"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {[0, 1, 2].flatMap((copy) =>
@@ -436,7 +445,7 @@ function MobileLoopCarousel({
               onAddToCart={onAddToCart}
               onBuyNow={onBuyNow}
               onOpenCart={onOpenCart}
-              className="w-[86%] shrink-0 snap-start [scroll-snap-stop:always]"
+              className="w-[82%] shrink-0 snap-center [scroll-snap-stop:always]"
               copy={copy}
               index={index}
             />

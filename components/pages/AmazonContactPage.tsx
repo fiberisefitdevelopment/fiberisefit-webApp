@@ -245,7 +245,7 @@ export default function AmazonContactPage() {
                 <button
                   type="submit"
                   disabled={status === 'loading' || pinLookup === 'loading' || !formData.city || !formData.state}
-                  className="w-full rounded-xl bg-[#1a1a1a] text-white py-3.5 text-sm font-semibold uppercase tracking-[0.16em] hover:bg-black transition-colors disabled:opacity-60"
+                  className="w-full rounded-xl bg-[#2b5844] text-white py-3.5 text-sm font-semibold uppercase tracking-[0.16em] hover:bg-[#244a39] transition-colors disabled:opacity-60"
                 >
                   {status === 'loading' ? 'Sending request…' : 'Request Consultation'}
                 </button>
