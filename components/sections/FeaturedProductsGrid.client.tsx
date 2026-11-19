@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Check, Loader2, ShoppingCart, Star, Zap } from 'lucide-react'
@@ -33,6 +33,14 @@ function cardOrderClass(title: string): string {
   if (t.includes('ultimate')) return 'order-2 md:order-1'
   if (t.includes('elite')) return 'order-3'
   return ''
+}
+
+function mobileCatalogRank(title: string): number {
+  const t = title.toLowerCase()
+  if (t.includes('transformation')) return 0
+  if (t.includes('ultimate')) return 1
+  if (t.includes('elite')) return 2
+  return 3
 }
 
 function getCardConfig(title: string): CardConfig {
@@ -118,6 +126,337 @@ function StarRow({ score }: { score: number }) {
   )
 }
 
+type CardShellProps = {
+  product: StorefrontProduct
+  className?: string
+  ariaHidden?: boolean
+  copy?: number
+  index?: number
+  buyingId: string | null
+  inCart: boolean
+  onAddToCart: (product: StorefrontProduct, comparePrice: number) => void
+  onBuyNow: (product: StorefrontProduct) => void
+  onOpenCart: () => void
+}
+
+function ProductCard({
+  product,
+  className = '',
+  ariaHidden,
+  copy,
+  index,
+  buyingId,
+  inCart,
+  onAddToCart,
+  onBuyNow,
+  onOpenCart,
+}: CardShellProps) {
+  const cfg = getCardConfig(product.title)
+  const displayPrice = product.price
+  const comparePrice =
+    product.comparePrice && product.comparePrice > displayPrice
+      ? product.comparePrice
+      : cfg.comparePrice
+  const isAvailable = product.available
+
+  return (
+    <article
+      aria-hidden={ariaHidden || undefined}
+      {...(typeof copy === 'number' ? { 'data-copy': copy, 'data-index': index } : {})}
+      className={`relative flex flex-col rounded-2xl overflow-hidden transition-[border-color,box-shadow] duration-300 ease-out ${cfg.wrapperClass} ${className}`}
+    >
+      {cfg.hasBadge && cfg.isTopBanner ? (
+        <div
+          className="text-center py-2.5 text-[13px] font-black tracking-widest uppercase shadow-sm"
+          style={{ background: cfg.badgeBg, color: cfg.badgeTextColor }}
+        >
+          {cfg.badgeText}
+        </div>
+      ) : (
+        <div className="pt-10" />
+      )}
+
+      <div className={`text-center px-6 ${cfg.isTopBanner ? 'pt-5' : 'pt-2'}`}>
+        <Link href={`/products/${product.slug}`} tabIndex={ariaHidden ? -1 : undefined}>
+          <h3 className="text-[24px] md:text-[26px] font-normal text-gray-900 leading-snug tracking-wide hover:opacity-75 transition-opacity">
+            {cfg.title}
+          </h3>
+        </Link>
+        <p className="text-sm text-gray-500 mt-1">{cfg.subtitle}</p>
+      </div>
+
+      <Link
+        href={`/products/${product.slug}`}
+        className="block px-6 mt-5 mb-1"
+        tabIndex={ariaHidden ? -1 : undefined}
+      >
+        <div className="relative w-full aspect-square overflow-hidden rounded-[11%] group">
+          <Image
+            src={product.image || '/placeholder-product.png'}
+            alt={product.title}
+            fill
+            loading="lazy"
+            sizes="(max-width: 768px) 78vw, (max-width: 1200px) 320px, 340px"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        </div>
+      </Link>
+
+      <div className="px-6 pb-6 mt-3 flex flex-col flex-grow text-center">
+        <p className="text-sm text-gray-500 mt-1">{cfg.bottomTextSmall}</p>
+
+        <div className="mt-4 flex items-end justify-center gap-2 flex-wrap">
+          <span className="text-lg text-gray-500 line-through font-light">₹{comparePrice}</span>
+          <span className={`text-4xl leading-none ${cfg.priceColorClass || 'font-normal text-gray-900'}`}>
+            ₹{displayPrice}
+          </span>
+        </div>
+
+        <p className="mt-2 text-sm text-gray-500 flex justify-center items-center">
+          {comparePrice > displayPrice && (
+            <span>
+              Save{' '}
+              <span className="text-red-500 font-bold ml-0.5">
+                {Math.round(((comparePrice - displayPrice) / comparePrice) * 100)}%
+              </span>
+            </span>
+          )}
+        </p>
+
+        <div className="mt-5 flex items-center gap-2">
+          <button
+            type="button"
+            aria-label={
+              !isAvailable ? 'Out of stock' : inCart ? 'Already added to cart' : 'Add to cart'
+            }
+            aria-pressed={inCart}
+            title={inCart ? 'Already added' : 'Add to cart'}
+            tabIndex={ariaHidden ? -1 : undefined}
+            onClick={() => {
+              if (!isAvailable) return
+              if (inCart) {
+                onOpenCart()
+                return
+              }
+              onAddToCart(product, comparePrice)
+            }}
+            disabled={!isAvailable}
+            className={`flex h-11 w-12 shrink-0 items-center justify-center rounded-[10px] transition-colors active:scale-95 ${
+              !isAvailable
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : inCart
+                  ? 'bg-[#1b2744] text-white hover:bg-[#243256]'
+                  : 'bg-[#f0c44a] text-[#1a1a1a] hover:bg-[#e4b63a]'
+            }`}
+          >
+            {inCart ? (
+              <Check className="h-[18px] w-[18px]" strokeWidth={2.75} />
+            ) : (
+              <ShoppingCart className="h-[18px] w-[18px]" strokeWidth={2.25} />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => onBuyNow(product)}
+            disabled={!isAvailable || buyingId === product.id}
+            tabIndex={ariaHidden ? -1 : undefined}
+            className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[10px] text-[15px] font-semibold tracking-wide transition-colors active:scale-[0.99] ${
+              isAvailable
+                ? 'bg-[#1b2744] text-white hover:bg-[#243256]'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {buyingId === product.id ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Buy Now
+              </>
+            ) : isAvailable ? (
+              <>
+                <Zap className="h-4 w-4 fill-current" strokeWidth={2} />
+                Buy Now
+              </>
+            ) : (
+              'Out of stock'
+            )}
+          </button>
+        </div>
+
+        <div className="mt-4 flex items-center justify-center gap-1.5">
+          <StarRow score={cfg.ratingScore} />
+          <span className="text-[13px] font-semibold text-gray-800">{cfg.rating}/5</span>
+        </div>
+
+        <p className="mt-4 text-[11px] text-gray-400 tracking-wide">
+          Free shipping · Secure checkout · No added sugar
+        </p>
+      </div>
+    </article>
+  )
+}
+
+function MobileLoopCarousel({
+  products,
+  buyingId,
+  cartItems,
+  onAddToCart,
+  onBuyNow,
+  onOpenCart,
+}: {
+  products: StorefrontProduct[]
+  buyingId: string | null
+  cartItems: { id: string }[]
+  onAddToCart: (product: StorefrontProduct, comparePrice: number) => void
+  onBuyNow: (product: StorefrontProduct) => void
+  onOpenCart: () => void
+}) {
+  const slides = useMemo(
+    () => [...products].sort((a, b) => mobileCatalogRank(a.title) - mobileCatalogRank(b.title)),
+    [products]
+  )
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const readyRef = useRef(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  const cardAt = useCallback((copy: number, index: number) => {
+    const el = scrollerRef.current
+    if (!el) return null
+    return el.querySelector<HTMLElement>(`[data-copy="${copy}"][data-index="${index}"]`)
+  }, [])
+
+  const copyWidth = useCallback(() => {
+    const a = cardAt(0, 0)
+    const b = cardAt(1, 0)
+    if (!a || !b) return 0
+    return b.offsetLeft - a.offsetLeft
+  }, [cardAt])
+
+  const nearest = useCallback(() => {
+    const el = scrollerRef.current
+    if (!el) return null
+    const cards = [...el.querySelectorAll<HTMLElement>('[data-copy]')]
+    const probe = el.scrollLeft + el.clientWidth * 0.35
+    let best: HTMLElement | null = null
+    let bestDist = Infinity
+    for (const card of cards) {
+      const dist = Math.abs(card.offsetLeft - probe)
+      if (dist < bestDist) {
+        bestDist = dist
+        best = card
+      }
+    }
+    return best
+  }, [])
+
+  const jumpToMiddle = useCallback(() => {
+    const el = scrollerRef.current
+    const width = copyWidth()
+    if (!el || width < 8) return false
+    el.style.scrollSnapType = 'none'
+    el.scrollLeft = width
+    return true
+  }, [copyWidth])
+
+  const wrapIfNeeded = useCallback(() => {
+    if (!readyRef.current) return
+    const el = scrollerRef.current
+    const width = copyWidth()
+    if (!el || width < 8) return
+    const card = nearest()
+    if (!card) return
+    const copy = Number(card.dataset.copy)
+    if (copy === 0) el.scrollLeft += width
+    else if (copy === 2) el.scrollLeft -= width
+    const after = nearest()
+    if (after?.dataset.index) setActiveIndex(Number(after.dataset.index))
+  }, [copyWidth, nearest])
+
+  useLayoutEffect(() => {
+    const el = scrollerRef.current
+    if (!el || slides.length === 0) return
+    readyRef.current = false
+
+    const place = () => {
+      if (!jumpToMiddle()) return
+      requestAnimationFrame(() => {
+        el.style.scrollSnapType = ''
+        readyRef.current = true
+        setActiveIndex(0)
+      })
+    }
+
+    place()
+    const raf = requestAnimationFrame(place)
+    const later = window.setTimeout(place, 150)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.clearTimeout(later)
+    }
+  }, [jumpToMiddle, slides.length])
+
+  useEffect(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    let timer = 0
+    const onScroll = () => {
+      if (!readyRef.current) return
+      const card = nearest()
+      if (card?.dataset.index) setActiveIndex(Number(card.dataset.index))
+      window.clearTimeout(timer)
+      timer = window.setTimeout(wrapIfNeeded, 80)
+    }
+    const onScrollEnd = () => wrapIfNeeded()
+    el.addEventListener('scroll', onScroll, { passive: true })
+    el.addEventListener('scrollend', onScrollEnd)
+    return () => {
+      window.clearTimeout(timer)
+      el.removeEventListener('scroll', onScroll)
+      el.removeEventListener('scrollend', onScrollEnd)
+    }
+  }, [nearest, wrapIfNeeded])
+
+  return (
+    <div className="md:hidden -mx-4 sm:-mx-6">
+      <div
+        ref={scrollerRef}
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Product packs"
+        className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide overscroll-x-contain pb-1 pl-4 pr-4"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        {[0, 1, 2].flatMap((copy) =>
+          slides.map((product, index) => (
+            <ProductCard
+              key={`${copy}-${product.id}`}
+              product={product}
+              ariaHidden={copy !== 1}
+              buyingId={buyingId}
+              inCart={cartItems.some((item) => item.id === product.id)}
+              onAddToCart={onAddToCart}
+              onBuyNow={onBuyNow}
+              onOpenCart={onOpenCart}
+              className="w-[86%] shrink-0 snap-start [scroll-snap-stop:always]"
+              copy={copy}
+              index={index}
+            />
+          ))
+        )}
+      </div>
+      <div className="flex justify-center gap-2 mt-5" aria-hidden>
+        {slides.map((product, index) => (
+          <span
+            key={product.id}
+            className={`h-1.5 rounded-full transition-all ${
+              index === activeIndex ? 'w-6 bg-[#1b2744]' : 'w-1.5 bg-[#1b2744]/25'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 type FeaturedProductsGridProps = {
   products: StorefrontProduct[]
 }
@@ -187,162 +526,46 @@ export default function FeaturedProductsGrid({ products }: FeaturedProductsGridP
     })
   }
 
+  const onAddToCart = (product: StorefrontProduct, comparePrice: number) => {
+    addItem({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      compareAtPrice: comparePrice > product.price ? comparePrice : undefined,
+      image: product.image,
+      handle: product.slug,
+    })
+  }
+
   if (products.length === 0) {
     return <div className="text-center py-16 text-gray-400">No products found.</div>
   }
 
   return (
     <>
-    {checkoutOtpModal}
-    <div className="flex flex-col md:flex-row gap-8 md:gap-10 lg:gap-12 justify-center items-stretch flex-wrap">
-      {products.map((product) => {
-        const cfg = getCardConfig(product.title)
-        const displayPrice = product.price
-        const comparePrice =
-          product.comparePrice && product.comparePrice > displayPrice
-            ? product.comparePrice
-            : cfg.comparePrice
-        const isAvailable = product.available
-        const inCart = cartItems.some((item) => item.id === product.id)
-
-        return (
-          <div
+      {checkoutOtpModal}
+      <MobileLoopCarousel
+        products={products}
+        buyingId={buyingId}
+        cartItems={cartItems}
+        onAddToCart={onAddToCart}
+        onBuyNow={buyNow}
+        onOpenCart={openCart}
+      />
+      <div className="hidden md:flex md:flex-row gap-8 md:gap-10 lg:gap-12 justify-center items-stretch flex-wrap">
+        {products.map((product) => (
+          <ProductCard
             key={product.id}
-            className={`relative flex flex-col rounded-2xl overflow-hidden w-[88%] max-w-[340px] mx-auto md:mx-0 md:w-[320px] lg:w-[340px] transition-[border-color,box-shadow] duration-300 ease-out ${cardOrderClass(product.title)} ${cfg.wrapperClass}`}
-          >
-            {cfg.hasBadge && cfg.isTopBanner ? (
-              <div
-                className="text-center py-2.5 text-[13px] font-black tracking-widest uppercase shadow-sm"
-                style={{ background: cfg.badgeBg, color: cfg.badgeTextColor }}
-              >
-                {cfg.badgeText}
-              </div>
-            ) : (
-              <div className="pt-10" />
-            )}
-
-            <div className={`text-center px-6 ${cfg.isTopBanner ? 'pt-5' : 'pt-2'}`}>
-              <Link href={`/products/${product.slug}`}>
-                <h3 className="text-[24px] md:text-[26px] font-normal text-gray-900 leading-snug tracking-wide hover:opacity-75 transition-opacity">
-                  {cfg.title}
-                </h3>
-              </Link>
-              <p className="text-sm text-gray-500 mt-1">{cfg.subtitle}</p>
-            </div>
-
-            <Link href={`/products/${product.slug}`} className="block px-6 mt-5 mb-1">
-              <div className="relative w-full aspect-square overflow-hidden rounded-[11%] group">
-                <Image
-                  src={product.image || '/placeholder-product.png'}
-                  alt={product.title}
-                  fill
-                  loading="lazy"
-                  sizes="(max-width: 768px) 340px, (max-width: 1200px) 320px, 340px"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-            </Link>
-
-            <div className="px-6 pb-6 mt-3 flex flex-col flex-grow text-center">
-              <p className="text-sm text-gray-500 mt-1">{cfg.bottomTextSmall}</p>
-
-              <div className="mt-4 flex items-end justify-center gap-2 flex-wrap">
-                <span className="text-lg text-gray-500 line-through font-light">₹{comparePrice}</span>
-                <span
-                  className={`text-4xl leading-none ${cfg.priceColorClass || 'font-normal text-gray-900'}`}
-                >
-                  ₹{displayPrice}
-                </span>
-              </div>
-
-              <p className="mt-2 text-sm text-gray-500 flex justify-center items-center">
-                {comparePrice > displayPrice && (
-                  <span>
-                    Save{' '}
-                    <span className="text-red-500 font-bold ml-0.5">
-                      {Math.round(((comparePrice - displayPrice) / comparePrice) * 100)}%
-                    </span>
-                  </span>
-                )}
-              </p>
-
-              <div className="mt-5 flex items-center gap-2">
-                <button
-                  type="button"
-                  aria-label={
-                    !isAvailable ? 'Out of stock' : inCart ? 'Already added to cart' : 'Add to cart'
-                  }
-                  aria-pressed={inCart}
-                  title={inCart ? 'Already added' : 'Add to cart'}
-                  onClick={() => {
-                    if (!isAvailable) return
-                    if (inCart) {
-                      openCart()
-                      return
-                    }
-                    addItem({
-                      id: product.id,
-                      title: product.title,
-                      price: product.price,
-                      compareAtPrice: comparePrice > product.price ? comparePrice : undefined,
-                      image: product.image,
-                      handle: product.slug,
-                    })
-                  }}
-                  disabled={!isAvailable}
-                  className={`flex h-11 w-12 shrink-0 items-center justify-center rounded-[10px] transition-colors active:scale-95 ${
-                    !isAvailable
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : inCart
-                        ? 'bg-[#1b2744] text-white hover:bg-[#243256]'
-                        : 'bg-[#f0c44a] text-[#1a1a1a] hover:bg-[#e4b63a]'
-                  }`}
-                >
-                  {inCart ? (
-                    <Check className="h-[18px] w-[18px]" strokeWidth={2.75} />
-                  ) : (
-                    <ShoppingCart className="h-[18px] w-[18px]" strokeWidth={2.25} />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => buyNow(product)}
-                  disabled={!isAvailable || buyingId === product.id}
-                  className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[10px] text-[15px] font-semibold tracking-wide transition-colors active:scale-[0.99] ${
-                    isAvailable
-                      ? 'bg-[#1b2744] text-white hover:bg-[#243256]'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {buyingId === product.id ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Buy Now
-                    </>
-                  ) : isAvailable ? (
-                    <>
-                      <Zap className="h-4 w-4 fill-current" strokeWidth={2} />
-                      Buy Now
-                    </>
-                  ) : (
-                    'Out of stock'
-                  )}
-                </button>
-              </div>
-
-              <div className="mt-4 flex items-center justify-center gap-1.5">
-                <StarRow score={cfg.ratingScore} />
-                <span className="text-[13px] font-semibold text-gray-800">{cfg.rating}/5</span>
-              </div>
-
-              <p className="mt-4 text-[11px] text-gray-400 tracking-wide">
-                Free shipping · Secure checkout · No added sugar
-              </p>
-            </div>
-          </div>
-        )
-      })}
-    </div>
+            product={product}
+            buyingId={buyingId}
+            inCart={cartItems.some((item) => item.id === product.id)}
+            onAddToCart={onAddToCart}
+            onBuyNow={buyNow}
+            onOpenCart={openCart}
+            className={`w-[88%] max-w-[340px] mx-auto md:mx-0 md:w-[320px] lg:w-[340px] ${cardOrderClass(product.title)}`}
+          />
+        ))}
+      </div>
     </>
   )
 }

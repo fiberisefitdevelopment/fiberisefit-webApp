@@ -7,6 +7,9 @@ Disallow: /cart/
 Disallow: /account/
 Disallow: /private/
 Disallow: /temp/
+Disallow: /guide/
+Disallow: /contact/amazon
+Disallow: /contact/marketplace
 Disallow: /_next/
 
 Content-Signal: ai-train=yes, search=yes, ai-input=yes
