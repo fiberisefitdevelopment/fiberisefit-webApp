@@ -14,7 +14,7 @@ export default function HeroSection() {
           playsInline
           className="w-full h-full object-cover opacity-80"
         >
-          <source src="/videos/lyte.webm" type="video/webm" />
+          <source src="https://cdn.shopify.com/videos/c/o/v/553828017a6e4666a4df5c345ef58ea4.webm" type="video/webm" />
         </video>
         {/* Dark overlay for better text readability */}
         <div className="absolute inset-0 bg-black/30" />

@@ -118,7 +118,7 @@ export default function VideoSection() {
                   preload="none"
                   className="w-full h-full object-cover border-0 outline-none"
                 >
-                  <source src="/videos/conversion.webm" type="video/webm" />
+                  <source src="https://cdn.shopify.com/videos/c/o/v/c8adac45b8ba47f8b2f3d6b77b7bd970.webm" type="video/webm" />
                 </video>
               ) : (
                 <div className="w-full h-full bg-gray-100 animate-pulse" />

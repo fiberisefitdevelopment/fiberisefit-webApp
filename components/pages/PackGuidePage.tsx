@@ -216,7 +216,7 @@ export default function PackGuidePage() {
 
           <div className="overflow-hidden rounded-2xl border border-[#e8e4dc] bg-white mb-10 md:mb-14">
             <Image
-              src="/product page routine images/FIBERISE A+-11.png"
+              src="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-11.webp?v=1795155681"
               alt="From first sip to long-term shift: 30 minutes, 7 days, 30 days, 90 days"
               width={1600}
               height={900}

@@ -1381,7 +1381,7 @@ export default function ProductPage({
 
       {/* <div className="w-full relative mt-10">
         <Image
-          src="/product page routine images/FIBERISE A+-09.png"
+          src="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-09.webp?v=1795155681"
           alt="Lean-X advanced fiber nutrition"
           width={1920}
           height={1080}
@@ -1393,7 +1393,7 @@ export default function ProductPage({
       {/* Traditional dieting vs Fyber banner */}
       {/* <div className="w-full relative mt-8">
         <Image
-          src="/product page routine images/FIBERISE A+-10.png"
+          src="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-10.webp?v=1795155681"
           alt="Traditional dieting vs Fyber comparison"
           width={1920}
           height={1080}
@@ -1405,7 +1405,7 @@ export default function ProductPage({
       {/* From first sip to long-term shift banner */}
       {/* <div className="w-full relative mt-8">
         <Image
-          src="/product page routine images/FIBERISE A+-11.png"
+          src="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-11.webp?v=1795155681"
           alt="From first sip to long-term shift"
           width={1920}
           height={1080}
@@ -1417,7 +1417,7 @@ export default function ProductPage({
       {/* Revolutionary science behind Fyber banner */}
       {/* <div className="w-full relative mt-8">
         <Image
-          src="/product page routine images/FIBERISE A+-08.png"
+          src="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-08.webp?v=1795155681"
           alt="The revolutionary science behind Fyber"
           width={1920}
           height={1080}
@@ -1429,7 +1429,7 @@ export default function ProductPage({
       {/* Calm, intelligent, effortless well-being banner with marquee text */}
       {/* <div className="w-full relative mt-8 aspect-[9/16] sm:aspect-square md:aspect-auto md:h-[70vh]">
         <Image
-          src="/product page routine images/FIBERISE A+-16.png"
+          src="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-16.webp?v=1795155681"
           alt="Calm and effortless well-being"
           fill
           className="object-cover"

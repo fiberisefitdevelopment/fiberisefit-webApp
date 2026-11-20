@@ -32,6 +32,14 @@ export default function Header() {
   }, [hydrateCampaign])
 
   useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
     if (isCartOpen) setIsMobileMenuOpen(false)
   }, [isCartOpen])
 
@@ -46,23 +54,14 @@ export default function Header() {
     }
   }, [isMobileMenuOpen])
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
   const navLinks = [
     { name: 'SCIENCE', href: '/science' },
-    { name: 'CONTACT', href: '/contact' },
+    { name: 'CONTACT', href: '/contact-us' },
     { name: 'LYTE', href: '/lyte' },
     { name: 'BUY', href: '/#products' },
   ]
 
   const mobileProducts = [
-    // { name: 'Starter Pack', href: '/products/starter-pack' },
     { name: 'Transformation Pack', href: '/products/transformation-pack' },
     { name: 'Ultimate Pack', href: '/products/ultimate-pack' },
     { name: 'Elite Pack', href: '/products/elite-pack' },
@@ -171,7 +170,7 @@ export default function Header() {
                       'text-[#1a1a1a]'
                     )}
                   >
-                    <Link href="/contact">CONTACT</Link>
+                    <Link href="/contact-us">CONTACT</Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
@@ -248,48 +247,48 @@ export default function Header() {
             aria-label="Close menu"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-            <nav className="animate-menu-drawer absolute bottom-0 left-0 top-0 flex w-52 max-w-[62vw] flex-col overflow-y-auto bg-white px-5 py-8 shadow-2xl">
-              {navLinks.map((link, index) => (
-                <div key={link.name}>
-                  <Link
-                    href={link.href}
-                    style={{ animationDelay: `${index * 70}ms` }}
-                    className="animate-menu-item block py-3 text-sm font-semibold uppercase tracking-wide text-[#1a1a1a]"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {link.name}
-                  </Link>
-                  {link.name === 'LYTE' && (
-                    <div className="animate-menu-item" style={{ animationDelay: `${index * 70 + 40}ms` }}>
-                      <button
-                        type="button"
-                        className="flex w-full items-center justify-between py-3 text-left text-sm font-semibold uppercase tracking-wide text-[#1a1a1a]"
-                        aria-expanded={productsOpen}
-                        onClick={() => setProductsOpen((open) => !open)}
-                      >
-                        Products
-                        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${productsOpen ? 'rotate-180' : ''}`} />
-                      </button>
-                      <div
-                        className={`grid transition-[grid-template-rows] duration-300 ${productsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-                      >
-                        <div className="overflow-hidden">
-                          {mobileProducts.map((product) => (
-                            <Link
-                              key={product.href}
-                              href={product.href}
-                              className="block py-2 pl-4 text-sm text-[#3a3a3a]"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              {product.name}
-                            </Link>
-                          ))}
-                        </div>
+          <nav className="animate-menu-drawer absolute bottom-0 left-0 top-0 flex w-52 max-w-[62vw] flex-col overflow-y-auto bg-white px-5 py-8 shadow-2xl">
+            {navLinks.map((link, index) => (
+              <div key={link.name}>
+                <Link
+                  href={link.href}
+                  style={{ animationDelay: `${index * 70}ms` }}
+                  className="animate-menu-item block py-3 text-sm font-semibold uppercase tracking-wide text-[#1a1a1a]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.name}
+                </Link>
+                {link.name === 'LYTE' && (
+                  <div className="animate-menu-item" style={{ animationDelay: `${index * 70 + 40}ms` }}>
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between py-3 text-left text-sm font-semibold uppercase tracking-wide text-[#1a1a1a]"
+                      aria-expanded={productsOpen}
+                      onClick={() => setProductsOpen((open) => !open)}
+                    >
+                      Products
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${productsOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    <div
+                      className={`grid transition-[grid-template-rows] duration-300 ${productsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+                    >
+                      <div className="overflow-hidden">
+                        {mobileProducts.map((product) => (
+                          <Link
+                            key={product.href}
+                            href={product.href}
+                            className="block py-2 pl-4 text-sm text-[#3a3a3a]"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            {product.name}
+                          </Link>
+                        ))}
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                )}
+              </div>
+            ))}
             <button
               type="button"
               style={{ animationDelay: `${navLinks.length * 70}ms` }}
@@ -307,4 +306,3 @@ export default function Header() {
     </>
   )
 }
-

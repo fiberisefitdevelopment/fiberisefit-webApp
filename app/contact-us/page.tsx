@@ -17,7 +17,7 @@ export default function ContactPage() {
         "@type": "ListItem",
         "position": 2,
         "name": "Contact",
-        "item": "https://fiberisefit.com/contact"
+        "item": "https://fiberisefit.com/contact-us"
       }
     ]
   }

@@ -37,10 +37,14 @@ function cardOrderClass(title: string): string {
 
 function mobileCatalogRank(title: string): number {
   const t = title.toLowerCase()
-  if (t.includes('transformation')) return 0
-  if (t.includes('ultimate')) return 1
+  if (t.includes('ultimate')) return 0
+  if (t.includes('transformation')) return 1
   if (t.includes('elite')) return 2
   return 3
+}
+
+function isTransformation(title: string): boolean {
+  return title.toLowerCase().includes('transformation')
 }
 
 function getCardConfig(title: string): CardConfig {
@@ -352,14 +356,24 @@ function MobileLoopCarousel({
     el.scrollLeft = card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2
   }, [])
 
+  const startIndex = useMemo(() => {
+    const index = slides.findIndex((product) => isTransformation(product.title))
+    return index >= 0 ? index : 0
+  }, [slides])
+
+  const syncActive = useCallback(() => {
+    const card = nearest()
+    if (card?.dataset.index) setActiveIndex(Number(card.dataset.index))
+  }, [nearest])
+
   const jumpToMiddle = useCallback(() => {
     const el = scrollerRef.current
-    const card = cardAt(1, 0)
+    const card = cardAt(1, startIndex)
     if (!el || !card) return false
     el.style.scrollSnapType = 'none'
     scrollToCard(card, el)
     return true
-  }, [cardAt, scrollToCard])
+  }, [cardAt, scrollToCard, startIndex])
 
   const wrapIfNeeded = useCallback(() => {
     if (!readyRef.current) return
@@ -376,9 +390,8 @@ function MobileLoopCarousel({
         el.style.scrollSnapType = ''
       })
     }
-    const after = nearest()
-    if (after?.dataset.index) setActiveIndex(Number(after.dataset.index))
-  }, [copyWidth, nearest])
+    syncActive()
+  }, [copyWidth, nearest, syncActive])
 
   useLayoutEffect(() => {
     const el = scrollerRef.current
@@ -390,7 +403,8 @@ function MobileLoopCarousel({
       requestAnimationFrame(() => {
         el.style.scrollSnapType = ''
         readyRef.current = true
-        setActiveIndex(0)
+        setActiveIndex(startIndex)
+        syncActive()
       })
     }
 
@@ -401,7 +415,7 @@ function MobileLoopCarousel({
       cancelAnimationFrame(raf)
       window.clearTimeout(later)
     }
-  }, [jumpToMiddle, slides.length])
+  }, [jumpToMiddle, slides.length, startIndex, syncActive])
 
   useEffect(() => {
     const el = scrollerRef.current
@@ -409,8 +423,7 @@ function MobileLoopCarousel({
     let timer = 0
     const onScroll = () => {
       if (!readyRef.current) return
-      const card = nearest()
-      if (card?.dataset.index) setActiveIndex(Number(card.dataset.index))
+      syncActive()
       window.clearTimeout(timer)
       timer = window.setTimeout(wrapIfNeeded, 80)
     }
@@ -422,7 +435,7 @@ function MobileLoopCarousel({
       el.removeEventListener('scroll', onScroll)
       el.removeEventListener('scrollend', onScrollEnd)
     }
-  }, [nearest, wrapIfNeeded])
+  }, [nearest, syncActive, wrapIfNeeded])
 
   return (
     <div className="md:hidden -mx-4 sm:-mx-6">

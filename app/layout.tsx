@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import { Montserrat, Playfair_Display } from 'next/font/google'
 import './globals.css'
@@ -23,6 +23,12 @@ const playfair = Playfair_Display({
 
 const SITE_URL = 'https://fiberisefit.com'
 const OG_IMAGE = `${SITE_URL}/icons/I%20Mark%20-%20BC%2001.png`
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -70,7 +76,7 @@ export default function RootLayout({
         <link
           rel="preload"
           as="image"
-          href="/banners/optimized/transformation-pack-mobile.webp"
+          href="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/transformation-pack-mobile.webp?v=1795156864"
           type="image/webp"
           media="(max-width: 767px)"
           fetchPriority="high"
@@ -78,7 +84,7 @@ export default function RootLayout({
         <link
           rel="preload"
           as="image"
-          href="/banners/optimized/transformation-pack-desktop.webp"
+          href="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/transformation-pack-desktop.webp?v=1795156864"
           type="image/webp"
           media="(min-width: 768px)"
           fetchPriority="high"

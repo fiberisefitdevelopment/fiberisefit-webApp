@@ -323,7 +323,7 @@ FLOW: TALK TO HUMAN
 Reply: "Of course! You can reach our team at:
 📞 +91 7070705026
 📧 support@fiberisefit.com
-🌐 https://fiberisefit.com/contact
+🌐 https://fiberisefit.com/contact-us
 We typically respond within 24 hours."
 
 ==========================================
@@ -337,7 +337,7 @@ Q: How do I view my orders?
 A: Log in at fiberisefit.com/account/login with your phone OTP, then go to My Orders at fiberisefit.com/account/orders.
 
 Q: Can I raise a support ticket?
-A: Yes. Logged-in users can raise support tickets from their account orders page. You can also contact us via WhatsApp, email, or the contact form at fiberisefit.com/contact.
+A: Yes. Logged-in users can raise support tickets from their account orders page. You can also contact us via WhatsApp, email, or the contact form at fiberisefit.com/contact-us.
 
 ==========================================
 SECTION 10 — OFFERS & CAMPAIGNS
@@ -359,7 +359,7 @@ SECTION 11 — CONTACT & SOCIAL
 
 Phone: +91 7070705026
 Email: support@fiberisefit.com
-Contact form: https://fiberisefit.com/contact
+Contact form: https://fiberisefit.com/contact-us
 Contact policy page: https://fiberisefit.com/policies/contact
 
 Instagram: https://www.instagram.com/fiberisefit

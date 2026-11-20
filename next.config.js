@@ -85,6 +85,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/contact',
+        destination: '/contact-us',
+        permanent: true,
+      },
+      {
         source: '/lyte user manual',
         // Redirect to the LYTE user manual download URL
         destination: '/manual/lyte.pdf',

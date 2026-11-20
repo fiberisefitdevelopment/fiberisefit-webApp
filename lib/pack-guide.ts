@@ -41,19 +41,19 @@ export const HOW_TO_USE_STEPS = [
 
 export const BENEFIT_DIAGRAMS = [
   {
-    src: '/product page routine images/FIBERISE A+-09.png',
+    src: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-09.webp?v=1795155681',
     alt: 'LEAN-X formula: soluble fibre, prebiotics, probiotics, L-Carnitine and L-Tyrosine',
     width: 1600,
     height: 900,
   },
   {
-    src: '/product page routine images/FIBERISE A+-10.png',
+    src: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-10.webp?v=1795155681',
     alt: 'Traditional dieting versus FYBER: energy, metabolism and sustainable weight control',
     width: 1600,
     height: 900,
   },
   {
-    src: '/product page routine images/FIBERISE A+-08.png',
+    src: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/FIBERISE_A_-08.webp?v=1795155681',
     alt: 'The science behind FYBER: fullness, cravings, insulin, energy and focus',
     width: 1600,
     height: 900,

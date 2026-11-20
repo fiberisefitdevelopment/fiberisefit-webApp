@@ -43,7 +43,7 @@ export default function FullWidthVideoSection() {
             preload="none"
             className="w-full h-full object-cover"
           >
-            <source src="/videos/sustainable-video.webm" type="video/webm" />
+            <source src="https://cdn.shopify.com/videos/c/o/v/a2aa0673976e4f9eaaaec99a01bfd6bb.webm" type="video/webm" />
           </video>
         ) : (
           <div className="w-full h-full bg-gray-900" />
