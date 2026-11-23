@@ -138,9 +138,9 @@ export default function FeaturedOnMarquee({ variant = 'section' }: FeaturedOnMar
   }
 
   return (
-    <section className="w-full bg-[#F5F3EF] py-6 md:py-8 overflow-hidden">
+    <section className="w-full bg-[#F5F3EF] overflow-hidden pt-2 pb-5 md:pt-3 md:pb-6">
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <p className="text-[10px] md:text-xs tracking-[0.35em] uppercase text-[#102333]/70 mb-4 md:mb-6">
+        <p className="text-[10px] md:text-xs tracking-[0.35em] uppercase text-[#102333]/70 mb-3 md:mb-4">
           Featured on
         </p>
         <div className="overflow-hidden">

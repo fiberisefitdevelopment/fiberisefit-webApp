@@ -66,34 +66,36 @@ function IconTile({
   description: string
 }) {
   return (
-    <div className="flex flex-col items-center text-center">
-      <div className="relative mb-1.5 h-10 w-10 shrink-0 md:h-11 md:w-11">
-        <Image src={icon} alt="" fill sizes="44px" className="object-contain" />
+    <div className="mx-auto flex h-full w-full max-w-[220px] flex-col items-center text-center">
+      <div className="relative mb-3 h-12 w-12 shrink-0">
+        <Image src={icon} alt="" fill sizes="48px" className="object-contain" />
       </div>
-      <h3 className="text-[11px] font-semibold uppercase leading-tight tracking-wider md:text-xs">
+      <h3 className="min-h-[2.5rem] text-[11px] font-semibold uppercase leading-snug tracking-wider md:text-xs">
         {title}
       </h3>
-      <p className="mt-0.5 max-w-[12.5rem] text-[11px] leading-snug text-gray-600">{description}</p>
+      <p className="mt-1 text-[11px] leading-relaxed text-gray-600 md:text-xs">{description}</p>
     </div>
   )
 }
 
 export default function VideoSection() {
   return (
-    <section className="w-full bg-fyber-ivory-dream pb-4 pt-8 md:pb-5 md:pt-10">
-      <h2 className="mb-5 px-6 text-center text-2xl font-bold uppercase tracking-wide text-black md:mb-6 md:text-3xl lg:text-4xl">
+    <section className="w-full bg-fyber-ivory-dream pb-8 pt-8 md:pb-12 md:pt-12">
+      <h2 className="mb-8 px-6 text-center text-2xl font-bold uppercase tracking-wide text-black md:mb-12 md:text-3xl lg:text-4xl">
         Science meets everyday control
       </h2>
 
-      <div className="mx-auto max-w-5xl px-6">
-        <div className="grid grid-cols-2 items-start gap-x-4 gap-y-4 md:grid-cols-3 md:gap-x-6 md:gap-y-5">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-12 md:gap-x-6 md:gap-y-12">
           {features.map((feature) => (
-            <IconTile key={feature.title} {...feature} />
+            <div key={feature.title} className="md:col-span-4">
+              <IconTile {...feature} />
+            </div>
           ))}
-        </div>
-        <div className="mt-5 grid grid-cols-2 items-start gap-x-4 gap-y-4 md:mt-5 md:grid-cols-4 md:gap-x-6">
           {TRUST_PILLARS.map((pillar) => (
-            <IconTile key={pillar.title} {...pillar} />
+            <div key={pillar.title} className="md:col-span-3">
+              <IconTile {...pillar} />
+            </div>
           ))}
         </div>
       </div>
