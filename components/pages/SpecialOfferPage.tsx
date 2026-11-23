@@ -28,6 +28,7 @@ import SlidingImageGallery from '@/components/SlidingImageGallery'
 import ResultsTimeline from '@/components/sections/ResultsTimeline'
 import MoneyBackGuarantee from '@/components/sections/MoneyBackGuarantee'
 import OfferBenefitsSection from '@/components/sections/OfferBenefitsSection'
+import AssortedFlavourChips from '@/components/AssortedFlavourChips'
 
 const ProductPageLowerSections = dynamic(
   () => import('@/components/sections/ProductPageLowerSections'),
@@ -545,25 +546,7 @@ export default function SpecialOfferPage({
                 selectedPackageId={selectedPackage.id}
                 onSelect={handleSelectPackage}
               />
-              <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
-                  Assorted flavours in every pack
-                </p>
-                <ul className="flex flex-wrap gap-2" aria-label="Available flavours">
-                  {[
-                    { name: 'Watermelon', className: 'border-[#e8a0b8] bg-[#f8d4e0] text-[#9f1239]' },
-                    { name: 'Lime n Lemon', className: 'border-[#c5d86a] bg-[#eaf4b8] text-[#3f6212]' },
-                    { name: 'Unflavoured', className: 'border-[#d6d0c4] bg-[#f4f0e6] text-[#44403c]' },
-                  ].map((flavour) => (
-                    <li
-                      key={flavour.name}
-                      className={`rounded-full border px-3 py-1 text-xs font-medium ${flavour.className}`}
-                    >
-                      {flavour.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <AssortedFlavourChips />
 
               <div className="flex items-center justify-between gap-3">
                 <div className="flex h-11 items-center border border-gray-300 rounded-xl bg-white px-1 flex-shrink-0">

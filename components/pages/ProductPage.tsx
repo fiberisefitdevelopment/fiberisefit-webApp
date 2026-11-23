@@ -32,6 +32,7 @@ import {
 } from '@/lib/hidden-products'
 import { trackAddToCart, trackInitiateCheckout, trackViewContent } from '@/lib/meta-pixel'
 import { openAiCheckoutFields } from '@/lib/openai-pixel'
+import AssortedFlavourChips from '@/components/AssortedFlavourChips'
 
 interface ProductVariant {
   id: string
@@ -350,9 +351,10 @@ export default function ProductPage({
           console.log('Product loaded successfully:', data.product.title)
           const p = normalizeProductForSlug(data.product, slug)
           setProduct(p)
-          // Set the first available variant as selected
           if (p.variants && p.variants.length > 0) {
-            setSelectedVariant(p.variants[0])
+            setSelectedVariant(
+              p.variants.find((variant) => /assorted/i.test(variant.name)) ?? p.variants[0]
+            )
           }
         } else {
           console.error('No product data in response')
@@ -372,7 +374,9 @@ export default function ProductPage({
       const p = normalizeProductForSlug(initialProduct, slug)
       setProduct(p)
       if (p.variants && p.variants.length > 0) {
-        setSelectedVariant(p.variants[0])
+        setSelectedVariant(
+          p.variants.find((variant) => /assorted/i.test(variant.name)) ?? p.variants[0]
+        )
       }
     }
   }, [slug, initialProduct])
@@ -905,30 +909,7 @@ export default function ProductPage({
                   </button>
                 </div>
 
-                {/* Variant Selection (Box style) */}
-                {product.variants && product.variants.length > 1 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {product.variants.map((variant) => {
-                      const isSelected = selectedVariant?.id === variant.id;
-                      return (
-                        <button
-                          key={variant.id}
-                          onClick={() => setSelectedVariant(variant)}
-                          disabled={!variant.available}
-                          className={`flex items-center px-3 py-1.5 text-xs md:text-sm transition-colors ${isSelected
-                            ? 'bg-black text-white font-medium'
-                            : variant.available
-                              ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                              : 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
-                            }`}
-                        >
-                          {isSelected && <span className="mr-1.5">✓</span>}
-                          {variant.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                <AssortedFlavourChips />
 
                  {/* Price and quantity sit together so the stepper is not stranded at the far edge */}
                 <div className="pt-2 flex items-center gap-4">
@@ -1024,6 +1005,16 @@ export default function ProductPage({
                       <Plus className="w-4 h-4 pointer-events-none" strokeWidth={1.5} />
                     </button>
                   </div>
+                </div>
+
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>Free shipping PAN India</p>
+                  <p className="text-xs text-gray-500">Free delivery · Easy returns</p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-600 font-medium">We accept:</span>
+                  <PaymentIcons iconClassName="w-9 h-6 object-contain flex-shrink-0" />
                 </div>
 
                 {/* Payment Method Selector */}
@@ -1172,18 +1163,6 @@ export default function ProductPage({
                     <ResultsTimeline />
                   </div>
                 )}
-
-                {/* Trust strip + social proof */}
-                <div className="text-sm text-gray-600 mt-4 space-y-1">
-                  <p>Free shipping PAN India</p>
-                  <p className="text-xs text-gray-500">Free delivery · Easy returns</p>
-                </div>
-
-                {/* Payment Icons - UPI first, then Visa, MC, Amex */}
-                <div className="flex items-center gap-3 mt-4">
-                  <span className="text-xs text-gray-600 font-medium">We accept:</span>
-                  <PaymentIcons iconClassName="w-9 h-6 object-contain flex-shrink-0" />
-                </div>
 
                 {/* Accordion Sections */}
                 <div className="mt-6 space-y-2">
