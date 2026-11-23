@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Star, Loader2, Send } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react'
+import { Star, Loader2, Send, Plus, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 export interface ProductReview {
@@ -14,6 +14,8 @@ export interface ProductReview {
   createdAt: string
   translation?: string
   age?: number
+  adminReply?: string
+  adminReplyBy?: string
 }
 
 interface ReviewsResponse {
@@ -84,11 +86,123 @@ function formatDate(iso: string): string {
   }
 }
 
+function hashReviewId(id: string): number {
+  let hash = 0
+  for (let i = 0; i < id.length; i += 1) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0
+  }
+  return hash
+}
+
+function VerifiedTick() {
+  return (
+    <span
+      className="ml-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#1d9bf0]"
+      title="Verified buyer"
+      aria-label="Verified buyer"
+    >
+      <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" aria-hidden>
+        <path
+          d="M2.2 6.2 4.6 8.6 9.8 3.4"
+          fill="none"
+          stroke="white"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  )
+}
+
 function displayAuthorName(name: string): string {
   if (!name || name === 'Anonymous') return 'A customer'
   // Show "A customer" instead of raw phone number
   if (/^\+?\d{10,}$/.test(name.replace(/\s/g, ''))) return 'A customer'
   return name
+}
+
+function ReviewCopy({
+  comment,
+  reply,
+  replyBy,
+  expanded,
+  onToggle,
+  footer,
+  extra,
+}: {
+  comment: string
+  reply?: string
+  replyBy?: string
+  expanded: boolean
+  onToggle: () => void
+  footer: ReactNode
+  extra?: ReactNode
+}) {
+  const commentRef = useRef<HTMLParagraphElement>(null)
+  const replyRef = useRef<HTMLParagraphElement>(null)
+  const [commentOverflows, setCommentOverflows] = useState(false)
+  const [replyOverflows, setReplyOverflows] = useState(false)
+  const hasReply = Boolean(reply?.trim())
+  const replyLong = (reply?.trim().length ?? 0) > 70
+
+  useEffect(() => {
+    if (expanded) return
+    const commentEl = commentRef.current
+    const replyEl = replyRef.current
+    setCommentOverflows(Boolean(commentEl && commentEl.scrollHeight > commentEl.clientHeight + 1))
+    setReplyOverflows(
+      Boolean(replyEl && replyEl.scrollHeight > replyEl.clientHeight + 1) || replyLong
+    )
+  }, [comment, reply, expanded, replyLong])
+
+  return (
+    <>
+      <p
+        ref={commentRef}
+        className={`text-gray-900 leading-snug ${hasReply && !expanded ? 'line-clamp-2' : ''}`}
+      >
+        {comment}
+      </p>
+      {commentOverflows ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          className="mt-1.5 text-xs font-semibold text-gray-500 underline underline-offset-2 self-start"
+        >
+          {expanded ? 'Hide comment' : 'See Comment'}
+        </button>
+      ) : null}
+      {extra}
+      <div className="mt-3 border-t border-gray-50 pt-3 text-sm font-semibold text-gray-800">
+        {footer}
+      </div>
+      {reply ? (
+        <div className="mt-3 rounded-xl bg-[#faf8f3] px-3 py-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2d5016]">
+            {replyBy || 'Fiberise Fit'} replied
+          </p>
+          <p
+            ref={replyRef}
+            className={`mt-1 whitespace-pre-line text-sm leading-snug text-gray-800 ${
+              expanded ? '' : 'line-clamp-2'
+            }`}
+          >
+            {reply}
+          </p>
+          {replyOverflows || expanded ? (
+            <button
+              type="button"
+              onClick={onToggle}
+              className="mt-1.5 text-xs font-semibold text-[#2d5016] underline underline-offset-2"
+            >
+              {expanded ? 'Show less' : 'Read full reply'}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </>
+  )
 }
 
 export default function ProductReviewsSection({ productSlug, productTitle }: ProductReviewsSectionProps) {
@@ -105,6 +219,9 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
   const [comment, setComment] = useState('')
   const [authorName, setAuthorName] = useState('')
   const [translatedReviewIds, setTranslatedReviewIds] = useState<Set<string>>(new Set())
+  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set())
+  const [writeFormOpen, setWriteFormOpen] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(3)
 
   const { isAuthenticated, user, getIdToken } = useAuth()
 
@@ -134,6 +251,10 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
   useEffect(() => {
     fetchReviews()
   }, [fetchReviews])
+
+  useEffect(() => {
+    setVisibleCount(3)
+  }, [productSlug])
 
   useEffect(() => {
     if (!isAuthenticated) return
@@ -201,7 +322,10 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
       setComment('')
       if (!isAuthenticated) setAuthorName('')
       fetchReviews()
-      setTimeout(() => setSubmitSuccess(false), 4000)
+      setTimeout(() => {
+        setSubmitSuccess(false)
+        setWriteFormOpen(false)
+      }, 4000)
     } catch {
       setSubmitError('Something went wrong. Please try again.')
     } finally {
@@ -218,233 +342,261 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
     })
   }
 
+  const toggleExpanded = (id: string) => {
+    setExpandedReviewIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const displayRating = hoverRating || rating
+  const sortedReviews = useMemo(
+    () =>
+      [...reviews].sort(
+        (a, b) =>
+          b.rating - a.rating ||
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ),
+    [reviews]
+  )
+  const featuredReviews = sortedReviews.slice(0, visibleCount)
+  const hasMoreReviews = visibleCount < sortedReviews.length
+  const verifiedReviewIds = useMemo(() => {
+    const fiveStar = sortedReviews.filter((review) => review.rating === 5).slice(0, 3)
+    const picked = [...fiveStar]
+      .sort((a, b) => hashReviewId(a.id) - hashReviewId(b.id))
+      .slice(0, Math.min(2, fiveStar.length))
+    return new Set(picked.map((review) => review.id))
+  }, [sortedReviews])
+
+  const writeForm = (idPrefix: string) => (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Your rating</label>
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <button
+              key={`${idPrefix}-star-${i}`}
+              type="button"
+              onClick={() => setRating(i)}
+              onMouseEnter={() => setHoverRating(i)}
+              onMouseLeave={() => setHoverRating(0)}
+              className="p-1 rounded focus:outline-none focus:ring-2 focus:ring-black/20"
+              aria-label={`${i} star${i > 1 ? 's' : ''}`}
+            >
+              <Star
+                className={`w-8 h-8 transition-colors ${
+                  i <= displayRating ? 'text-amber-400 fill-amber-400' : 'text-gray-300'
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+      {!isAuthenticated && (
+        <div>
+          <label htmlFor={`${idPrefix}-review-name`} className="block text-sm font-medium text-gray-700 mb-1">
+            Your name (optional)
+          </label>
+          <input
+            id={`${idPrefix}-review-name`}
+            type="text"
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
+            placeholder="e.g. Priya M."
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-transparent"
+          />
+        </div>
+      )}
+      <div>
+        <label htmlFor={`${idPrefix}-review-comment`} className="block text-sm font-medium text-gray-700 mb-1">
+          Your review <span className="text-gray-500">(min. 10 characters)</span>
+        </label>
+        <textarea
+          id={`${idPrefix}-review-comment`}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Share your experience with this product..."
+          rows={4}
+          required
+          minLength={10}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-transparent resize-y"
+        />
+      </div>
+      {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+      {submitSuccess && (
+        <p className="text-sm text-green-600">Thank you! Your review has been submitted.</p>
+      )}
+      <button
+        type="submit"
+        disabled={submitLoading}
+        className="w-full py-3 px-4 rounded-lg font-semibold text-sm uppercase tracking-wider bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        {submitLoading ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : (
+          <>
+            <Send className="w-4 h-4" />
+            Submit review
+          </>
+        )}
+      </button>
+    </form>
+  )
 
   return (
     <section className="w-full bg-white py-12 md:py-16" id="reviews">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10 md:mb-12">
+        <div className="text-center mb-8 md:mb-10">
           <p className="text-sm md:text-base text-gray-500 font-medium mb-1">
             Customer Reviews
           </p>
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black uppercase tracking-wide">
             Ratings &amp; Reviews
           </h2>
+          {!loading && (
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star
+                    key={i}
+                    className={`w-5 h-5 ${
+                      i <= Math.round(averageRating)
+                        ? 'text-amber-400 fill-amber-400'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-base font-semibold text-black">
+                {totalCount === 0 ? '—' : averageRating.toFixed(1)}
+              </span>
+              <span className="text-sm text-gray-500">
+                {totalCount === 0
+                  ? 'No reviews yet'
+                  : `(${totalCount} ${totalCount === 1 ? 'review' : 'reviews'})`}
+              </span>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12">
-          {/* Left: rating summary + add review form */}
-          <div className="lg:col-span-1 space-y-8">
-            {/* Summary */}
-            <div className="bg-[#F5F3EF] rounded-2xl p-6">
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <Star
-                          key={i}
-                          className={`w-6 h-6 ${
-                            i <= Math.round(averageRating)
-                              ? 'text-amber-400 fill-amber-400'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xl font-bold text-black">
-                      {totalCount === 0 ? '—' : averageRating.toFixed(1)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {totalCount === 0
-                      ? 'No reviews yet. Be the first to review!'
-                      : `${totalCount} ${totalCount === 1 ? 'review' : 'reviews'}`}
-                  </p>
-                </>
-              )}
-            </div>
-
-            {/* Add review form */}
-            <div className="border border-gray-200 rounded-2xl p-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-black mb-4">
-                Write a review
-              </h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Your rating</label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setRating(i)}
-                        onMouseEnter={() => setHoverRating(i)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        className="p-1 rounded focus:outline-none focus:ring-2 focus:ring-black/20"
-                        aria-label={`${i} star${i > 1 ? 's' : ''}`}
-                      >
-                        <Star
-                          className={`w-8 h-8 transition-colors ${
-                            i <= displayRating ? 'text-amber-400 fill-amber-400' : 'text-gray-300'
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {!isAuthenticated && (
-                  <div>
-                    <label htmlFor="review-name" className="block text-sm font-medium text-gray-700 mb-1">
-                      Your name (optional)
-                    </label>
-                    <input
-                      id="review-name"
-                      type="text"
-                      value={authorName}
-                      onChange={(e) => setAuthorName(e.target.value)}
-                      placeholder="e.g. Priya M."
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-transparent"
-                    />
-                  </div>
-                )}
-                <div>
-                  <label htmlFor="review-comment" className="block text-sm font-medium text-gray-700 mb-1">
-                    Your review <span className="text-gray-500">(min. 10 characters)</span>
-                  </label>
-                  <textarea
-                    id="review-comment"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Share your experience with this product..."
-                    rows={4}
-                    required
-                    minLength={10}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-transparent resize-y"
-                  />
-                </div>
-                {submitError && (
-                  <p className="text-sm text-red-600">{submitError}</p>
-                )}
-                {submitSuccess && (
-                  <p className="text-sm text-green-600">Thank you! Your review has been submitted.</p>
-                )}
-                <button
-                  type="submit"
-                  disabled={submitLoading}
-                  className="w-full py-3 px-4 rounded-lg font-semibold text-sm uppercase tracking-wider bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {submitLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      Submit review
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-          </div>
-
-          {/* Right: review list */}
-          <div className="lg:col-span-2">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-700 mb-6">
-              All reviews
-            </h3>
+        <div className="md:grid md:grid-cols-2 md:gap-10 md:items-start">
+          <div>
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
               </div>
             ) : reviews.length === 0 ? (
-              <p className="text-gray-500 py-8">No reviews yet. Be the first to share your experience!</p>
+              <p className="text-center text-gray-500 py-6 md:text-left">
+                Be the first to share your experience.
+              </p>
             ) : (
-              <div className="max-h-[26rem] overflow-y-auto pr-1 scrollbar-hide">
-                <ul className="space-y-6">
-                  {reviews.map((r) => {
-                    const isTranslated = translatedReviewIds.has(r.id)
-                    return (
-                      <li
-                        key={r.id}
-                        className="group bg-white border border-gray-100 rounded-2xl p-5 md:p-6 transition-all hover:shadow-md hover:border-gray-200"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex gap-0.5">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                              <Star
-                                key={i}
-                                className={`w-4 h-4 ${
-                                  i <= r.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'
-                                }`}
-                              />
-                            ))}
-                          </div>
+              <div
+                className="flex items-start gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide overscroll-x-contain pb-1 -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 md:flex-col md:items-stretch md:overflow-x-hidden md:overflow-y-auto md:max-h-[32rem] md:snap-none md:overscroll-contain"
+                style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
+              >
+                {featuredReviews.map((r) => {
+                  const isTranslated = translatedReviewIds.has(r.id)
+                  return (
+                    <article
+                      key={r.id}
+                      className="flex w-[85%] min-w-[85%] snap-start flex-col self-start rounded-2xl border border-gray-100 bg-white p-4 md:w-full md:min-w-0 md:flex-none md:self-stretch"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex gap-0.5">
+                          {[1, 2, 3, 4, 5].map((i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i <= r.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        {formatDate(r.createdAt) ? (
                           <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
                             {formatDate(r.createdAt)}
                           </p>
-                        </div>
-                        
-                        <div className="relative">
-                          {/* Original Comment */}
-                          {!isTranslated && (
-                            <p className="text-gray-900 leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-300">
-                              {r.comment}
-                            </p>
-                          )}
-                          
-                          {/* Translation */}
-                          {isTranslated && r.translation && (
-                            <div className="bg-blue-50/40 rounded-xl p-4 border border-blue-100/50 animate-in fade-in zoom-in-95 duration-300">
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">English Translation</span>
-                              </div>
-                              <p className="text-gray-800 leading-relaxed italic">
-                                “{r.translation}”
-                              </p>
-                            </div>
-                          )}
-                          
-                          {/* See Translation Button - Right Aligned Below Text */}
-                          {r.translation && (
-                            <div className="flex justify-end mt-3">
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  toggleTranslation(r.id)
-                                }}
-                                className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all flex items-center gap-2 border shadow-sm ${
-                                  isTranslated 
-                                    ? 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' 
-                                    : 'bg-black text-white border-black hover:bg-gray-800'
-                                }`}
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                                </svg>
-                                {isTranslated ? 'Show Original' : 'See Translation'}
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                        ) : null}
+                      </div>
 
-                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50/50">
-                          <p className="text-sm font-semibold text-gray-800">
+                      <ReviewCopy
+                        comment={isTranslated && r.translation ? `“${r.translation}”` : r.comment}
+                        reply={r.adminReply}
+                        replyBy={r.adminReplyBy}
+                        expanded={expandedReviewIds.has(r.id)}
+                        onToggle={() => toggleExpanded(r.id)}
+                        footer={
+                          <span className="inline-flex items-center">
                             — {displayAuthorName(r.authorName)}
                             {r.age ? `, ${r.age}` : ''}
-                          </p>
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ul>
+                            {verifiedReviewIds.has(r.id) ? <VerifiedTick /> : null}
+                          </span>
+                        }
+                        extra={
+                          r.translation ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleTranslation(r.id)}
+                              className="mt-1.5 text-xs font-semibold text-gray-500 underline underline-offset-2 self-start"
+                            >
+                              {isTranslated ? 'Show original' : 'See translation'}
+                            </button>
+                          ) : null
+                        }
+                      />
+                    </article>
+                  )
+                })}
               </div>
             )}
+
+            {hasMoreReviews ? (
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((count) => count + 3)}
+                  className="group inline-flex items-center gap-2 rounded-full border border-[#187254] bg-white px-5 py-2.5 text-sm font-semibold text-[#187254] shadow-[0_4px_14px_rgba(24,114,84,0.12)] transition-colors hover:bg-[#187254] hover:text-white"
+                >
+                  Load more reviews
+                  <span className="rounded-full bg-[#187254]/10 px-2 py-0.5 text-[11px] font-bold tabular-nums group-hover:bg-white/20">
+                    {sortedReviews.length - visibleCount}
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => setWriteFormOpen((open) => !open)}
+              className="mt-4 w-full flex items-center justify-between py-3 px-4 border border-gray-200 rounded-xl text-left text-sm font-semibold uppercase tracking-wider text-gray-900 md:hidden"
+              aria-expanded={writeFormOpen}
+            >
+              <span>Write a review</span>
+              <Plus
+                className={`w-5 h-5 text-gray-700 transition-transform ${
+                  writeFormOpen ? 'rotate-45' : ''
+                }`}
+              />
+            </button>
+
+            <div
+              className={`mt-3 border border-gray-200 rounded-2xl p-5 md:hidden ${
+                writeFormOpen ? 'block' : 'hidden'
+              }`}
+            >
+              {writeForm('mobile')}
+            </div>
+          </div>
+
+          <div className="hidden md:block border border-gray-200 rounded-2xl p-6 lg:p-8">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-black mb-4">
+              Write a review
+            </h3>
+            {writeForm('desktop')}
           </div>
         </div>
       </div>

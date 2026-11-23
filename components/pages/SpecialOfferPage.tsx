@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { useCartStore } from '@/store/cartStore'
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,9 +12,8 @@ import {
   Truck,
   Award,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import PaymentIcons from '@/components/PaymentIcons'
-import ProductPageLowerSections from '@/components/sections/ProductPageLowerSections'
-import FeaturedOnMarquee from '@/components/sections/FeaturedOnMarquee'
 import PackageDurationSelector, {
   PackageOption,
 } from '@/components/PackageDurationSelector'
@@ -23,11 +21,18 @@ import {
   STARTER_PACK_HERO_IMAGE,
   withStarterPackHero,
 } from '@/lib/starter-pack-hero'
-import { formatInr } from '@/lib/utils'
-import { trackAddToCart, trackInitiateCheckout, trackViewContent } from '@/lib/meta-pixel'
+import { trackInitiateCheckout, trackViewContent } from '@/lib/meta-pixel'
 import { openAiCheckoutFields } from '@/lib/openai-pixel'
 import { useCheckoutOtp } from '@/hooks/useCheckoutOtp'
 import SlidingImageGallery from '@/components/SlidingImageGallery'
+import ResultsTimeline from '@/components/sections/ResultsTimeline'
+import MoneyBackGuarantee from '@/components/sections/MoneyBackGuarantee'
+import OfferBenefitsSection from '@/components/sections/OfferBenefitsSection'
+
+const ProductPageLowerSections = dynamic(
+  () => import('@/components/sections/ProductPageLowerSections'),
+  { ssr: false }
+)
 
 export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
   {
@@ -125,22 +130,43 @@ export const SPECIAL_OFFER_PACKAGES: PackageOption[] = [
   },
 ]
 
+const PACK_STORIES: Record<
+  string,
+  { eyebrow: string; title: string; body: string[]; highlights: string[] }
+> = {
+  starter: {
+    eyebrow: 'About this pack',
+    title: 'Your first 7 days with FYBER',
+    body: [
+      'The Starter Pack is made for first-time users who want to feel quieter cravings, lighter mornings, and steadier energy — without stimulants or complicated routines.',
+      'Mix one sachet in water and drink it 60 minutes before a meal. FYBER forms a gentle gel, supports natural GLP-1 satiety, and helps you stop eating when you are full.',
+    ],
+    highlights: ['7 sachets · 7 days', 'Assorted flavours', 'No stimulants'],
+  },
+  transformation: {
+    eyebrow: 'About this pack',
+    title: '30 days to make the ritual stick',
+    body: [
+      'The Transformation Pack is the most-loved way to run FYBER every day: 30 sachets in assorted flavours, built around patented fibre and LEAN-X® metabolic support.',
+      'Take it consistently before lunch or dinner. Fullness arrives earlier, late-night snacking gets easier to skip, and the habit has time to settle.',
+    ],
+    highlights: ['30 sachets · 30 days', 'Assorted flavours', 'Daily ritual'],
+  },
+  ultimate: {
+    eyebrow: 'About this pack',
+    title: '90 days, plus a LYTE Fitband',
+    body: [
+      'The Ultimate Pack is the full metabolic reset: 90 sachets in assorted flavours, so the ritual lasts long enough to change how you eat.',
+      'A complimentary LYTE Smart Band is included for habit and progress tracking — so you can see the days you showed up, not just feel them.',
+    ],
+    highlights: ['90 sachets · 90 days', 'Free LYTE Fitband', 'Assorted flavours'],
+  },
+}
+
 const galleryCache: Record<string, string[]> = {}
-const preloadedGalleryUrls = new Set<string>()
 
 function shopifyGalleryFor(handle: string, urls: string[]): string[] {
   return withStarterPackHero(handle, urls.filter(Boolean), { includeHero: false })
-}
-
-function preloadGalleryUrls(urls: string[]) {
-  if (typeof window === 'undefined') return
-  for (const src of urls) {
-    if (!src || preloadedGalleryUrls.has(src)) continue
-    preloadedGalleryUrls.add(src)
-    const img = new window.Image()
-    img.decoding = 'async'
-    img.src = src
-  }
 }
 
 export default function SpecialOfferPage({
@@ -157,9 +183,7 @@ export default function SpecialOfferPage({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [imageError, setImageError] = useState<Record<string, boolean>>({})
   const [quantity, setQuantity] = useState(1)
-  const [expandedAccordion, setExpandedAccordion] = useState<string | null>('box')
-  const [showStickyAddToCart, setShowStickyAddToCart] = useState(false)
-  const [isAdding, setIsAdding] = useState(false)
+  const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null)
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [galleryAutoPlay, setGalleryAutoPlay] = useState(true)
   const [shopifyDescriptionHtml, setShopifyDescriptionHtml] = useState<Record<string, string>>(
@@ -169,43 +193,42 @@ export default function SpecialOfferPage({
     () => ({ ...galleryCache, ...initialImages })
   )
   const heroRef = useRef<HTMLDivElement>(null)
+  const ctaSectionRef = useRef<HTMLDivElement>(null)
+  const [showStickyCtas, setShowStickyCtas] = useState(false)
+  const [reviewStats, setReviewStats] = useState<{ averageRating: number; totalCount: number }>({
+    averageRating: 4.8,
+    totalCount: 0,
+  })
   const { requireVerifiedPhone, checkoutOtpModal } = useCheckoutOtp()
-  const mainButtonRef = useRef<HTMLButtonElement>(null)
   const galleryTouchStartX = useRef<number | null>(null)
-  const addItem = useCartStore((state) => state.addItem)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/products/${encodeURIComponent(selectedPackage.handle)}/reviews`, {
+      cache: 'no-store',
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        const totalCount = typeof data.totalCount === 'number' ? data.totalCount : 0
+        const averageRating =
+          typeof data.averageRating === 'number' && totalCount > 0 ? data.averageRating : 4.8
+        setReviewStats({ averageRating, totalCount })
+      })
+      .catch(() => null)
+    return () => {
+      cancelled = true
+    }
+  }, [selectedPackage.handle])
 
   // The page already includes the Shopify galleries. Warm the other packs in the
   // background after the first slide has started, and only hit the network if
   // the server did not send them.
   useEffect(() => {
     const handles = SPECIAL_OFFER_PACKAGES.map((p) => p.handle)
-    const selectedHandle = SPECIAL_OFFER_PACKAGES[0].handle
 
     const warm = (imageMap: Record<string, string[]>) => {
       Object.assign(galleryCache, imageMap)
-      const selected = imageMap[selectedHandle] || []
-      const restOfSelected = selected.slice(1)
-      const otherPacks = handles
-        .filter((handle) => handle !== selectedHandle)
-        .flatMap((handle) => imageMap[handle] || [])
-      const first = selected[0]
-      let started = false
-      const preloadRest = () => {
-        if (started) return
-        started = true
-        preloadGalleryUrls(restOfSelected)
-        window.setTimeout(() => preloadGalleryUrls(otherPacks), 400)
-      }
-      if (!first) {
-        preloadRest()
-        return
-      }
-      const hero = new window.Image()
-      hero.decoding = 'async'
-      hero.onload = preloadRest
-      hero.onerror = preloadRest
-      hero.src = first
-      if (hero.complete) preloadRest()
     }
 
     if (handles.every((handle) => (shopifyImagesByHandle[handle] || []).length > 0)) {
@@ -241,16 +264,15 @@ export default function SpecialOfferPage({
     setGalleryAutoPlay(true)
   }
 
-  // Sticky add-to-cart listener
   useEffect(() => {
-    const handleScroll = () => {
-      if (mainButtonRef.current) {
-        const buttonRect = mainButtonRef.current.getBoundingClientRect()
-        setShowStickyAddToCart(buttonRect.bottom < 0)
-      }
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    const el = ctaSectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyCtas(!entry.isIntersecting),
+      { threshold: 0 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
 
   const images = shopifyGalleryFor(
@@ -285,39 +307,8 @@ export default function SpecialOfferPage({
     })
   }, [selectedPackage.id, selectedPackage.name, selectedPackage.price, selectedPackage.shopifyId, selectedPackage.variantId])
 
-  const handleAddToCart = () => {
-    setIsAdding(true)
-    try {
-      for (let i = 0; i < quantity; i++) {
-        addItem({
-          id: `${selectedPackage.shopifyId}::assorted-flavours`,
-          variantId: selectedPackage.variantId,
-          title: `FYBER ${selectedPackage.name}`,
-          price: selectedPackage.price,
-          compareAtPrice:
-            selectedPackage.comparePrice > selectedPackage.price
-              ? selectedPackage.comparePrice
-              : undefined,
-          image: galleryImage,
-          handle: selectedPackage.handle,
-          variant: 'Assorted Flavours',
-        })
-      }
-      trackAddToCart({
-        contentName: `FYBER ${selectedPackage.name}`,
-        contentIds: [selectedPackage.shopifyId, selectedPackage.variantId],
-        value: selectedPackage.price * quantity,
-        quantity,
-      })
-    } catch (err) {
-      console.error('Error adding special offer to cart:', err)
-    } finally {
-      setIsAdding(false)
-    }
-  }
-
   const handleBuyNow = () => {
-    if (isCheckingOut || isAdding) return
+    if (isCheckingOut) return
     const pack = selectedPackage
     const currentQuantity = quantity
     void requireVerifiedPhone({
@@ -386,14 +377,14 @@ export default function SpecialOfferPage({
     imageError[`${selectedPackage.id}-${imageIndex}`] && images[0] ? images[0] : src
   )
 
-  const renderGallery = (padded: boolean) => (
+  const renderGallery = () => (
     <SlidingImageGallery
       images={gallerySources}
       index={selectedImageIndex}
       alt={`FYBER ${selectedPackage.name} - Assorted Flavours`}
-      padClassName={padded ? 'p-8' : ''}
+      padClassName="md:p-8"
       unoptimized
-      sizes={padded ? '50vw' : '100vw'}
+      sizes="(max-width: 768px) 100vw, 50vw"
       onImageError={(imageIndex) =>
         setImageError((prev) => ({
           ...prev,
@@ -449,12 +440,10 @@ export default function SpecialOfferPage({
 
   const displayServings =
     selectedPackage.id === 'starter' ? 7 : selectedPackage.id === 'ultimate' ? 90 : 30
-
-  const descriptionHtml =
-    shopifyDescriptionHtml[selectedPackage.handle] || selectedPackage.description
+  const packStory = PACK_STORIES[selectedPackage.id]
 
   return (
-    <div className={`min-h-screen bg-[#faf8f5] overflow-x-hidden pt-[5.5rem] ${showStickyAddToCart ? 'pb-24' : ''}`}>
+    <div className="min-h-screen overflow-x-hidden bg-[#faf8f5] pt-[5.5rem]">
       {/* Top Banner Notice */}
       <div className="hidden md:block bg-[#187254] text-white py-2.5 px-4 text-center text-xs sm:text-sm font-semibold tracking-wider uppercase">
         <span className="inline-block w-2 h-2 rounded-full bg-emerald-300 mr-2 animate-pulse" />
@@ -463,24 +452,15 @@ export default function SpecialOfferPage({
 
       {/* Hero Section */}
       <div ref={heroRef} className="bg-white">
-        <div className="max-w-[1600px] mx-auto lg:px-8 pb-8 md:pb-12">
-          <div className="flex flex-col lg:flex-row gap-0 lg:items-start">
-            <div className="order-1 w-full lg:w-1/2 flex gap-4 lg:pr-6 lg:sticky lg:top-[5.5rem]">
+        <div className="mx-auto max-w-[1600px] pb-4 lg:px-8 md:pb-6">
+          <div className="flex flex-col gap-0 lg:flex-row lg:items-start">
+            <div className="order-1 flex w-full gap-4 lg:sticky lg:top-[5.5rem] lg:w-1/2 lg:max-h-[calc(100vh-6.5rem)] lg:pr-6 lg:self-start">
               <div className="flex-1 relative bg-transparent rounded-none sm:rounded-lg overflow-hidden max-md:w-full">
-                {/* Mobile: fixed square frame so slides cannot push the page */}
                 <div
-                  className="md:hidden relative w-full aspect-square overflow-hidden touch-pan-y cursor-pointer select-none"
+                  className="relative aspect-square w-full max-h-[min(100vw,calc(100vh-6.5rem))] overflow-hidden touch-pan-y select-none lg:max-h-[calc(100vh-6.5rem)]"
                   {...galleryPressHandlers}
                 >
-                  {renderGallery(false)}
-                </div>
-
-                {/* Desktop: one mounted image at a time so Chrome actually swaps (no stacked opacity-0 LCP). */}
-                <div
-                  className="hidden md:block relative w-full aspect-square overflow-hidden cursor-pointer select-none"
-                  {...galleryPressHandlers}
-                >
-                  {renderGallery(true)}
+                  {renderGallery()}
                   {images.length > 1 && (
                     <>
                       <button
@@ -492,7 +472,7 @@ export default function SpecialOfferPage({
                           goToGalleryImage('prev')
                           window.setTimeout(() => setGalleryAutoPlay(true), GALLERY_AUTO_MS)
                         }}
-                        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 flex p-2 rounded-full bg-white/90 hover:bg-white text-black shadow-md transition-all active:scale-95"
+                        className="absolute left-2 sm:left-4 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-white/90 p-2 text-black shadow-md transition-all hover:bg-white active:scale-95 md:flex"
                         aria-label="Previous image"
                       >
                         <ChevronLeft className="w-5 h-5" />
@@ -506,7 +486,7 @@ export default function SpecialOfferPage({
                           goToGalleryImage('next')
                           window.setTimeout(() => setGalleryAutoPlay(true), GALLERY_AUTO_MS)
                         }}
-                        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 flex p-2 rounded-full bg-white/90 hover:bg-white text-black shadow-md transition-all active:scale-95"
+                        className="absolute right-2 sm:right-4 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-white/90 p-2 text-black shadow-md transition-all hover:bg-white active:scale-95 md:flex"
                         aria-label="Next image"
                       >
                         <ChevronRight className="w-5 h-5" />
@@ -514,7 +494,6 @@ export default function SpecialOfferPage({
                     </>
                   )}
                 </div>
-
               </div>
             </div>
 
@@ -523,10 +502,9 @@ export default function SpecialOfferPage({
               
               {/* Product Type & Title */}
               <div>
-                <FeaturedOnMarquee variant="compact" />
                 <h1 className="mb-2">
                   <span className="block text-4xl md:text-2xl uppercase tracking-wider text-[#187254] font-semibold">
-                    Fyber
+                    FYBER
                   </span>
                   <span className="block text-xl sm:text-2xl md:text-3xl font-light text-gray-900 tracking-tight mt-0.5">
                     Weight Management Solution
@@ -539,12 +517,25 @@ export default function SpecialOfferPage({
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Star
                         key={i}
-                        className="w-4 h-4 fill-amber-400 text-amber-400"
+                        className={`w-4 h-4 ${
+                          i <= Math.round(reviewStats.averageRating)
+                            ? 'fill-amber-400 text-amber-400'
+                            : 'text-gray-300'
+                        }`}
                         aria-hidden
                       />
                     ))}
                   </div>
-                  <span className="text-sm font-bold text-gray-900">4.8</span>
+                  <span className="text-sm font-bold text-gray-900">
+                    {reviewStats.averageRating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {reviewStats.totalCount === 0
+                      ? 'No reviews yet'
+                      : `(${reviewStats.totalCount} ${
+                          reviewStats.totalCount === 1 ? 'review' : 'reviews'
+                        })`}
+                  </span>
                 </div>
               </div>
 
@@ -554,9 +545,28 @@ export default function SpecialOfferPage({
                 selectedPackageId={selectedPackage.id}
                 onSelect={handleSelectPackage}
               />
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
+                  Assorted flavours in every pack
+                </p>
+                <ul className="flex flex-wrap gap-2" aria-label="Available flavours">
+                  {[
+                    { name: 'Watermelon', className: 'border-[#e8a0b8] bg-[#f8d4e0] text-[#9f1239]' },
+                    { name: 'Lime n Lemon', className: 'border-[#c5d86a] bg-[#eaf4b8] text-[#3f6212]' },
+                    { name: 'Unflavoured', className: 'border-[#d6d0c4] bg-[#f4f0e6] text-[#44403c]' },
+                  ].map((flavour) => (
+                    <li
+                      key={flavour.name}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium ${flavour.className}`}
+                    >
+                      {flavour.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 items-center border border-gray-300 rounded-xl bg-white px-1">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex h-11 items-center border border-gray-300 rounded-xl bg-white px-1 flex-shrink-0">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -577,104 +587,76 @@ export default function SpecialOfferPage({
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
-
-              {/* Pack subtitle + Shopify description (desktop only — avoids duplicate pack title on mobile) */}
-              <div className="hidden md:block space-y-2 pt-1">
-                <h3 className="text-base font-medium text-black tracking-tight">
-                  Pack: {displayServings} Sachets | Assorted Flavours
-                </h3>
-                {descriptionHtml && (
-                  <div className="text-xs text-gray-700 leading-relaxed product-description">
-                    {shopifyDescriptionHtml[selectedPackage.handle] ? (
-                      <div
-                        className="prose prose-sm max-w-none prose-gray prose-p:text-xs prose-li:text-xs prose-headings:text-sm space-y-1"
-                        dangerouslySetInnerHTML={{ __html: descriptionHtml }}
-                      />
-                    ) : (
-                      <p>{descriptionHtml}</p>
-                    )}
-                  </div>
-                )}
+                <PaymentIcons
+                  className="justify-end min-w-0 flex-nowrap"
+                  iconClassName="w-11 h-7 sm:w-12 sm:h-8 object-contain flex-shrink-0"
+                />
               </div>
 
               {/* Quantity Selector + CTAs */}
-              <div className="space-y-3">
-                <button
-                  ref={mainButtonRef}
-                  type="button"
-                  onClick={handleAddToCart}
-                  disabled={isAdding}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-xl px-6 font-extrabold text-sm uppercase tracking-widest bg-black text-white hover:bg-gray-900 transition-all shadow-md active:scale-[0.99] disabled:opacity-60"
-                >
-                  {isAdding ? 'Adding to Cart...' : 'Add to Cart'}
-                </button>
-
-                {/* Buy Now Button */}
+              <div ref={ctaSectionRef} className="space-y-3">
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  disabled={isCheckingOut || isAdding}
+                  disabled={isCheckingOut}
                   className="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm uppercase tracking-widest bg-gradient-to-r from-[#2b5844] to-[#1f4031] text-white hover:opacity-95 transition-all shadow-sm active:scale-[0.99] disabled:opacity-60"
                 >
                   {isCheckingOut ? 'Redirecting to Checkout...' : 'Buy Now • Instant Checkout'}
                 </button>
-              </div>
-
-              <div className="mt-4 flex flex-col -mx-4 sm:-mx-6 lg:mx-0">
-                <Image
-                  src="/MONEYBACK DESKTOP.png"
-                  alt="100% money-back guarantee. No questions asked."
-                  width={1200}
-                  height={400}
-                  className="w-full h-auto object-contain hidden md:block"
-                />
-                <Image
-                  src="/MONEYBACK MOBILE 2.png"
-                  alt="100% money-back guarantee. No questions asked."
-                  width={800}
-                  height={700}
-                  className="w-full h-auto object-contain block md:hidden"
-                />
-                <Image
-                  src="/timeline mobile.png"
-                  alt="Product Timeline - Measurable Results"
-                  width={800}
-                  height={400}
-                  className="w-full h-auto object-contain block md:hidden"
-                />
-                <Image
-                  src="/timeline-desktoppng.png"
-                  alt="Product Timeline - Measurable Results"
-                  width={800}
-                  height={200}
-                  className="w-full h-auto object-contain hidden md:block"
-                />
-              </div>
-
-              {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-2 py-3 border-y border-gray-200/80 text-center">
-                <div className="flex flex-col items-center">
-                  <Truck className="w-5 h-5 text-gray-700 mb-1" />
-                  <span className="text-[11px] font-bold text-gray-800">Free Shipping</span>
-                  <span className="text-[10px] text-gray-500">Pan India Delivery</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <ShieldCheck className="w-5 h-5 text-gray-700 mb-1" />
-                  <span className="text-[11px] font-bold text-gray-800">Natural Ingredients</span>
-                  <span className="text-[10px] text-gray-500">Non-Habit Forming</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <Award className="w-5 h-5 text-gray-700 mb-1" />
-                  <span className="text-[11px] font-bold text-gray-800">Clinically Studied</span>
-                  <span className="text-[10px] text-gray-500">GLP-1 Pathway Satiety</span>
+                <div className="grid grid-cols-3 gap-2 py-3 border-y border-gray-200/80 text-center">
+                  <div className="flex flex-col items-center">
+                    <Truck className="w-5 h-5 text-gray-700 mb-1" />
+                    <span className="text-[11px] font-bold text-gray-800">Free Shipping</span>
+                    <span className="text-[10px] text-gray-500">PAN India Delivery</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <ShieldCheck className="w-5 h-5 text-gray-700 mb-1" />
+                    <span className="text-[11px] font-bold text-gray-800">Natural Ingredients</span>
+                    <span className="text-[10px] text-gray-500">Non-Habit Forming</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <Award className="w-5 h-5 text-gray-700 mb-1" />
+                    <span className="text-[11px] font-bold text-gray-800">Clinically Studied</span>
+                    <span className="text-[10px] text-gray-500">GLP-1 Pathway Satiety</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Payment Methods */}
-              <div className="pt-1">
-                <PaymentIcons />
-              </div>
+              {packStory ? (
+                <section
+                  className="relative overflow-hidden rounded-2xl border border-[#187254]/15 bg-[#f7f4ee] p-5 shadow-[0_12px_32px_rgba(24,114,84,0.06)] sm:p-6"
+                  aria-labelledby="pack-description-heading"
+                >
+                  <span className="absolute inset-y-0 left-0 w-1.5 bg-[#187254]" aria-hidden />
+                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#187254]">
+                    {packStory.eyebrow}
+                  </p>
+                  <h3
+                    id="pack-description-heading"
+                    className="mt-1 text-lg font-semibold tracking-tight text-gray-900"
+                  >
+                    {packStory.title}
+                  </h3>
+                  <p className="mt-1 text-xs font-medium text-gray-500">
+                    {selectedPackage.duration} · {selectedPackage.servings} · Assorted flavours
+                  </p>
+                  <div className="mt-3 space-y-2.5 text-sm leading-relaxed text-gray-700">
+                    {packStory.body.map((paragraph) => (
+                      <p key={paragraph}>{paragraph}</p>
+                    ))}
+                  </div>
+                  <ul className="mt-4 flex flex-wrap gap-2">
+                    {packStory.highlights.map((item) => (
+                      <li
+                        key={item}
+                        className="rounded-full border border-[#187254]/20 bg-white px-3 py-1 text-[11px] font-semibold text-[#187254]"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
 
               {/* Accordions */}
               <div className="space-y-2 pt-2 border-t border-gray-200">
@@ -742,26 +724,24 @@ export default function SpecialOfferPage({
                 <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
                   <button
                     type="button"
-                    onClick={() => toggleAccordion('usage')}
+                    onClick={() => {
+                      document.getElementById('how-to-use-fyber')?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                      })
+                    }}
                     className="w-full py-3.5 px-5 flex items-center justify-between text-left font-bold text-sm text-gray-900"
                   >
-                    <span>Recommended Daily Ritual</span>
-                    <Plus
-                      className={`w-4 h-4 transition-transform duration-300 ${
-                        expandedAccordion === 'usage' ? 'rotate-45 text-black' : 'text-gray-500'
-                      }`}
-                    />
+                    <span>How to use FYBER?</span>
+                    <Plus className="w-4 h-4 text-gray-500" />
                   </button>
-                  {expandedAccordion === 'usage' && (
-                    <div className="px-5 pb-4 text-xs text-gray-600 space-y-2 leading-relaxed border-t border-gray-100 pt-3">
-                      <ol className="list-decimal list-inside space-y-1.5">
-                        <li>Mix 1 sachet in a glass of room temperature water (250–300ml).</li>
-                        <li>Stir and drink 30-60 minutes before meals.</li>
-                      </ol>
-                    </div>
-                  )}
                 </div>
 
+              </div>
+
+              <div className="-mx-4 mt-2 flex flex-col sm:-mx-6 lg:mx-0">
+                <MoneyBackGuarantee />
+                <ResultsTimeline />
               </div>
 
             </div>
@@ -769,48 +749,32 @@ export default function SpecialOfferPage({
         </div>
       </div>
 
-      {/* Sticky Bottom Add to Cart Bar */}
-      {showStickyAddToCart && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 p-3 shadow-2xl transition-all">
-          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                <Image
-                  src={galleryImage}
-                  alt={selectedPackage.name}
-                  fill
-                  className="object-contain p-1"
-                  sizes="48px"
-                />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">
-                  {selectedPackage.duration}
-                </p>
-                <p className="text-[11px] text-gray-500">
-                  ₹{formatInr(selectedPackage.price)} • Assorted Flavours
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={isAdding}
-                className="py-2.5 px-5 sm:px-8 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider bg-black text-white hover:bg-gray-900 transition-all shadow-md whitespace-nowrap active:scale-95"
-              >
-                {isAdding ? 'Adding...' : 'Add to Cart'}
-              </button>
-            </div>
+      {showStickyCtas && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-200 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] py-3 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+          <div className="max-w-7xl mx-auto">
+            <button
+              type="button"
+              onClick={handleBuyNow}
+              disabled={isCheckingOut}
+              className="flex h-12 sm:h-14 w-full items-center justify-center rounded-xl px-4 font-extrabold text-sm uppercase tracking-widest text-white bg-gradient-to-r from-[#2b5844] to-[#1f4031] hover:opacity-95 transition-all active:scale-[0.99] disabled:opacity-60"
+            >
+              {isCheckingOut ? 'Redirecting...' : 'Buy Now • Instant Checkout'}
+            </button>
           </div>
         </div>
       )}
 
+      <OfferBenefitsSection />
       <ProductPageLowerSections
         productSlug={selectedPackage.handle}
         productTitle={selectedPackage.name}
       />
+      {showStickyCtas ? (
+        <div
+          className="h-[calc(4.5rem+env(safe-area-inset-bottom))] bg-white md:hidden"
+          aria-hidden
+        />
+      ) : null}
       {checkoutOtpModal}
     </div>
   )

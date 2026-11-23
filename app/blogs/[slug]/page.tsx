@@ -233,24 +233,6 @@ export default async function BlogDetailPage(props: Props) {
                 <BlogCard key={rel.id} article={rel} />
               ))}
             </div>
-
-            {/* 10. Newsletter Box CTA */}
-            <div className="mt-20 max-w-4xl mx-auto bg-gray-50 border border-gray-200 rounded-2xl flex flex-col md:flex-row items-center justify-between p-8 md:p-12 gap-8 shadow-sm">
-              <div className="flex items-center gap-6">
-                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm border border-gray-100">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Stay Updated with Insights</h3>
-                  <p className="text-gray-500">Subscribe to our newsletter and never miss an update.</p>
-                </div>
-              </div>
-              <button className="whitespace-nowrap px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-95">
-                Subscribe Now
-              </button>
-            </div>
           </div>
         </section>
       )}

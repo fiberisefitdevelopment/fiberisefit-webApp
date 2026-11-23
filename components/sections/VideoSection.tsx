@@ -1,154 +1,100 @@
-'use client'
-
 import Image from 'next/image'
-import { useRef, useState, useEffect } from 'react'
+
+const TRUST_PILLARS = [
+  {
+    icon: '/icons/lab.png',
+    title: 'Third-Party Tested',
+    description: 'We hold ourselves and our ingredients to the highest standards.',
+  },
+  {
+    icon: '/icons/quality.png',
+    title: 'Quality Ingredients',
+    description: "We're dedicated to using scientifically backed, high-quality natural ingredients.",
+  },
+  {
+    icon: '/icons/nogmo-2.png',
+    title: 'Non-GMO',
+    description: 'We carefully evaluate every ingredient, ensuring they are non-GMO.',
+  },
+  {
+    icon: '/icons/vegan-2.png',
+    title: 'Vegan',
+    description: 'We ensure the highest standards with 100% vegan, cruelty-free formulations.',
+  },
+] as const
 
 const features = [
   {
     icon: '/icons/Group 642.svg',
     title: 'Mobilises Fat',
     description: "Supports the body's natural fat-utilisation pathways",
-    position: 'left-top',
   },
   {
     icon: '/icons/Group 639.svg',
     title: 'Controls Hunger',
     description: 'Helps you feel satisfied, longer.',
-    position: 'left-middle',
   },
   {
     icon: '/icons/Group 644.svg',
     title: 'Improves Energy Levels',
     description: 'Clean support for mental and physical clarity.',
-    position: 'left-bottom',
   },
   {
     icon: '/icons/Group 643.svg',
     title: 'Reduces Caloric Intake',
-    description: "Encourages mindful eating through better fullness.",
-    position: 'right-top',
+    description: 'Encourages mindful eating through better fullness.',
   },
   {
     icon: '/icons/Group 640.svg',
     title: 'Pre-Biotic',
     description: 'Nourishes beneficial gut bacteria naturally.',
-    position: 'right-middle',
   },
   {
     icon: '/icons/Group 638.svg',
     title: 'Pro-Biotic',
     description: 'Supports a balanced and resilient gut ecosystem.',
-    position: 'right-bottom',
   },
 ]
 
-export default function VideoSection() {
-  const leftFeatures = features.filter(f => f.position.startsWith('left'))
-  const rightFeatures = features.filter(f => f.position.startsWith('right'))
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '200px' }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
-  useEffect(() => {
-    if (isVisible && videoRef.current) {
-      videoRef.current.play().catch(() => {})
-    }
-  }, [isVisible])
-
+function IconTile({
+  icon,
+  title,
+  description,
+}: {
+  icon: string
+  title: string
+  description: string
+}) {
   return (
-    <section className="w-full bg-fyber-ivory-dream py-10 md:py-14 lg:py-16">
-      {/* Section Title */}
-      <h2 className="text-center text-xl md:text-2xl lg:text-3xl font-semibold tracking-wider uppercase mb-8 md:mb-12">
-        <span className="md:hidden">SCIENCE MEETS<br />EVERYDAY CONTROL</span>
-        <span className="hidden md:inline">SCIENCE MEETS EVERYDAY CONTROL</span>
+    <div className="flex flex-col items-center text-center">
+      <div className="relative mb-1.5 h-10 w-10 shrink-0 md:h-11 md:w-11">
+        <Image src={icon} alt="" fill sizes="44px" className="object-contain" />
+      </div>
+      <h3 className="text-[11px] font-semibold uppercase leading-tight tracking-wider md:text-xs">
+        {title}
+      </h3>
+      <p className="mt-0.5 max-w-[12.5rem] text-[11px] leading-snug text-gray-600">{description}</p>
+    </div>
+  )
+}
+
+export default function VideoSection() {
+  return (
+    <section className="w-full bg-fyber-ivory-dream pb-4 pt-8 md:pb-5 md:pt-10">
+      <h2 className="mb-5 px-6 text-center text-2xl font-bold uppercase tracking-wide text-black md:mb-6 md:text-3xl lg:text-4xl">
+        Science meets everyday control
       </h2>
 
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-3 items-center">
-          {/* Left Features */}
-          <div className="flex flex-col gap-6 md:gap-8">
-            {leftFeatures.map((feature, index) => (
-              <div key={index} className="text-center lg:text-center">
-                <div className="w-12 h-12 md:w-14 md:h-14 mx-auto mb-2 relative">
-                  <Image
-                    src={feature.icon}
-                    alt={feature.title}
-                    fill
-                    sizes="56px"
-                    loading="lazy"
-                    className="object-contain opacity-50"
-                  />
-                </div>
-                <h3 className="text-xs md:text-sm font-semibold tracking-wider uppercase mb-1">
-                  {feature.title}
-                </h3>
-                <p className="text-xs text-gray-600 max-w-[200px] mx-auto leading-tight">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Center Video — lazy loaded */}
-          <div ref={containerRef} className="relative flex items-center justify-center order-first lg:order-none">
-            <div className="relative w-full max-w-sm aspect-[3/4] rounded-2xl overflow-hidden border-0 border-none shadow-none ring-0">
-              {isVisible ? (
-                <video
-                  ref={videoRef}
-                  loop
-                  muted
-                  playsInline
-                  preload="none"
-                  className="w-full h-full object-cover border-0 outline-none"
-                >
-                  <source src="https://cdn.shopify.com/videos/c/o/v/c8adac45b8ba47f8b2f3d6b77b7bd970.webm" type="video/webm" />
-                </video>
-              ) : (
-                <div className="w-full h-full bg-gray-100 animate-pulse" />
-              )}
-            </div>
-          </div>
-
-          {/* Right Features */}
-          <div className="flex flex-col gap-6 md:gap-8">
-            {rightFeatures.map((feature, index) => (
-              <div key={index} className="text-center lg:text-center">
-                <div className="w-12 h-12 md:w-14 md:h-14 mx-auto mb-2 relative">
-                  <Image
-                    src={feature.icon}
-                    alt={feature.title}
-                    fill
-                    sizes="56px"
-                    loading="lazy"
-                    className="object-contain opacity-70"
-                  />
-                </div>
-                <h3 className="text-xs md:text-sm font-semibold tracking-wider uppercase mb-1">
-                  {feature.title}
-                </h3>
-                <p className="text-xs text-gray-600 max-w-[200px] mx-auto leading-tight">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
+      <div className="mx-auto max-w-5xl px-6">
+        <div className="grid grid-cols-2 items-start gap-x-4 gap-y-4 md:grid-cols-3 md:gap-x-6 md:gap-y-5">
+          {features.map((feature) => (
+            <IconTile key={feature.title} {...feature} />
+          ))}
+        </div>
+        <div className="mt-5 grid grid-cols-2 items-start gap-x-4 gap-y-4 md:mt-5 md:grid-cols-4 md:gap-x-6">
+          {TRUST_PILLARS.map((pillar) => (
+            <IconTile key={pillar.title} {...pillar} />
+          ))}
         </div>
       </div>
     </section>

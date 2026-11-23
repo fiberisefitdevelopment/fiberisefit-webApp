@@ -8,16 +8,16 @@ import { useCartStore } from '@/store/cartStore'
 import { useCampaignStore, clearActiveCampaign } from '@/store/campaignStore'
 import { useCheckoutOtp } from '@/hooks/useCheckoutOtp'
 import { ChevronRight, ChevronLeft, Plus, Minus, Star, Clock } from 'lucide-react'
-import VideoSection from '@/components/sections/VideoSection'
 import ImageTextSection from '@/components/sections/ImageTextSection'
 import MetabolismSection from '@/components/sections/science/MetabolismSection'
 import BenefitsGrid from '@/components/sections/science/BenefitsGrid'
 import ProductReviewsSection from '@/components/sections/ProductReviewsSection'
 import ReelsSection from '@/components/sections/ReelsSection'
-import RitualSection from '@/components/sections/RitualSection'
 import EnergyResetSection from '@/components/sections/EnergyResetSection'
 import PaymentIcons from '@/components/PaymentIcons'
 import FeaturedOnMarquee from '@/components/sections/FeaturedOnMarquee'
+import ResultsTimeline from '@/components/sections/ResultsTimeline'
+import MoneyBackGuarantee from '@/components/sections/MoneyBackGuarantee'
 import SlidingImageGallery from '@/components/SlidingImageGallery'
 import { getProductRatingBySlug } from '@/lib/product-ratings'
 import { STARTER_PACK_HERO_IMAGE, isStarterPackHandle, withStarterPackHero } from '@/lib/starter-pack-hero'
@@ -137,8 +137,6 @@ export default function ProductPage({
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null)
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null)
-  const [joinEmail, setJoinEmail] = useState('')
-  const [joinSubmitted, setJoinSubmitted] = useState(false)
   const [reviewRating, setReviewRating] = useState<{ averageRating: number; totalCount: number } | null>(null)
   const [isLinkExpired, setIsLinkExpired] = useState(false)
   const [firstOpenedTime, setFirstOpenedTime] = useState<number | null>(null)
@@ -1135,41 +1133,10 @@ export default function ProductPage({
                 {/* Starter pack supporting images */}
                 {product.title.toLowerCase().includes('starter') && (
                   <div className="mt-4 -mx-4 sm:-mx-6 lg:mx-0 flex flex-col">
-                    <Image
-                      src="/MONEYBACK DESKTOP.png"
-                      alt="100% money-back guarantee. No questions asked."
-                      width={1200}
-                      height={400}
-                      className="w-full h-auto object-contain hidden md:block"
-                    />
-                    <Image
-                      src="/MONEYBACK MOBILE 2.png"
-                      alt="100% money-back guarantee. No questions asked."
-                      width={800}
-                      height={700}
-                      className="w-full h-auto object-contain block md:hidden"
-                    />
-                    {/* Desktop Images */}
-                    <div className="hidden md:flex flex-col gap-4">
-                      <Image
-                        src="/timeline-desktoppng.png"
-                        alt="Product Timeline - Measurable Results"
-                        width={800}
-                        height={200}
-                        className="w-full h-auto object-contain"
-                        priority
-                      />
-                    </div>
+                    <MoneyBackGuarantee />
+                    <ResultsTimeline />
                     {/* Mobile Images (Zero padding container) */}
                     <div className="w-full flex flex-col md:hidden">
-                      <Image
-                        src="/timeline mobile.png"
-                        alt="Timeline"
-                        width={800}
-                        height={400}
-                        className="w-full h-auto object-contain block"
-                        priority
-                      />
                       <Image
                         src="/how to use mobile.png"
                         alt="How to Use"
@@ -1201,46 +1168,14 @@ export default function ProductPage({
                 {/* Timeline Image for Non-Starter Packs */}
                 {!product.title.toLowerCase().includes('starter') && (
                   <div className="mt-4 flex flex-col -mx-4 sm:-mx-6 lg:mx-0">
-                    {isSpecialOfferProductPage && (
-                      <>
-                        <Image
-                          src="/MONEYBACK DESKTOP.png"
-                          alt="100% money-back guarantee. No questions asked."
-                          width={1200}
-                          height={400}
-                          className="w-full h-auto object-contain hidden md:block"
-                        />
-                        <Image
-                          src="/MONEYBACK MOBILE 2.png"
-                          alt="100% money-back guarantee. No questions asked."
-                          width={800}
-                          height={700}
-                          className="w-full h-auto object-contain block md:hidden"
-                        />
-                      </>
-                    )}
-                    <Image
-                      src="/timeline mobile.png"
-                      alt="Product Timeline - Measurable Results"
-                      width={800}
-                      height={400}
-                      className="w-full h-auto object-contain block md:hidden"
-                      priority
-                    />
-                    <Image
-                      src="/timeline-desktoppng.png"
-                      alt="Product Timeline - Measurable Results"
-                      width={800}
-                      height={200}
-                      className="w-full h-auto object-contain hidden md:block"
-                      priority
-                    />
+                    {isSpecialOfferProductPage ? <MoneyBackGuarantee /> : null}
+                    <ResultsTimeline />
                   </div>
                 )}
 
                 {/* Trust strip + social proof */}
                 <div className="text-sm text-gray-600 mt-4 space-y-1">
-                  <p>Free shipping Pan India</p>
+                  <p>Free shipping PAN India</p>
                   <p className="text-xs text-gray-500">Free delivery · Easy returns</p>
                 </div>
 
@@ -1344,13 +1279,8 @@ export default function ProductPage({
 
       {/* Real Stories / Reels Section */}
       <ReelsSection />
+      <ProductReviewsSection productSlug={product.slug || product.handle} productTitle={product.title} />
 
-      <div className="md:hidden">
-        <RitualSection />
-      </div>
-
-      {/* Science / feature video + metabolic explanation + benefits grid directly below hero */}
-      <VideoSection />
       <div className="md:hidden">
         <ImageTextSection showLearnScienceCta={false} />
       </div>
@@ -1528,9 +1458,6 @@ export default function ProductPage({
         </div>
       </section>
 
-      {/* Ratings & Reviews — user can add a review */}
-      <ProductReviewsSection productSlug={product.slug || product.handle} productTitle={product.title} />
-
       {/* 2. Four feature pillars */}
       <section className="w-full bg-white py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1572,42 +1499,6 @@ export default function ProductPage({
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 3. Join Our Circle & Save */}
-      <section className="w-full bg-[#168B6A] py-12 md:py-16">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-wide mb-3">
-            Join Our Circle & Save!
-          </h2>
-          <p className="text-base text-white mb-8">
-            Sign up now for 10% off your first order — because you deserve it!
-          </p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              setJoinSubmitted(true)
-              setJoinEmail('')
-              setTimeout(() => setJoinSubmitted(false), 3000)
-            }}
-            className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center"
-          >
-            <input
-              type="email"
-              value={joinEmail}
-              onChange={(e) => setJoinEmail(e.target.value)}
-              placeholder="Email"
-              required
-              className="flex-1 min-w-0 px-5 py-3 bg-white border border-white/80 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/40"
-            />
-            <button
-              type="submit"
-              className="px-8 py-3 rounded-lg font-semibold text-sm uppercase tracking-wider bg-white text-black hover:bg-gray-100 transition-colors whitespace-nowrap"
-            >
-              {joinSubmitted ? 'Subscribed!' : 'Subscribe'}
-            </button>
-          </form>
         </div>
       </section>
 

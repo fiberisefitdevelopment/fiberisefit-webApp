@@ -31,14 +31,11 @@ export default function EnergyResetSection() {
   const duplicatedReviews = [...doctorReviews, ...doctorReviews]
 
   return (
-    <section className="w-full bg-[#f5f3ef] pt-6 pb-12 md:py-28 lg:py-32">
+    <section className="w-full bg-[#f5f3ef] pt-6 pb-12 md:py-16 lg:py-20">
       <div className="max-w-full mx-auto px-0">
-        <header className="text-center mb-14 md:mb-16 px-4 sm:px-6 lg:px-8">
-          <h2
-            className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium text-[#1a1a1a] mb-3 tracking-tight"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            Trusted by Doctors 
+        <header className="text-center mb-10 md:mb-12 px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-3 text-2xl font-bold uppercase tracking-wide text-black md:text-3xl lg:text-4xl">
+            Trusted by Doctors
           </h2>
           <p className="text-base md:text-lg text-[#5c5c5c] max-w-xl mx-auto leading-relaxed">
             Recommended by leading healthcare professionals and wellness experts.

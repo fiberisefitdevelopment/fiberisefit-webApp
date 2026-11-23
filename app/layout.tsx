@@ -73,22 +73,6 @@ export default function RootLayout({
     <html lang="en" className={`${montserrat.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
         <link rel="alternate" hrefLang="en-in" href="https://fiberisefit.com" />
-        <link
-          rel="preload"
-          as="image"
-          href="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/transformation-pack-mobile.webp?v=1795156864"
-          type="image/webp"
-          media="(max-width: 767px)"
-          fetchPriority="high"
-        />
-        <link
-          rel="preload"
-          as="image"
-          href="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/transformation-pack-desktop.webp?v=1795156864"
-          type="image/webp"
-          media="(min-width: 768px)"
-          fetchPriority="high"
-        />
         {/* Third-party tracking: queue APIs initialized immediately; heavy external scripts load during idle without delaying LCP */}
         <script
           id="third-party-tracking"
@@ -156,6 +140,15 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
+        <Script
+          id="aisensy-wa-widget"
+          src="https://d3mkw6s8thqya7.cloudfront.net/integration-plugin.js"
+          strategy="lazyOnload"
+          {...{
+            'widget-id':
+              process.env.NEXT_PUBLIC_AISENSY_WA_WIDGET_ID || 'aabvei',
+          }}
+        />
         <Script id="fiberise-analytics" strategy="lazyOnload">
           {`(function(){
             var origin=${JSON.stringify(process.env.NEXT_PUBLIC_ANALYTICS_ORIGIN || (process.env.NODE_ENV === 'development' ? 'http://localhost:3100' : ''))};

@@ -1,7 +1,6 @@
 'use client'
 
 import { useRef, useEffect, useState, useCallback } from 'react'
-import Image from 'next/image'
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react'
 import type { ReelMedia } from '@/lib/reels-config'
 
@@ -37,7 +36,7 @@ export default function ReelCard({
 
     const observer = new IntersectionObserver(
       ([entry]) => setIsIntersecting(entry.isIntersecting),
-      { rootMargin: '200px', threshold: 0 }
+      { rootMargin: '80px', threshold: 0 }
     )
     observer.observe(container)
     return () => observer.unobserve(container)
@@ -88,13 +87,25 @@ export default function ReelCard({
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !isIntersecting || hasLoaded) return
+    if (!video) return
 
+    if (!isActive) {
+      video.pause()
+      if (video.getAttribute('src')) {
+        video.removeAttribute('src')
+        video.load()
+      }
+      setHasLoaded(false)
+      setIsPlaying(false)
+      return
+    }
+
+    if (hasLoaded) return
     video.src = reel.videoUrl
     video.muted = isMuted
     video.load()
     setHasLoaded(true)
-  }, [isIntersecting, hasLoaded, reel.videoUrl, isMuted])
+  }, [isActive, hasLoaded, reel.videoUrl, isMuted])
 
   useEffect(() => {
     setHasLoaded(false)
@@ -110,34 +121,23 @@ export default function ReelCard({
       onClick={onActivate}
     >
       <div
-        className="relative aspect-[9/16] bg-gray-200 rounded-3xl overflow-hidden shadow-lg w-[200px] md:w-[240px] lg:w-[280px] transition-all duration-300 ease-out origin-center"
-        style={{ transform: 'scaleY(1)', transition: 'transform 300ms ease-out' }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scaleY(1.08)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scaleY(1)'
-        }}
+        className="relative aspect-[9/16] bg-gray-200 rounded-3xl overflow-hidden shadow-lg w-[200px] md:w-[240px] lg:w-[280px]"
       >
         <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
-          <Image
+          {/* Native img so Instagram WebView skips the Next image optimizer. */}
+          <img
             src={reel.posterUrl}
             alt=""
-            fill
-            loading="lazy"
-            sizes="(max-width: 768px) 200px, 280px"
-            className={`object-cover transition-opacity duration-300 ${
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
               isPlaying ? 'opacity-0' : 'opacity-100'
             }`}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
           />
-
-          {!hasLoaded && (
-            <div className="absolute z-[1] w-8 h-8 border-4 border-gray-300 border-t-green-500 rounded-full animate-spin" />
-          )}
 
           <video
             ref={videoRef}
-            poster={isIntersecting ? reel.posterUrl : undefined}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
               isPlaying ? 'opacity-100' : 'opacity-0'
             }`}
@@ -156,7 +156,7 @@ export default function ReelCard({
           />
         </div>
 
-        {!isActive && hasLoaded && (
+        {!isActive && (
           <div className="absolute top-3 left-3 pointer-events-none z-10">
             <div className="bg-white/20 backdrop-blur-md rounded-full border border-white/30 shadow-lg p-2 md:p-2.5 group-hover:bg-white/30 transition-all duration-200 ease-out">
               <Play
@@ -167,7 +167,7 @@ export default function ReelCard({
           </div>
         )}
 
-        {isActive && hasLoaded && (
+        {isActive && (
           <div className="absolute top-3 left-3 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <div className="bg-white/20 backdrop-blur-md rounded-full border border-white/30 shadow-lg p-2 md:p-2.5">
               <Pause
@@ -178,7 +178,7 @@ export default function ReelCard({
           </div>
         )}
 
-        {isActive && hasLoaded && (
+        {isActive && (
           <div
             className="absolute top-3 right-4 z-20 cursor-pointer"
             onClick={(e) => {

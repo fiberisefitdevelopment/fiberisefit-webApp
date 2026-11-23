@@ -489,7 +489,7 @@ export default function LyteProductPage({ slug }: LyteProductPageProps) {
 
                 {/* Trust strip */}
                 <div className="text-sm text-gray-600 mt-4 space-y-1">
-                  <p>Free shipping Pan India</p>
+                  <p>Free shipping PAN India</p>
                   <p className="text-xs text-gray-500">Free delivery · Easy returns</p>
                 </div>
 

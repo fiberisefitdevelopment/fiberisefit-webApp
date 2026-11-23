@@ -97,7 +97,7 @@ export default function ContactPolicyPage() {
           <p className="text-sm text-gray-600 leading-relaxed mb-4">
             Disclaimer: The above content is created at FIBERISE FIT PRIVATE LIMITED&apos;s sole discretion. Razorpay shall not be liable for any content provided here and shall not be responsible for any claims and liability that may arise due to merchant&apos;s non-adherence to it.
           </p>
-          <Link href="/contact-us" className="font-medium underline" style={{ color: '#102333' }}>
+          <Link href="/contact-us?from=nav" className="font-medium underline" style={{ color: '#102333' }}>
             Go to Contact page →
           </Link>
         </div>

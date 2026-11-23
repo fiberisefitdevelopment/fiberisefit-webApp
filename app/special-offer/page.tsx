@@ -1,5 +1,6 @@
 import SpecialOfferPage from '@/components/pages/SpecialOfferPage'
 import { getSpecialOfferMedia } from '@/lib/shopify/special-offer-media'
+import { shopifyDisplayUrl } from '@/lib/shopify-image'
 import type { Metadata } from 'next'
 
 export const revalidate = 300
@@ -34,10 +35,11 @@ export default async function Page() {
     descriptions: {} as Record<string, string>,
   }))
   const firstImage = media.images['starter-pack']?.[0]
+  const firstImageSrc = firstImage ? shopifyDisplayUrl(firstImage) : null
   return (
     <>
-      {firstImage ? (
-        <link rel="preload" as="image" href={firstImage} fetchPriority="high" />
+      {firstImageSrc ? (
+        <link rel="preload" as="image" href={firstImageSrc} fetchPriority="high" />
       ) : null}
       <SpecialOfferPage
         initialImages={media.images}

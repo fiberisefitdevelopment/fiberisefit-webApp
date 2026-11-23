@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import ResultsTimeline from '@/components/sections/ResultsTimeline'
 import {
   BENEFITS,
   BENEFIT_DIAGRAMS,
@@ -197,21 +198,8 @@ export default function PackGuidePage() {
             </p>
           </header>
 
-          <div className="mb-8 md:mb-10">
-            <Image
-              src="/timeline mobile.png"
-              alt="Measurable results from day 1: 60 minutes, 24 hours, 7 days, 30 days"
-              width={800}
-              height={600}
-              className="w-full h-auto rounded-2xl md:hidden"
-            />
-            <Image
-              src="/timeline-desktoppng.png"
-              alt="Measurable results from day 1: 60 minutes, 24 hours, 7 days, 30 days"
-              width={1200}
-              height={500}
-              className="w-full h-auto rounded-2xl hidden md:block"
-            />
+          <div className="mb-8 md:mb-10 overflow-hidden rounded-2xl">
+            <ResultsTimeline />
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-[#e8e4dc] bg-white mb-10 md:mb-14">

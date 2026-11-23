@@ -37,6 +37,22 @@ export default async function Home() {
 
   return (
     <div className="w-full">
+      <link
+        rel="preload"
+        as="image"
+        href="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/transformation-pack-mobile.webp?v=1795156864"
+        type="image/webp"
+        media="(max-width: 767px)"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="https://cdn.shopify.com/s/files/1/0959/3680/7187/files/transformation-pack-desktop.webp?v=1795156864"
+        type="image/webp"
+        media="(min-width: 768px)"
+        fetchPriority="high"
+      />
       {HOMEPAGE_SCHEMAS.map((schema, index) => (
         <script
           key={index}

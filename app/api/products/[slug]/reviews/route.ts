@@ -16,6 +16,9 @@ export interface ProductReview {
   createdAt: string
   translation?: string
   age?: number
+  adminReply?: string
+  adminReplyBy?: string
+  hidden?: boolean
 }
 
 function toISOString(value: unknown): string {
@@ -50,7 +53,49 @@ function serializeReview(doc: DocumentSnapshot): ProductReview {
     authorName: (d?.authorName as string) ?? 'Anonymous',
     authorId: d?.authorId ?? null,
     createdAt: withYear2026(createdAt),
+    adminReply: typeof d?.adminReply === 'string' ? d.adminReply : undefined,
+    adminReplyBy: typeof d?.adminReplyBy === 'string' ? d.adminReplyBy : undefined,
+    hidden: d?.hidden === true,
   }
+}
+
+async function applyReviewControls(reviews: ProductReview[]): Promise<ProductReview[]> {
+  if (!adminDb || reviews.length === 0) {
+    return reviews.filter((review) => !review.hidden)
+  }
+
+  const replies = new Map<string, { text: string; by: string }>()
+  const hidden = new Set<string>()
+
+  for (let index = 0; index < reviews.length; index += 50) {
+    const chunk = reviews.slice(index, index + 50).map((review) => review.id)
+    const [replySnaps, hideSnaps] = await Promise.all([
+      adminDb.getAll(...chunk.map((id) => adminDb!.collection('reviewReplies').doc(id))),
+      adminDb.getAll(...chunk.map((id) => adminDb!.collection('reviewModeration').doc(id))),
+    ])
+
+    replySnaps.forEach((snap) => {
+      if (!snap.exists) return
+      const text = String(snap.get('reply') || '').trim()
+      if (!text) return
+      replies.set(snap.id, {
+        text,
+        by: String(snap.get('repliedBy') || 'Fiberise Fit'),
+      })
+    })
+
+    hideSnaps.forEach((snap) => {
+      if (snap.exists && snap.get('hidden') === true) hidden.add(snap.id)
+    })
+  }
+
+  return reviews
+    .filter((review) => !review.hidden && !hidden.has(review.id))
+    .map((review) => {
+      const reply = replies.get(review.id)
+      if (!reply) return review
+      return { ...review, adminReply: reply.text, adminReplyBy: reply.by }
+    })
 }
 
 export async function GET(
@@ -95,12 +140,15 @@ export async function GET(
       .map((review) => ({ ...review, createdAt: withYear2026(review.createdAt) }))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-    const totalCount = allReviews.length
-    const sum = allReviews.reduce((acc, r) => acc + r.rating, 0)
+    const visibleReviews = (await applyReviewControls(allReviews)).map(
+      ({ hidden: _hidden, ...review }) => review
+    )
+    const totalCount = visibleReviews.length
+    const sum = visibleReviews.reduce((acc, r) => acc + r.rating, 0)
     const averageRating = totalCount > 0 ? Math.round((sum / totalCount) * 10) / 10 : 0
 
     return NextResponse.json({
-      reviews: allReviews,
+      reviews: visibleReviews,
       averageRating,
       totalCount,
     })

@@ -56,7 +56,7 @@ export default function Header() {
 
   const navLinks = [
     { name: 'SCIENCE', href: '/science' },
-    { name: 'CONTACT', href: '/contact-us' },
+    { name: 'CONTACT', href: '/contact-us?from=nav' },
     { name: 'LYTE', href: '/lyte' },
     { name: 'BUY', href: '/#products' },
   ]
@@ -74,10 +74,10 @@ export default function Header() {
         <div className="flex w-max animate-marquee-text whitespace-nowrap">
           {[...Array(20)].map((_, i) => (
             <div key={i} className="flex gap-12 flex-shrink-0 pr-12 items-center">
-              <span className="text-xs md:text-sm text-white tracking-wider">Introductory 50% OFF</span>
+              <span className="text-xs md:text-sm text-white tracking-wider">Introductory UpTo 50% OFF</span>
               <span className="text-xs md:text-sm text-white tracking-wider">India’s first Craving Control Supplement</span>
               <span className="text-xs md:text-sm text-white tracking-wider">Sustainable Weight Management</span>
-              <span className="text-xs md:text-sm text-white tracking-wider">Free Shipping Pan India</span>
+              <span className="text-xs md:text-sm text-white tracking-wider">Free Shipping PAN India</span>
             </div>
           ))}
         </div>
@@ -170,7 +170,7 @@ export default function Header() {
                       'text-[#1a1a1a]'
                     )}
                   >
-                    <Link href="/contact-us">CONTACT</Link>
+                    <Link href="/contact-us?from=nav">CONTACT</Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>

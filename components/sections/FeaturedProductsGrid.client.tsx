@@ -47,6 +47,14 @@ function isTransformation(title: string): boolean {
   return title.toLowerCase().includes('transformation')
 }
 
+const TRANSFORMATION_PACK_CATALOG_IMAGE =
+  'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Fyber_Craving_Control_Product_Set.png?v=1795161264'
+
+function catalogThumbnail(product: StorefrontProduct): string {
+  if (isTransformation(product.title)) return TRANSFORMATION_PACK_CATALOG_IMAGE
+  return product.image || '/placeholder-product.png'
+}
+
 function getCardConfig(title: string): CardConfig {
   const t = title.toLowerCase()
 
@@ -169,65 +177,61 @@ function ProductCard({
       {...(typeof copy === 'number' ? { 'data-copy': copy, 'data-index': index } : {})}
       className={`relative flex flex-col rounded-2xl overflow-hidden transition-[border-color,box-shadow] duration-300 ease-out ${cfg.wrapperClass} ${className}`}
     >
-      {cfg.hasBadge && cfg.isTopBanner ? (
-        <div
-          className="text-center py-2.5 text-[13px] font-black tracking-widest uppercase shadow-sm"
-          style={{ background: cfg.badgeBg, color: cfg.badgeTextColor }}
-        >
-          {cfg.badgeText}
-        </div>
-      ) : (
-        <div className="pt-10" />
-      )}
+      <Link
+        href={`/products/${product.slug}`}
+        tabIndex={ariaHidden ? -1 : undefined}
+        className="block text-center py-2 px-3 text-[13px] md:text-sm font-bold tracking-wide"
+        style={{ background: cfg.badgeBg, color: cfg.badgeTextColor }}
+      >
+        {cfg.title}
+      </Link>
 
-      <div className={`text-center px-6 ${cfg.isTopBanner ? 'pt-5' : 'pt-2'}`}>
-        <Link href={`/products/${product.slug}`} tabIndex={ariaHidden ? -1 : undefined}>
-          <h3 className="text-[24px] md:text-[26px] font-normal text-gray-900 leading-snug tracking-wide hover:opacity-75 transition-opacity">
-            {cfg.title}
-          </h3>
-        </Link>
-        <p className="text-sm text-gray-500 mt-1">{cfg.subtitle}</p>
+      <div className="px-5 pt-2.5 text-center">
+        <p className="text-sm text-gray-500">{cfg.subtitle}</p>
+        <div className="mt-1.5 flex items-center justify-center gap-1.5">
+          <StarRow score={cfg.ratingScore} />
+          <span className="text-[13px] font-semibold text-gray-800">{cfg.rating}/5</span>
+        </div>
       </div>
 
       <Link
         href={`/products/${product.slug}`}
-        className="block px-6 mt-5 mb-1"
+        className="block px-5 mt-2.5"
         tabIndex={ariaHidden ? -1 : undefined}
       >
-        <div className="relative w-full aspect-square overflow-hidden rounded-[11%] group">
+        <div className="relative w-full aspect-[5/4] overflow-hidden rounded-[11%] group">
           <Image
-            src={product.image || '/placeholder-product.png'}
+            src={catalogThumbnail(product)}
             alt={product.title}
             fill
             loading="lazy"
             sizes="(max-width: 768px) 78vw, (max-width: 1200px) 320px, 340px"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-gray-800 shadow-sm">
+            {cfg.bottomTextSmall}
+          </span>
         </div>
       </Link>
 
-      <div className="px-6 pb-6 mt-3 flex flex-col flex-grow text-center">
-        <p className="text-sm text-gray-500 mt-1">{cfg.bottomTextSmall}</p>
-
-        <div className="mt-4 flex items-end justify-center gap-2 flex-wrap">
-          <span className="text-lg text-gray-500 line-through font-light">₹{comparePrice}</span>
-          <span className={`text-4xl leading-none ${cfg.priceColorClass || 'font-normal text-gray-900'}`}>
+      <div className="px-5 pb-4 mt-2 flex flex-col flex-grow text-center">
+        <div className="flex flex-col items-center">
+          <span className={`text-[32px] leading-none ${cfg.priceColorClass || 'font-normal text-gray-900'}`}>
             ₹{displayPrice}
-          </span>
-        </div>
-
-        <p className="mt-2 text-sm text-gray-500 flex justify-center items-center">
-          {comparePrice > displayPrice && (
-            <span>
-              Save{' '}
-              <span className="text-red-500 font-bold ml-0.5">
+            {comparePrice > displayPrice && (
+              <sup className="ml-0.5 text-[11px] leading-none font-bold text-red-500 align-super tracking-normal drop-shadow-none">
                 {Math.round(((comparePrice - displayPrice) / comparePrice) * 100)}%
-              </span>
+              </sup>
+            )}
+          </span>
+          {comparePrice > displayPrice && (
+            <span className="mt-1 text-sm text-gray-400 line-through font-light">
+              ₹{comparePrice}
             </span>
           )}
-        </p>
+        </div>
 
-        <div className="mt-5 flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-2">
           <button
             type="button"
             aria-label={
@@ -285,15 +289,6 @@ function ProductCard({
             )}
           </button>
         </div>
-
-        <div className="mt-4 flex items-center justify-center gap-1.5">
-          <StarRow score={cfg.ratingScore} />
-          <span className="text-[13px] font-semibold text-gray-800">{cfg.rating}/5</span>
-        </div>
-
-        <p className="mt-4 text-[11px] text-gray-400 tracking-wide">
-          Free shipping · Secure checkout · No added sugar
-        </p>
       </div>
     </article>
   )

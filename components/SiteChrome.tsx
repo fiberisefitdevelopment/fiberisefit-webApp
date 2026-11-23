@@ -30,7 +30,13 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
       <AuthIdleWarmup />
       {isIsolatedPurchase ? <IsolatedPurchaseHeader /> : <Header />}
       <main className="min-h-screen">{children}</main>
-      {!isIsolatedPurchase && <Footer />}
+      {!isIsolatedPurchase && (
+        <Footer
+          mobileStickyClearance={
+            pathname === '/special-offer' || pathname.startsWith('/products/')
+          }
+        />
+      )}
       <CartDrawer isolatedPurchase={isIsolatedPurchase} />
     </>
   )

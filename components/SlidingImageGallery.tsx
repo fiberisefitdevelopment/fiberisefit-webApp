@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import { shopifyDisplayUrl } from '@/lib/shopify-image'
 
 type SlidingImageGalleryProps = {
   images: string[]
@@ -106,11 +107,7 @@ export default function SlidingImageGallery({
       >
         {slides.map((src, slideIndex) => {
           const imageIndex = count > 0 ? slideIndex % count : 0
-          const distance = Math.min(
-            Math.abs(imageIndex - safeIndex),
-            count - Math.abs(imageIndex - safeIndex)
-          )
-          const eager = distance <= 1
+          const isLcpSlide = slideIndex === 0
           return (
             <div
               key={`${src}-${slideIndex}`}
@@ -118,16 +115,16 @@ export default function SlidingImageGallery({
               style={{ flex: '0 0 100%' }}
             >
               <Image
-                src={src}
+                src={shopifyDisplayUrl(src)}
                 alt={slideIndex === count ? '' : `${alt} ${imageIndex + 1}`}
-                width={1200}
-                height={1200}
+                width={800}
+                height={800}
                 unoptimized={unoptimized}
                 sizes={sizes}
                 draggable={false}
-                {...(slideIndex === 0
+                {...(isLcpSlide
                   ? { priority: true as const }
-                  : { loading: (eager ? 'eager' : 'lazy') as 'eager' | 'lazy' })}
+                  : { loading: 'lazy' as const })}
                 className="h-full w-full object-contain"
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 onError={() => onImageError?.(imageIndex)}
