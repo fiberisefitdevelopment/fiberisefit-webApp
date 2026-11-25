@@ -173,14 +173,18 @@ function shopifyGalleryFor(handle: string, urls: string[]): string[] {
 export default function SpecialOfferPage({
   initialImages = {},
   initialDescriptions = {},
+  lockedPackageId,
 }: {
   initialImages?: Record<string, string[]>
   initialDescriptions?: Record<string, string>
+  lockedPackageId?: PackageOption['id']
 }) {
-  // Option 1 — Starter Pack (7 Days) selected by default
-  const [selectedPackage, setSelectedPackage] = useState<PackageOption>(
-    SPECIAL_OFFER_PACKAGES[0]
-  )
+  const offerPackages = lockedPackageId
+    ? SPECIAL_OFFER_PACKAGES.filter((pkg) => pkg.id === lockedPackageId)
+    : SPECIAL_OFFER_PACKAGES
+  const defaultPackage =
+    offerPackages[0] ?? SPECIAL_OFFER_PACKAGES[0]
+  const [selectedPackage, setSelectedPackage] = useState<PackageOption>(defaultPackage)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [imageError, setImageError] = useState<Record<string, boolean>>({})
   const [quantity, setQuantity] = useState(1)
@@ -448,7 +452,9 @@ export default function SpecialOfferPage({
       {/* Top Banner Notice */}
       <div className="hidden md:block bg-[#187254] text-white py-2.5 px-4 text-center text-xs sm:text-sm font-semibold tracking-wider uppercase">
         <span className="inline-block w-2 h-2 rounded-full bg-emerald-300 mr-2 animate-pulse" />
-        Exclusive Offer • 7, 30 & 90 Days Supply • Assorted Flavours
+        {lockedPackageId === 'transformation'
+          ? 'Exclusive Offer • 30 Days Transformation Pack • Assorted Flavours'
+          : 'Exclusive Offer • 7, 30 & 90 Days Supply • Assorted Flavours'}
       </div>
 
       {/* Hero Section */}
@@ -540,12 +546,25 @@ export default function SpecialOfferPage({
                 </div>
               </div>
 
-              {/* 3 Duration Options Selector */}
-              <PackageDurationSelector
-                packages={SPECIAL_OFFER_PACKAGES}
-                selectedPackageId={selectedPackage.id}
-                onSelect={handleSelectPackage}
-              />
+              {offerPackages.length > 1 ? (
+                <PackageDurationSelector
+                  packages={offerPackages}
+                  selectedPackageId={selectedPackage.id}
+                  onSelect={handleSelectPackage}
+                />
+              ) : (
+                <div className="rounded-xl border-2 border-black bg-[#faf8f5] px-4 py-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-700">
+                    Your pack
+                  </p>
+                  <p className="mt-1 text-base font-semibold text-gray-900">
+                    {selectedPackage.name} · {selectedPackage.duration}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {selectedPackage.servings} · {selectedPackage.flavour}
+                  </p>
+                </div>
+              )}
               <AssortedFlavourChips />
 
               <div className="flex items-center justify-between gap-3">

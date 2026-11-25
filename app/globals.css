@@ -405,3 +405,16 @@ img {
   }
 }
 
+/* Lift AiSensy / GetButton WhatsApp widget above the mobile sticky Buy Now bar */
+@media (max-width: 767px) {
+  html.has-mobile-sticky-cta .gb-widget,
+  html.has-mobile-sticky-cta [id^="gb-widget"],
+  html.has-mobile-sticky-cta [class*="gb-widget"],
+  html.has-mobile-sticky-cta [id*="aisensy"],
+  html.has-mobile-sticky-cta [class*="aisensy"],
+  html.has-mobile-sticky-cta iframe[title*="WhatsApp" i],
+  html.has-mobile-sticky-cta iframe[src*="whatsapp" i] {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+

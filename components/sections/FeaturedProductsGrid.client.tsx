@@ -47,12 +47,71 @@ function isTransformation(title: string): boolean {
   return title.toLowerCase().includes('transformation')
 }
 
+function isUltimate(title: string): boolean {
+  return title.toLowerCase().includes('ultimate')
+}
+
+function isElite(title: string): boolean {
+  return title.toLowerCase().includes('elite')
+}
+
 const TRANSFORMATION_PACK_CATALOG_IMAGE =
   'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/Fyber_Craving_Control_Product_Set.png?v=1795161264'
 
-function catalogThumbnail(product: StorefrontProduct): string {
-  if (isTransformation(product.title)) return TRANSFORMATION_PACK_CATALOG_IMAGE
-  return product.image || '/placeholder-product.png'
+type CatalogThumb = { src: string } | { mobile: string; desktop: string }
+
+function catalogThumbnail(product: StorefrontProduct): CatalogThumb {
+  if (isUltimate(product.title)) {
+    return {
+      mobile: '/catalog/ultimate-pack-mobile.webp',
+      desktop: '/catalog/ultimate-pack-desktop.webp',
+    }
+  }
+  if (isElite(product.title)) {
+    return {
+      mobile: '/catalog/elite-pack-mobile.webp',
+      desktop: '/catalog/elite-pack-desktop.webp',
+    }
+  }
+  if (isTransformation(product.title)) return { src: TRANSFORMATION_PACK_CATALOG_IMAGE }
+  return { src: product.image || '/placeholder-product.png' }
+}
+
+function CatalogCardImage({ product }: { product: StorefrontProduct }) {
+  const thumb = catalogThumbnail(product)
+  const imgClass = 'object-cover group-hover:scale-105 transition-transform duration-500'
+  if ('mobile' in thumb) {
+    return (
+      <>
+        <Image
+          src={thumb.mobile}
+          alt={product.title}
+          fill
+          loading="lazy"
+          sizes="78vw"
+          className={`md:hidden ${imgClass}`}
+        />
+        <Image
+          src={thumb.desktop}
+          alt=""
+          fill
+          loading="lazy"
+          sizes="(max-width: 1200px) 320px, 340px"
+          className={`hidden md:block ${imgClass}`}
+        />
+      </>
+    )
+  }
+  return (
+    <Image
+      src={thumb.src}
+      alt={product.title}
+      fill
+      loading="lazy"
+      sizes="(max-width: 768px) 78vw, (max-width: 1200px) 320px, 340px"
+      className={imgClass}
+    />
+  )
 }
 
 function getCardConfig(title: string): CardConfig {
@@ -62,8 +121,8 @@ function getCardConfig(title: string): CardConfig {
     return {
       hasBadge: true,
       badgeText: '120 DAYS',
-      badgeBg: 'linear-gradient(90deg, #2b5844, #1f4031)',
-      badgeTextColor: '#ffffff',
+      badgeBg: 'linear-gradient(90deg, #7a4450, #4e2a33)',
+      badgeTextColor: '#f7f0ea',
       isTopBanner: true,
       title: 'Elite Pack',
       subtitle: 'Best for long-term results',
@@ -72,7 +131,7 @@ function getCardConfig(title: string): CardConfig {
       rating: '4.8',
       ratingScore: 4.8,
       wrapperClass:
-        'border border-[#2b5844]/30 bg-[#faf8f5] hover:border-[#2b5844] hover:shadow-[0_10px_28px_rgba(43,88,68,0.2)]',
+        'border border-[#7a4450]/30 bg-[#faf8f5] hover:border-[#7a4450] hover:shadow-[0_10px_28px_rgba(78,42,51,0.18)]',
       priceColorClass: 'text-gray-900 font-normal',
     }
   }
@@ -200,14 +259,7 @@ function ProductCard({
         tabIndex={ariaHidden ? -1 : undefined}
       >
         <div className="relative w-full aspect-[5/4] overflow-hidden rounded-[11%] group">
-          <Image
-            src={catalogThumbnail(product)}
-            alt={product.title}
-            fill
-            loading="lazy"
-            sizes="(max-width: 768px) 78vw, (max-width: 1200px) 320px, 340px"
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+          <CatalogCardImage product={product} />
           <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-gray-800 shadow-sm">
             {cfg.bottomTextSmall}
           </span>

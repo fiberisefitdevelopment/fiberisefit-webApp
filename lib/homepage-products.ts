@@ -24,7 +24,7 @@ export const HERO_FALLBACK_PRODUCTS: Record<
     id: 'gid://shopify/ProductVariant/67585010434323',
     title: 'Ultimate Pack',
     price: 5999,
-    image: 'https://cdn.shopify.com/s/files/1/0959/3680/7187/files/A_90Days_-01.jpg?v=1791206641',
+    image: '/catalog/ultimate-pack-desktop.webp',
     slug: 'ultimate-pack',
   },
 }

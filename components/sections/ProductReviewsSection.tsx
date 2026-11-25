@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react'
-import { Star, Loader2, Send, Plus, ChevronDown } from 'lucide-react'
+import { Star, Loader2, Send, Plus, ChevronDown, ChevronRight } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 export interface ProductReview {
@@ -564,7 +564,8 @@ export default function ProductReviewsSection({ productSlug, productTitle }: Pro
                   <span className="rounded-full bg-[#187254]/10 px-2 py-0.5 text-[11px] font-bold tabular-nums group-hover:bg-white/20">
                     {sortedReviews.length - visibleCount}
                   </span>
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 md:hidden" />
+                  <ChevronDown className="hidden h-4 w-4 md:block" />
                 </button>
               </div>
             ) : null}

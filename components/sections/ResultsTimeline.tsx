@@ -31,7 +31,7 @@ export default function ResultsTimeline() {
       className="w-full bg-[#187254] px-4 py-10 sm:px-8 sm:py-12 md:px-10 md:py-14"
       aria-label="Measurable results from day 1"
     >
-      <h2 className="mb-8 text-center text-[15px] font-medium uppercase tracking-[0.24em] text-white sm:mb-10 sm:text-lg md:text-xl md:tracking-[0.28em]">
+      <h2 className="mb-8 whitespace-nowrap text-center text-[13px] font-medium uppercase tracking-[0.12em] text-white sm:mb-10 sm:text-lg sm:tracking-[0.2em] md:text-xl md:tracking-[0.24em]">
         Measurable Results from Day 1
       </h2>
       <div className="grid grid-cols-4 gap-2 sm:gap-4">
