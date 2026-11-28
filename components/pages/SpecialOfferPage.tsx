@@ -29,6 +29,7 @@ import ResultsTimeline from '@/components/sections/ResultsTimeline'
 import MoneyBackGuarantee from '@/components/sections/MoneyBackGuarantee'
 import OfferBenefitsSection from '@/components/sections/OfferBenefitsSection'
 import AssortedFlavourChips from '@/components/AssortedFlavourChips'
+import { formatInr } from '@/lib/utils'
 
 const ProductPageLowerSections = dynamic(
   () => import('@/components/sections/ProductPageLowerSections'),
@@ -563,6 +564,24 @@ export default function SpecialOfferPage({
                   <p className="text-sm text-gray-600">
                     {selectedPackage.servings} · {selectedPackage.flavour}
                   </p>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-2xl font-black leading-none text-black">
+                      ₹{formatInr(selectedPackage.price)}
+                    </span>
+                    {selectedPackage.comparePrice > selectedPackage.price ? (
+                      <>
+                        <span className="text-sm text-gray-400 line-through">
+                          ₹{formatInr(selectedPackage.comparePrice)}
+                        </span>
+                        <span className="text-xs font-bold text-red-600">
+                          {Math.round(
+                            (1 - selectedPackage.price / selectedPackage.comparePrice) * 100
+                          )}
+                          % OFF
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
               )}
               <AssortedFlavourChips />
